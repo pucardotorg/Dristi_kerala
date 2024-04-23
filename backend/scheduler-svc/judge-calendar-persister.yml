@@ -1,0 +1,28 @@
+serviceMaps:
+  serviceName: scheduler-services
+  mappings:
+    - version: 1.0
+      description: Update Judge calendar details in table
+      fromTopic: judge-calendar-update
+      isTransaction: true
+      queryMaps:
+        - query: UPDATE judge_calendar_rules SET judge_id = ?,rule_type = ?, date = ? , notes = ? ,createdby =?,lastmodifiedby =?,createdtime =?, lastmodifiedtime =? WHERE judge_calendar_id=?;
+          basePath:  $.*
+          jsonMaps:
+            - jsonPath: $.*.judgeId
+
+            - jsonPath: $.*.ruleType
+
+            - jsonPath: $.*.date
+
+            - jsonPath: $.*.notes
+
+            - jsonPath: $.*.id
+
+            - jsonPath: $.*.auditDetails.createdBy
+
+            - jsonPath: $.*.auditDetails.lastModifiedBy
+
+            - jsonPath: $.*.auditDetails.createdTime
+
+            - jsonPath: $.*.auditDetails.lastModifiedTime
