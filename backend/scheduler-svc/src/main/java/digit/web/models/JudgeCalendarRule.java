@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 import org.egov.tracer.model.AuditDetails;
 import org.springframework.validation.annotation.Validated;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 /**
- * JudgeCalendar
+ * JudgeCalendarRule
  */
 @Validated
 @jakarta.annotation.Generated(value = "org.egov.codegen.SpringBootCodegen", date = "2024-04-16T18:22:58.738027694+05:30[Asia/Kolkata]")
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class JudgeCalendar {
+public class JudgeCalendarRule {
 
     @JsonProperty("id")
     private String id;
@@ -32,7 +32,7 @@ public class JudgeCalendar {
     private String ruleType;        // possible values ----> "NON-WORKING-DAY",  "LEAVE",  “OTHER"
 
     @JsonProperty("date")
-    private LocalDateTime date;     // timestamp
+    private LocalDate date;     // timestamp
 
     @JsonProperty("notes")
     private String notes;

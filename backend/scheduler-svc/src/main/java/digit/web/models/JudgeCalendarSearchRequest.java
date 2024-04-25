@@ -21,7 +21,7 @@ import org.springframework.validation.annotation.Validated;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class JudgeAvailabilitySearchRequest {
+public class JudgeCalendarSearchRequest {
 
     @JsonProperty("RequestInfo")
     @Valid
