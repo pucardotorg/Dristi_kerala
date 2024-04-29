@@ -1,30 +1,28 @@
 package digit.web.models;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+import digit.web.models.enums.PeriodType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class HearingSearchCriteria {
+public class CalendarSearchCriteria implements SearchCriteria {
 
-
-    @JsonProperty("hearingIds")
-    private List<String> hearingIds;
+    @JsonProperty("tenantId")
+    private String tenantId;            // required field
 
     @JsonProperty("judgeId")
-    private String judgeId;
+    private String judgeId;             // required field
 
     @JsonProperty("courtId")
-    private String courtId;
+    private String courtId;             // required field
 
     @JsonProperty("fromDate")
     private LocalDate fromDate;
@@ -32,15 +30,8 @@ public class HearingSearchCriteria {
     @JsonProperty("toDate")
     private LocalDate toDate;
 
-    //TODO: this should be enum
-    @JsonProperty("hearingType")
-    private String hearingType;
-
-    @JsonProperty("caseId")
-    private String caseId;
-
-    @JsonProperty("tenantId")
-    private String tenantId;
+    @JsonProperty("periodType")
+    private PeriodType periodType;
 
 
 }
