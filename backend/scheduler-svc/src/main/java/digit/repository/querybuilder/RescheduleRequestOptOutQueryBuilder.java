@@ -11,7 +11,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 
 @Component
-public class OptOutQueryBuilder {
+public class RescheduleRequestOptOutQueryBuilder {
 
     @Autowired
     private QueryBuilderHelper queryBuilderHelper;

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.UUID;
 
 @Component
-public class OptOutEnrichment {
+public class RescheduleRequestOptOutEnrichment {
     public void enrichCreateRequest(OptOutRequest request) {
 
         AuditDetails auditDetails = getAuditDetailsScheduleHearing(request.getRequestInfo());

@@ -2,14 +2,13 @@ package digit.service;
 
 
 import digit.config.Configuration;
-import digit.enrichment.OptOutEnrichment;
+import digit.enrichment.RescheduleRequestOptOutEnrichment;
 import digit.kafka.Producer;
-import digit.repository.OptOutRepository;
-import digit.validator.OptOutValidator;
+import digit.repository.RescheduleRequestOptOutRepository;
+import digit.validator.RescheduleRequestOptOutValidator;
 import digit.web.models.OptOut;
 import digit.web.models.OptOutRequest;
 import digit.web.models.OptOutSearchRequest;
-import digit.web.models.Workflow;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,15 +17,15 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class OptOutService {
+public class RescheduleRequestOptOutService {
 
     @Autowired
-    private OptOutRepository optOutRepository;
+    private RescheduleRequestOptOutRepository rescheduleRequestOptOutRepository;
 
     @Autowired
-    private OptOutValidator optOutValidator;
+    private RescheduleRequestOptOutValidator rescheduleRequestOptOutValidator;
     @Autowired
-    private OptOutEnrichment optOutEnrichment;
+    private RescheduleRequestOptOutEnrichment rescheduleRequestOptOutEnrichment;
 
     @Autowired
     private Producer producer;
@@ -40,9 +39,9 @@ public class OptOutService {
 
     public List<OptOut> create(OptOutRequest request) {
 
-        optOutValidator.validateRequest(request);
+        rescheduleRequestOptOutValidator.validateRequest(request);
 
-        optOutEnrichment.enrichCreateRequest(request);
+        rescheduleRequestOptOutEnrichment.enrichCreateRequest(request);
 
         producer.push(config.getOptOutTopic(), request.getOptOuts());
 
@@ -51,9 +50,9 @@ public class OptOutService {
 
     public List<OptOut> update(OptOutRequest request) {
 
-        optOutValidator.validateUpdateRequest(request);
+        rescheduleRequestOptOutValidator.validateUpdateRequest(request);
 
-        optOutEnrichment.enrichUpdateRequest(request);
+        rescheduleRequestOptOutEnrichment.enrichUpdateRequest(request);
 
         producer.push(config.getOptOutUpdateTopic(), request.getOptOuts());
 
@@ -61,6 +60,6 @@ public class OptOutService {
     }
 
     public List<OptOut> search(OptOutSearchRequest request) {
-        return optOutRepository.getOptOut(request.getCriteria());
+        return rescheduleRequestOptOutRepository.getOptOut(request.getCriteria());
     }
 }

@@ -1,7 +1,7 @@
 package digit.validator;
 
 
-import digit.repository.OptOutRepository;
+import digit.repository.RescheduleRequestOptOutRepository;
 import digit.web.models.OptOut;
 import digit.web.models.OptOutRequest;
 import digit.web.models.OptOutSearchCriteria;
@@ -13,10 +13,10 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class OptOutValidator {
+public class RescheduleRequestOptOutValidator {
 
     @Autowired
-    private OptOutRepository repository;
+    private RescheduleRequestOptOutRepository repository;
 
     public void validateRequest(OptOutRequest request) {
 

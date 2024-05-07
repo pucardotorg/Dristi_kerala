@@ -16,7 +16,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Component
-public class OptOutRowMapper implements RowMapper<OptOut> {
+public class RescheduleRequestOptOutRowMapper implements RowMapper<OptOut> {
 
     @Autowired
     private ObjectMapper objectMapper;

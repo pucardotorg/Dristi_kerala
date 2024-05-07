@@ -1,9 +1,8 @@
 package digit.repository;
 
 
-import digit.repository.querybuilder.OptOutQueryBuilder;
-import digit.repository.rowmapper.OptOutRowMapper;
-import digit.web.models.HearingSearchCriteria;
+import digit.repository.querybuilder.RescheduleRequestOptOutQueryBuilder;
+import digit.repository.rowmapper.RescheduleRequestOptOutRowMapper;
 import digit.web.models.OptOut;
 import digit.web.models.OptOutSearchCriteria;
 import lombok.extern.slf4j.Slf4j;
@@ -16,13 +15,13 @@ import java.util.List;
 
 @Repository
 @Slf4j
-public class OptOutRepository {
+public class RescheduleRequestOptOutRepository {
 
     @Autowired
-    private OptOutRowMapper optOutRowMapper;
+    private RescheduleRequestOptOutRowMapper rescheduleRequestOptOutRowMapper;
 
     @Autowired
-    private OptOutQueryBuilder optOutQueryBuilder;
+    private RescheduleRequestOptOutQueryBuilder optOutQueryBuilder;
 
 
     @Autowired
@@ -33,7 +32,7 @@ public class OptOutRepository {
         List<Object> preparedStmtList = new ArrayList<>();
         String query = optOutQueryBuilder.getOptOutQuery(optOutSearchCriteria, preparedStmtList);
         log.debug("Final query: " + query);
-        return jdbcTemplate.query(query, preparedStmtList.toArray(),optOutRowMapper);
+        return jdbcTemplate.query(query, preparedStmtList.toArray(), rescheduleRequestOptOutRowMapper);
 
 
     }
