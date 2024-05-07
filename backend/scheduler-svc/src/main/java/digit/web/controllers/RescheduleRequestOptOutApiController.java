@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RestController("optOutApiController")
+@RestController("rescheduleRequestOptOutApiController")
 @RequestMapping("")
-public class OptOutApiController {
+public class RescheduleRequestOptOutApiController {
 
     @Autowired
     private RescheduleRequestOptOutService rescheduleRequestOptOutService;
