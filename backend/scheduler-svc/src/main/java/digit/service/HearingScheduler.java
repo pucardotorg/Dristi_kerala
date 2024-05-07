@@ -1,4 +1,4 @@
-package digit.helper;
+package digit.service;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
