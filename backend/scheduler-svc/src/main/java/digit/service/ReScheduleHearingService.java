@@ -7,6 +7,8 @@ import digit.kafka.Producer;
 import digit.repository.ReScheduleRequestRepository;
 import digit.validator.ReScheduleRequestValidator;
 import digit.web.models.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -21,6 +23,7 @@ import java.util.List;
 public class ReScheduleHearingService {
 
 
+    private static final Logger log = LoggerFactory.getLogger(ReScheduleHearingService.class);
     private final Configuration config;
     private ReScheduleRequestRepository repository;
     private ReScheduleRequestValidator validator;
@@ -48,21 +51,26 @@ public class ReScheduleHearingService {
     }
 
     public List<ReScheduleHearing> create(ReScheduleHearingRequest reScheduleHearingsRequest) {
-        List<ReScheduleHearing> reScheduleHearing = reScheduleHearingsRequest.getReScheduleHearing();
+            log.info("operation = create, result = IN_PROGRESS,  RescheduledRequest = {}", reScheduleHearingsRequest.getReScheduleHearing());
 
-        validator.validateRescheduleRequest(reScheduleHearingsRequest);
+            List<ReScheduleHearing> reScheduleHearing = reScheduleHearingsRequest.getReScheduleHearing();
 
-        enrichment.enrichRescheduleRequest(reScheduleHearingsRequest);
+            validator.validateRescheduleRequest(reScheduleHearingsRequest);
 
-        workflowService.updateWorkflowStatus(reScheduleHearingsRequest);
+            enrichment.enrichRescheduleRequest(reScheduleHearingsRequest);
 
-        producer.push(config.getRescheduleRequestCreateTopic(), reScheduleHearing);
+            workflowService.updateWorkflowStatus(reScheduleHearingsRequest);
 
-        return reScheduleHearing;
+            producer.push(config.getRescheduleRequestCreateTopic(), reScheduleHearing);
+
+            log.info("operation = create, result=SUCCESS, ReScheduleHearing={}", reScheduleHearing);
+
+            return reScheduleHearing;
 
     }
 
     public List<ReScheduleHearing> update(ReScheduleHearingRequest reScheduleHearingsRequest) {
+        log.info("operation = update, result = IN_PROGRESS,  RescheduledRequest = {}", reScheduleHearingsRequest.getReScheduleHearing());
 
         List<ReScheduleHearing> existingReScheduleHearingsReq = validator.validateExistingApplication(reScheduleHearingsRequest);
 
@@ -75,6 +83,7 @@ public class ReScheduleHearingService {
         hearingScheduler.scheduleHearingForApprovalStatus(reScheduleHearingsRequest);
 
         producer.push(config.getUpdateRescheduleRequestTopic(), reScheduleHearingsRequest.getReScheduleHearing());
+        log.info("operation = create, result = SUCCESS, ReScheduleHearing={}", existingReScheduleHearingsReq);
 
         return reScheduleHearingsRequest.getReScheduleHearing();
 
@@ -85,6 +94,7 @@ public class ReScheduleHearingService {
     }
 
     public List<ReScheduleHearing> bulkReschedule(BulkReScheduleHearingRequest request) {
+        log.info("operation = bulkReschedule, result = IN_PROGRESS,  BulkRescheduling = {}", request.getBulkRescheduling());
 
         BulkReschedulingOfHearings bulkRescheduling = request.getBulkRescheduling();
 
@@ -154,11 +164,13 @@ public class ReScheduleHearingService {
         hearingService.update(ScheduleHearingRequest.builder()
                 .hearing(hearings).requestInfo(request.getRequestInfo()).build());
 
+        log.info("operation = bulkReschedule, result = SUCCESS, ReScheduleHearing={}", reScheduleHearings);
 
         return reScheduleHearings;
     }
 
     private List<ReScheduleHearing> createReschedulingRequest(List<ScheduleHearing> hearings, String requesterId) {
+        log.info("operation=createReschedulingRequest, result=IN_PROGRESS, hearings={}", hearings);
         List<ReScheduleHearing> resultList = new ArrayList<>();
 
         Workflow workflow = Workflow.builder().action("AUTO_SCHEDULE").assignees(new ArrayList<>()).comment("bulk reschedule by :" + requesterId).build();
@@ -176,6 +188,7 @@ public class ReScheduleHearingService {
             resultList.add(reScheduleHearingReq);
 
         }
+        log.info("operation= createReschedulingRequest, result=SUCCESS, ReScheduleHearing={}", resultList);
         return resultList;
     }
 }

@@ -8,12 +8,15 @@ import digit.repository.HearingRepository;
 import digit.validator.HearingValidator;
 import digit.web.models.*;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Slf4j
 public class HearingService {
 
 
@@ -38,29 +41,34 @@ public class HearingService {
 
 
     public List<ScheduleHearing> schedule(ScheduleHearingRequest schedulingRequests) {
+            log.info("operation = schedule, result = IN_PROGRESS, ScheduleHearingRequest={}, Hearing={}", schedulingRequests, schedulingRequests.getHearing());
 
-        //validate hearing request here
-        hearingValidator.validateHearing(schedulingRequests.getHearing());
+            //validate hearing request here
+            hearingValidator.validateHearing(schedulingRequests.getHearing());
 
-        // enhance the hearing request here
-        hearingEnrichment.enrichScheduleHearing(schedulingRequests.getRequestInfo(), schedulingRequests.getHearing());
+            // enhance the hearing request here
+            hearingEnrichment.enrichScheduleHearing(schedulingRequests.getRequestInfo(), schedulingRequests.getHearing());
 
-        //push to kafka
-        producer.push(config.getScheduleHearingTopic(), schedulingRequests.getHearing());
+            //push to kafka
+            producer.push(config.getScheduleHearingTopic(), schedulingRequests.getHearing());
 
-        return schedulingRequests.getHearing();
+            log.info("operation = schedule, result = SUCCESS, ScheduleHearing={}", schedulingRequests.getHearing());
+
+            return schedulingRequests.getHearing();
     }
 
     // to update the status of existing hearing to reschedule
     public  List<ScheduleHearing> update(ScheduleHearingRequest scheduleHearingRequest) {
+            log.info("operation = update, result = IN_PROGRESS, ScheduleHearingRequest={}, Hearing={}", scheduleHearingRequest, scheduleHearingRequest.getHearing());
+            hearingValidator.validateHearingOnUpdate(scheduleHearingRequest);
 
-        hearingValidator.validateHearingOnUpdate(scheduleHearingRequest);
+            hearingEnrichment.enrichUpdateScheduleHearing(scheduleHearingRequest.getRequestInfo(), scheduleHearingRequest.getHearing());
 
-        hearingEnrichment.enrichUpdateScheduleHearing(scheduleHearingRequest.getRequestInfo(), scheduleHearingRequest.getHearing());
+            producer.push(config.getScheduleHearingUpdateTopic(), scheduleHearingRequest.getHearing());
 
-        producer.push(config.getScheduleHearingUpdateTopic(), scheduleHearingRequest.getHearing());
+            log.info("operation = update, result = SUCCESS, ScheduleHearing={}", scheduleHearingRequest.getHearing());
 
-        return scheduleHearingRequest.getHearing();
+            return scheduleHearingRequest.getHearing();
 
     }
 

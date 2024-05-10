@@ -12,6 +12,7 @@ import digit.web.models.ReScheduleHearing;
 import digit.web.models.ReScheduleHearingRequest;
 import digit.web.models.Workflow;
 import digit.web.models.enums.Status;
+import lombok.extern.slf4j.Slf4j;
 import org.egov.common.contract.models.RequestInfoWrapper;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.contract.request.User;
@@ -28,6 +29,7 @@ import java.util.List;
 
 
 @Service
+@Slf4j
 public class WorkflowService {
 
     @Autowired
@@ -40,53 +42,69 @@ public class WorkflowService {
     private Configuration config;
 
     public void updateWorkflowStatus(ReScheduleHearingRequest reScheduleHearingRequest) {
-        reScheduleHearingRequest.getReScheduleHearing().forEach(application -> {
-            ProcessInstance processInstance = getProcessInstanceForHearingReScheduler(application, reScheduleHearingRequest.getRequestInfo());
-            ProcessInstanceRequest workflowRequest = new ProcessInstanceRequest(reScheduleHearingRequest.getRequestInfo(), Collections.singletonList(processInstance));
-            State state = callWorkFlow(workflowRequest);
-            application.setStatus(Status.fromValue(state.getApplicationStatus()));
-        });
+        try {
+            log.info("operation = updateWorkflowStatus, result = IN_PROGRESS, ReScheduleHearingRequest={}", reScheduleHearingRequest);
+            reScheduleHearingRequest.getReScheduleHearing().forEach(application -> {
+                ProcessInstance processInstance = getProcessInstanceForHearingReScheduler(application, reScheduleHearingRequest.getRequestInfo());
+                ProcessInstanceRequest workflowRequest = new ProcessInstanceRequest(reScheduleHearingRequest.getRequestInfo(), Collections.singletonList(processInstance));
+                State state = callWorkFlow(workflowRequest);
+                application.setStatus(Status.fromValue(state.getApplicationStatus()));
+            });
+            log.info("operation= updateWorkflowStatus, result=SUCCESS, ReScheduleHearingRequest={}", reScheduleHearingRequest);
+        } catch (Exception e){
+            log.info("operation= updateWorkflowStatus, result=FAILURE, message={}", e.getMessage());
+        }
     }
 
     public State callWorkFlow(ProcessInstanceRequest workflowReq) {
-
-        ProcessInstanceResponse response = null;
-        StringBuilder url = new StringBuilder(config.getWfHost().concat(config.getWfTransitionPath()));
-        Object optional = repository.fetchResult(url, workflowReq);
-        response = mapper.convertValue(optional, ProcessInstanceResponse.class);
-        return response.getProcessInstances().get(0).getState();
+        try {
+            ProcessInstanceResponse response = null;
+            StringBuilder url = new StringBuilder(config.getWfHost().concat(config.getWfTransitionPath()));
+            Object optional = repository.fetchResult(url, workflowReq);
+            response = mapper.convertValue(optional, ProcessInstanceResponse.class);
+            return response.getProcessInstances().get(0).getState();
+        }catch (Exception e){
+            log.info("operation=callWorkFlow, result=FAILURE,  message", e);
+            throw new CustomException("DK_SH_APP_ERR", e.getMessage());
+        }
     }
 
     private ProcessInstance getProcessInstanceForHearingReScheduler(ReScheduleHearing application, RequestInfo requestInfo) {
-        Workflow workflow = application.getWorkflow();
+        try {
+            log.info("operation= getProcessInstanceForHearingReScheduler, result=IN_PROGRESS, judgeId={}, tenantId={}", application.getJudgeId(), application.getTenantId());
+            Workflow workflow = application.getWorkflow();
 
-        ProcessInstance processInstance = new ProcessInstance();
-        processInstance.setBusinessId(application.getRescheduledRequestId());
-        processInstance.setAction(workflow.getAction());
-        processInstance.setModuleName("reschedule-hearing-services-test");
-        processInstance.setTenantId(application.getTenantId());
-        processInstance.setBusinessService("RESCHEDULER-test");
-        processInstance.setDocuments(workflow.getDocuments());
-        processInstance.setComment(workflow.getComment());
+            ProcessInstance processInstance = new ProcessInstance();
+            processInstance.setBusinessId(application.getRescheduledRequestId());
+            processInstance.setAction(workflow.getAction());
+            processInstance.setModuleName("reschedule-hearing-services-test");
+            processInstance.setTenantId(application.getTenantId());
+            processInstance.setBusinessService("RESCHEDULER-test");
+            processInstance.setDocuments(workflow.getDocuments());
+            processInstance.setComment(workflow.getComment());
 
-        if (!CollectionUtils.isEmpty(workflow.getAssignees())) {
-            List<User> users = new ArrayList<>();
+            if (!CollectionUtils.isEmpty(workflow.getAssignees())) {
+                List<User> users = new ArrayList<>();
 
-            workflow.getAssignees().forEach(uuid -> {
-                User user = new User();
-                user.setUuid(uuid);
-                users.add(user);
-            });
+                workflow.getAssignees().forEach(uuid -> {
+                    User user = new User();
+                    user.setUuid(uuid);
+                    users.add(user);
+                });
 
-            processInstance.setAssignes(users);
+                processInstance.setAssignes(users);
+            }
+            log.info("operation= getProcessInstanceForHearingReScheduler, result=SUCCESS, judgeId={}, processInstanceAction={}", application.getJudgeId(), processInstance.getAction());
+            return processInstance;
+        } catch (Exception e){
+            log.info("operation=getProcessInstanceForHearingReScheduler, result=FAILURE, judgeId={}, message", application.getJudgeId(), e);
+            throw new CustomException("DK_SH_APP_ERR", "Failed to get Process Instance");
         }
-
-        return processInstance;
 
     }
 
     public ProcessInstance getCurrentWorkflow(RequestInfo requestInfo, String tenantId, String businessId) {
-
+        log.info("operation=getCurrentWorkflow, result=IN_PROCESS, tenantId={}, businessId={}", tenantId, businessId);
         RequestInfoWrapper requestInfoWrapper = RequestInfoWrapper.builder().requestInfo(requestInfo).build();
 
         StringBuilder url = getSearchURLWithParams(tenantId, businessId);
@@ -100,14 +118,16 @@ public class WorkflowService {
             throw new CustomException("PARSING_ERROR", "Failed to parse workflow search response");
         }
 
-        if (response != null && !CollectionUtils.isEmpty(response.getProcessInstances()) && response.getProcessInstances().get(0) != null)
+        if (response != null && !CollectionUtils.isEmpty(response.getProcessInstances()) && response.getProcessInstances().get(0) != null) {
+            log.info("operation= getCurrentWorkflow, result=SUCCESS, ProcessInstance={}", response.getProcessInstances());
             return response.getProcessInstances().get(0);
-
+        }
         return null;
     }
 
 
     private BusinessService getBusinessService(ReScheduleHearing application, RequestInfo requestInfo) {
+        log.info("operation = getBusinessService, result=IN_PROGRESS, judgeId={}, tenantId={}", application.getJudgeId(), application.getTenantId());
         String tenantId = application.getTenantId();
         StringBuilder url = getSearchURLWithParams(tenantId, "RESCHEDULER-test");
         RequestInfoWrapper requestInfoWrapper = RequestInfoWrapper.builder().requestInfo(requestInfo).build();
@@ -121,6 +141,8 @@ public class WorkflowService {
 
         if (CollectionUtils.isEmpty(response.getBusinessServices()))
             throw new CustomException("BUSINESSSERVICE_NOT_FOUND", "The businessService " + "RESCHEDULER-test" + " is not found");
+
+        log.info("operation=getBusinessService, result=SUCCESS, judgeId={}, BusinessServiceResponse={}", application.getJudgeId(), response.getBusinessServices());
 
         return response.getBusinessServices().get(0);
     }

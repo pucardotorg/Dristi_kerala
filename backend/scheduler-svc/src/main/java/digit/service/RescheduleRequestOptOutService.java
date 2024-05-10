@@ -38,6 +38,7 @@ public class RescheduleRequestOptOutService {
 
 
     public List<OptOut> create(OptOutRequest request) {
+        log.info("operation = create, result = IN_PROGRESS, OptOut = {}", request.getOptOuts());
 
         rescheduleRequestOptOutValidator.validateRequest(request);
 
@@ -47,16 +48,21 @@ public class RescheduleRequestOptOutService {
 
         producer.push("check-opt-out", request);
 
+        log.info("operation = create, result = SUCCESS, OptOut = {}", request.getOptOuts());
+
         return request.getOptOuts();
     }
 
     public List<OptOut> update(OptOutRequest request) {
+        log.info("operation = update, result = IN_PROGRESS, OptOut = {}", request.getOptOuts());
 
         rescheduleRequestOptOutValidator.validateUpdateRequest(request);
 
         rescheduleRequestOptOutEnrichment.enrichUpdateRequest(request);
 
         producer.push(config.getOptOutUpdateTopic(), request.getOptOuts());
+
+        log.info("operation = update, result = SUCCESS, OptOut = {}", request.getOptOuts());
 
         return request.getOptOuts();
     }

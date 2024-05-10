@@ -32,16 +32,23 @@ public class HearingScheduler {
 
 
     public void scheduleHearingForApprovalStatus(ReScheduleHearingRequest reScheduleHearingsRequest) {
+        try {
+            log.info("operation = scheduleHearingForApprovalStatus, result = IN_PROGRESS, RescheduledRequest = {}", reScheduleHearingsRequest.getReScheduleHearing());
+            List<ReScheduleHearing> hearingsNeedToBeSchedule = reScheduleHearingsRequest.getReScheduleHearing()
+                    .stream()
+                    .filter((element) -> Objects.equals(element.getWorkflow().getAction(), "APPROVE"))
+                    .toList();
 
-        List<ReScheduleHearing> hearingsNeedToBeSchedule = reScheduleHearingsRequest.getReScheduleHearing()
-                .stream()
-                .filter((element) -> Objects.equals(element.getWorkflow().getAction(), "APPROVE"))
-                .toList();
+            ReScheduleHearingRequest request = ReScheduleHearingRequest.builder().reScheduleHearing(hearingsNeedToBeSchedule)
+                    .requestInfo(reScheduleHearingsRequest.getRequestInfo()).build();
 
-        ReScheduleHearingRequest request = ReScheduleHearingRequest.builder().reScheduleHearing(hearingsNeedToBeSchedule)
-                .requestInfo(reScheduleHearingsRequest.getRequestInfo()).build();
+            if (!hearingsNeedToBeSchedule.isEmpty()) producer.push("schedule-hearing-to-block-calendar", request);
+            log.info("operation = scheduleHearingForApprovalStatus, result = SUCCESS");
 
-        if (!hearingsNeedToBeSchedule.isEmpty()) producer.push("schedule-hearing-to-block-calendar", request);
+        } catch (Exception e){
+            log.info("operation = scheduleHearingForApprovalStatus, result = FAILURE, message={}", e.getMessage());
+        }
+
     }
 
 
@@ -49,6 +56,7 @@ public class HearingScheduler {
     public void updateRequestForBlockCalendar(HashMap<String, Object> record) {
 
         try {
+            log.info("operation = updateRequestForBlockCalendar, result = IN_PROGRESS, record = {}", record);
 
             ReScheduleHearingRequest hearingUpdateRequest = mapper.convertValue(record, ReScheduleHearingRequest.class);
             RequestInfo requestInfo = hearingUpdateRequest.getRequestInfo();
@@ -103,9 +111,12 @@ public class HearingScheduler {
 
 
             }
+            log.info("operation = updateRequestForBlockCalendar, result = SUCCESS");
+
         } catch (Exception e) {
             log.error("KAFKA_PROCESS_ERROR:", e);
             log.error("DK_SH_APP_ERR: error while blocking the calendar", e);
+            log.info("operation = updateRequestForBlockCalendar, result = FAILURE, message = {}", e.getMessage());
         }
     }
 
@@ -113,6 +124,8 @@ public class HearingScheduler {
 
 
         try {
+            log.info("operation = checkAndScheduleHearingForOptOut, result = IN_PROGRESS, record = {}", record);
+
             OptOutRequest optOutRequest = mapper.convertValue(record, OptOutRequest.class);
             RequestInfo requestInfo = optOutRequest.getRequestInfo();
 
@@ -129,8 +142,13 @@ public class HearingScheduler {
                                 .status(Status.BLOCKED).build()).build());
 
             }));
+            log.info("operation = checkAndScheduleHearingForOptOut, result = SUCCESS");
+
         } catch (Exception e) {
             log.error("KAFKA_PROCESS_ERROR:", e);
+            log.info("operation = checkAndScheduleHearingForOptOut, result = FAILURE, message = {}", e.getMessage());
+
         }
+
     }
 }
