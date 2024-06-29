@@ -21,12 +21,12 @@ jobs:
   #        Merge_Commit=$(curl -L -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${{ secrets.GHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER" | jq -r '.merge_commit_sha')
   #        echo "Merge_Commit=$Merge_Commit" >> $GITHUB_ENV
 
-  - name: Build and Push Docker image for summons-svc
-    run: |
-      docker build --build-arg WORK_DIR="backend/summons-svc" -t pucarsolutionsdev.azurecr.io/summons-svc:v1.0.0-${{ github.sha }} -f build/maven/Dockerfile .
-      docker push pucarsolutionsdev.azurecr.io/summons-svc:v1.0.0-${{ github.sha }}
-  - name: Build and Push Docker image for summons-svc_DB
-    run: |
-      docker build  -t pucarsolutionsdev.azurecr.io/summons-svc_db:v1.0.0-${{ github.sha }} -f  Dockerfile .
-      docker push pucarsolutionsdev.azurecr.io/summons-svc_db:v1.0.0-${{ github.sha }}
-    working-directory: backend/summons-svc/src/main/resources/db
+      - name: Build and Push Docker image for summons-svc
+        run: |
+          docker build --build-arg WORK_DIR="backend/summons-svc" -t pucarsolutionsdev.azurecr.io/summons-svc:v1.0.0-${{ github.sha }} -f build/maven/Dockerfile .
+          docker push pucarsolutionsdev.azurecr.io/summons-svc:v1.0.0-${{ github.sha }}
+      - name: Build and Push Docker image for summons-svc_DB
+        run: |
+          docker build  -t pucarsolutionsdev.azurecr.io/summons-svc_db:v1.0.0-${{ github.sha }} -f  Dockerfile .
+          docker push pucarsolutionsdev.azurecr.io/summons-svc_db:v1.0.0-${{ github.sha }}
+        working-directory: backend/summons-svc/src/main/resources/db
