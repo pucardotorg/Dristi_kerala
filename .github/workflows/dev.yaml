@@ -1,21 +1,21 @@
 name: Dristi-kerala Image Build workflow
 on:
+  push:
+    branches:
+      - summons_changes
   pull_request:
     types:
       - closed
     branches:
-      - develop
-#  push:
-#    branches:
-#      - develop
+      - summons_changes
   workflow_dispatch:
-
+ 
 jobs:
   image-build:
     name: image-build
     uses: ./.github/workflows/Image-build.yaml
     secrets: inherit
-
+ 
   Workflow_Trigger:
     runs-on: ubuntu-latest
     needs: image-build
@@ -26,4 +26,4 @@ jobs:
            -H "Accept: application/vnd.github.v3+json" \
            -H "Authorization: token ${{ secrets.GHUB_TOKEN }}" \
            https://api.github.com/repos/pucardotorg/pucar-Devops/actions/workflows/solutions-dev.yaml/dispatches \
-           -d '{"ref":"Scheduler-Deploy"}'
+           -d '{"ref":"summons-Deploy"}'
