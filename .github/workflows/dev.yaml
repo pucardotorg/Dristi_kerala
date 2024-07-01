@@ -11,9 +11,28 @@ on:
   workflow_dispatch:
 
 jobs:
+  Intro:
+    name: Introduction
+    run: echo "Image build for Solutions Started"
+
   image-build:
     name: image-build
     uses: ./.github/workflows/Image-build.yaml
+    secrets: inherit
+
+  Image-build-Advocate:
+    name: Image-build-Advocate
+    uses: ./.github/workflows/Image-build-Advocate.yaml
+    secrets: inherit
+
+  image-build-Digit-Ui:
+    name: image-build-Digit-Ui
+    uses: ./.github/workflows/image-build-Digit-Ui.yaml
+    secrets: inherit
+
+  Image-build-Payment-calculator:
+    name: Image-build-Payment-calculator
+    uses: ./.github/workflows/Image-build-Payment-calculator.yaml
     secrets: inherit
 
   Workflow_Trigger:
