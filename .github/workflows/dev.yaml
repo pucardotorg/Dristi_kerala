@@ -12,8 +12,10 @@ on:
 
 jobs:
   Intro:
-    name: Introduction
-    run: echo "Image build for Solutions Started"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Introduction
+        run: echo "Image build for Solutions Started"
 
   image-build:
     name: Scheduler Image Build workflow
