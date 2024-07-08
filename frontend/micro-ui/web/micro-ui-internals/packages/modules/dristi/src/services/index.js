@@ -76,4 +76,37 @@ export const DRISTIService = {
       data,
       params,
     }),
+  updateEvidence: (data, params) =>
+    Request({
+      url: Urls.dristi.evidenceUpdate,
+      useCache: false,
+      userService: false,
+      data,
+      params,
+    }),
+  createEvidence: (data, params) =>
+    Request({
+      url: Urls.dristi.evidenceCreate,
+      useCache: false,
+      userService: false,
+      data,
+      params,
+    }),
+  searchHearings: (data, params) => {
+    return Request({
+      url: Urls.dristi.searchHearings,
+      useCache: false,
+      userService: false,
+      data,
+      params,
+    });
+  },
+  createDemand: (data, params) =>
+    Request({
+      url: Urls.dristi.demandCreate,
+      useCache: false,
+      userService: false,
+      data,
+      params,
+    }),
 };

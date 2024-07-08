@@ -34,7 +34,7 @@ const SelectUserTypeComponent = ({ t, config, onSelect, formData = {}, errors, f
     () =>
       config?.populators?.inputs || [
         {
-          label: "CS_PIN_LOCATION",
+          label: "CS_LOCATION",
           type: "LocationSearch",
           name: "correspondenceCity",
         },
@@ -56,8 +56,8 @@ const SelectUserTypeComponent = ({ t, config, onSelect, formData = {}, errors, f
         onSelect(config.key, { ...formData[config.key], [name]: value });
         return;
       }
-      onSelect(config.key, { ...formData[config.key], [name]: value, ...input.clearFields });
-    } else onSelect(config.key, { ...formData[config.key], [name]: value });
+      onSelect(config.key, { ...formData[config.key], [name]: value, ...input.clearFields }, { shouldValidate: true });
+    } else onSelect(config.key, { ...formData[config.key], [name]: value }, { shouldValidate: true });
 
     // if (
     //   value &&
@@ -137,7 +137,7 @@ const SelectUserTypeComponent = ({ t, config, onSelect, formData = {}, errors, f
   }, [fileStoreId, tenantId, fileName]);
 
   return (
-    <div>
+    <div className="select-user-type-component">
       {inputs?.map((input, index) => {
         let currentValue = (formData && formData[config.key] && formData[config.key][input.name]) || "";
         const showDependentFields =
