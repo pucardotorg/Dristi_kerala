@@ -32,8 +32,8 @@ jobs:
 
       - name: Build and Push Docker image for summons-svc
         run: |
-          docker build --build-arg WORK_DIR="backend/summons-svc" -t pucarsolutionsdev.azurecr.io/pucar_summons-svc:v1.0.0-${{ env.Merge_Commit }} -f build/maven/Dockerfile .
-          docker push pucarsolutionsdev.azurecr.io/pucar_summons-svc:v1.0.0-${{ env.Merge_Commit }}
+          docker build --build-arg WORK_DIR="backend/summons-svc" -t pucarsolutionsdev.azurecr.io/summons-svc:v1.0.0-${{ env.Merge_Commit }} -f build/maven/Dockerfile .
+          docker push pucarsolutionsdev.azurecr.io/summons-svc:v1.0.0-${{ env.Merge_Commit }}
 
       - name: Build and Push Docker image for summons-svc_DB
         run: |
