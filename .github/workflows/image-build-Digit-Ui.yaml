@@ -4,7 +4,7 @@ on:
     types:
       - closed
     branches:
-      - develop
+      - testing
     paths:
       - 'frontend/micro-ui/**'
   workflow_dispatch:
