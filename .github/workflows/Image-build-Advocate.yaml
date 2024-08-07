@@ -5,6 +5,8 @@ on:
       - closed
     branches:
       - dev-test
+    paths:
+      - 'backend/advocate/**'
   workflow_dispatch:
   workflow_call:
 
