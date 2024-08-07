@@ -1,6 +1,6 @@
 name: Payment Calculator Image Build workflow
 on:
-  pull_request:
+  pull_request_target:
     types:
       - closed
     branches:
