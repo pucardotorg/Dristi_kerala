@@ -616,11 +616,6 @@ export const configsOrderMandatorySubmissions = [
               masterName: "alphaNumericValidation",
             },
           },
-          mdmsConfig: {
-            moduleName: "Order",
-            masterName: "", // TO DO: ADD CONFIG IN MDMS
-            localePrefix: "",
-          },
         },
       },
     ],
