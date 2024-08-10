@@ -97,18 +97,41 @@ export const configs = [
   },
   {
     body: [
+      // {
+      //   type: "component",
+      //   component: "SelectCustomTextArea",
+      //   key: "orderAdditionalNotes",
+      //   populators: {
+      //     inputs: [
+      //       {
+      //         textAreaSubHeader: "CS_ORDER_ADDITIONAL_NOTES",
+      //         type: "TextAreaComponent",
+      //         isOptional: true,
+      //       },
+      //     ],
+      //     validation: {
+      //       customValidationFn: {
+      //         moduleName: "dristiOrders",
+      //         masterName: "alphaNumericValidation",
+      //       },
+      //     },
+      //     mdmsConfig: {
+      //       moduleName: "Order",
+      //       masterName: "", // TO DO: ADD CONFIG IN MDMS
+      //       localePrefix: "",
+      //     },
+      //   },
+      // },
       {
         type: "component",
-        component: "SelectCustomTextArea",
+        component: "SelectTranscriptTextArea",
         key: "orderAdditionalNotes",
         populators: {
-          inputs: [
-            {
-              textAreaSubHeader: "CS_ORDER_ADDITIONAL_NOTES",
-              type: "TextAreaComponent",
-              isOptional: true,
-            },
-          ],
+          input: {
+            textAreaSubHeader: "CS_ORDER_ADDITIONAL_NOTES",
+            type: "TranscriptionTextAreaComponent",
+            isOptional: true,
+          },
           validation: {
             customValidationFn: {
               moduleName: "dristiOrders",
@@ -3454,20 +3477,40 @@ export const configsJudgement = [
   },
   {
     body: [
+      // {
+      //   type: "component",
+      //   component: "SelectCustomTextArea",
+      //   key: "sentence",
+      //   isMandatory: true,
+      //   populators: {
+      //     inputs: [
+      //       {
+      //         name: "text",
+      //         textAreaSubHeader: "SENTENCE",
+      //         placeholder: "TYPE_HERE_PLACEHOLDER",
+      //         type: "TextAreaComponent",
+      //       },
+      //     ],
+      //     validation: {
+      //       customValidationFn: {
+      //         moduleName: "dristiOrders",
+      //         masterName: "alphaNumericValidation",
+      //       },
+      //     },
+      //   },
+      // },
       {
         type: "component",
-        component: "SelectCustomTextArea",
+        component: "SelectTranscriptTextArea",
         key: "sentence",
         isMandatory: true,
         populators: {
-          inputs: [
-            {
-              name: "text",
-              textAreaSubHeader: "SENTENCE",
-              placeholder: "TYPE_HERE_PLACEHOLDER",
-              type: "TextAreaComponent",
-            },
-          ],
+          input: {
+            name: "text",
+            textAreaSubHeader: "SENTENCE",
+            placeholder: "TYPE_HERE_PLACEHOLDER",
+            type: "TranscriptionTextAreaComponent",
+          },
           validation: {
             customValidationFn: {
               moduleName: "dristiOrders",

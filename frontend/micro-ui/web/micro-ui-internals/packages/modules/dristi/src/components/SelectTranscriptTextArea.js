@@ -1,6 +1,7 @@
 import { CardLabelError } from "@egovernments/digit-ui-react-components";
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { isEmptyObject } from "../Utils";
+import { Button, TextArea } from "@egovernments/digit-ui-components";
 
 function SelectTranscriptTextArea({ t, config, formData = {}, onSelect, errors }) {
   const [formdata, setFormData] = useState(formData);
@@ -348,6 +349,18 @@ function SelectTranscriptTextArea({ t, config, formData = {}, onSelect, errors }
         placeholder={t(input?.placeholder)}
         disabled={config.disable}
       ></textarea>
+      {/* <TextArea
+        value={isRecording ? editableTranscription : formdata?.[config.key]?.[input.name]}
+        onChange={(data) => {
+          handleChange(data, input);
+        }}
+        rows={5}
+        maxLength={400}
+        style={{ width: "100%", minHeight: "40vh" }}
+        className={`custom-textarea-style${errors[config.key] ? " alert-error-border" : ""}`}
+        placeholder={t(input?.placeholder)}
+        disabled={config.disable}
+      /> */}
       <div>
         <input type="radio" id="micInput" name="inputSource" value="mic" defaultChecked ref={inputSourceRef} style={{ display: "none" }} />
 
@@ -387,7 +400,6 @@ function SelectTranscriptTextArea({ t, config, formData = {}, onSelect, errors }
                     d="M12 13C13.66 13 14.99 11.66 14.99 10L15 4C15 2.34 13.66 1 12 1C10.34 1 9 2.34 9 4V10C9 11.66 10.34 13 12 13ZM19 10H17.3C17.3 13 14.76 15.1 12 15.1C9.24 15.1 6.7 13 6.7 10H5C5 13.41 7.72 16.23 11 16.72V20H13V16.72C16.28 16.23 19 13.41 19 10Z"
                     fill="#3D3C3C"
                   />
-                  {/* <path d="M5 5L19 19" stroke="#3D3C3C" stroke-width="2" stroke-linecap="round" /> */}
                   <path d="M19 5L5 19" stroke="#3D3C3C" stroke-width="2" stroke-linecap="round" />
                   <path
                     d="M7 24H9V22H7V24ZM11 24H13V22H11V24ZM15 24H17V22H15V24ZM12 20V16.72C8.72 16.23 6 13.41 6 10H7.7C7.7 13 10.24 15.1 12 15.1C13.76 15.1 16.3 13 16.3 10H18C18 13.41 15.28 16.23 12 16.72V20H12Z"
@@ -423,6 +435,7 @@ function SelectTranscriptTextArea({ t, config, formData = {}, onSelect, errors }
           </div>
         )}
       </div>
+      {/* </TextArea> */}
       {errors[config.key] && <CardLabelError>{t(errors[config.key].msg || "CORE_REQUIRED_FIELD_ERROR")}</CardLabelError>}
     </div>
   );

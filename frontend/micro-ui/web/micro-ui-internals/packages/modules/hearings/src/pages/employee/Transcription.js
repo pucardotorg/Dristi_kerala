@@ -1,39 +1,21 @@
 import React from "react";
 import { useEffect, useState, useMemo, useRef } from "react";
 
-const TranscriptComponent = ({
-  transcriptText,
-  setTranscriptText,
-  isRecording,
-  setIsRecording,
-  editableTranscription,
-  setEditableTranscription,
-  activeTab,
-  witnessDepositionText,
-  setWitnessDepositionText,
-  editableWitnessTranscription,
-  setEditableWitnessTranscription,
-}) => {
-  console.log("inside use transcription", activeTab === "Witness Deposition");
+const TranscriptComponent = ({ setTranscriptText, isRecording, setIsRecording, activeTab, setWitnessDepositionText }) => {
   const [context, setContext] = useState(null);
   const [globalStream, setGlobalStream] = useState(null);
   const [processor, setProcessor] = useState(null);
-  //   const [isRecording, setIsRecording] = useState(false);
-  const startTimeRef = useRef([0, 0, 0]);
   const endTimeRef = useRef([0, 0, 0]);
   const [transcription, setTranscription] = useState("");
   const [webSocketStatus, setWebSocketStatus] = useState("Not Connected");
   const [transcriptionUrl, setTranscriptionUrl] = useState("");
-  //   const [editableTranscription, setEditableTranscription] = useState("");
   const [sendOriginal, setSendOriginal] = useState("");
   const [clientId, setClientId] = useState(null);
-  const [detectedLanguage, setDetectedLanguage] = useState("Undefined");
   const [currentPosition, setCurrentPosition] = useState(0);
   const [selectedLanguage, setSelectedLanguage] = useState("english");
   const [selectedAsrModel, setSelectedAsrModel] = useState("bhashini");
   const [websocket, setWebsocket] = useState(null);
   const inputSourceRef = useRef("mic");
-  // const roomIdInputRef = useRef(null);
   const [roomId, setRoomId] = useState(null);
   const [audioUrl, setAudioUrl] = useState("");
   const [isConnected, setIsConnected] = useState(false);
@@ -41,7 +23,6 @@ const TranscriptComponent = ({
   const bufferSize = 4096;
 
   useEffect(() => {
-    console.log("use Effect [] called");
     initWebSocket();
   }, []);
 
@@ -70,7 +51,6 @@ const TranscriptComponent = ({
   };
 
   const initWebSocket = () => {
-    console.log("inside init");
     const websocketAddress = "wss://dristi-kerala-dev.pucar.org/transcription";
 
     if (!websocketAddress) {
@@ -94,7 +74,6 @@ const TranscriptComponent = ({
       const data = JSON.parse(event.data);
       if (data.type === "joined_room" || data.type === "refresh_transcription") {
         handleRoomJoined(data);
-        // roomIdLet = data.room_id;
       } else {
         updateTranscription(data);
       }
@@ -127,15 +106,14 @@ const TranscriptComponent = ({
       setTranscription((prev) => prev + transcriptData.text + " ");
     }
     activeTab === "Witness Deposition"
-      ? setEditableWitnessTranscription((prev) => prev + transcriptData.text + " ")
-      : setEditableTranscription((prev) => prev + transcriptData.text + " ");
+      ? setWitnessDepositionText((prev) => prev + transcriptData.text + " ")
+      : setTranscriptText((prev) => prev + transcriptData.text + " ");
     setSendOriginal((prev) => prev + transcriptData.text + " ");
   };
   const startRecording = () => {
     if (isRecording) {
       return;
     }
-    activeTab === "Witness Deposition" ? setEditableWitnessTranscription(witnessDepositionText) : setEditableTranscription(transcriptText);
     setIsRecording(true);
 
     const inputSource = inputSourceRef.current.value;
@@ -148,8 +126,6 @@ const TranscriptComponent = ({
 
   const stopRecording = () => {
     if (!isRecording) return;
-
-    activeTab === "Witness Deposition" ? setWitnessDepositionText(editableWitnessTranscription) : setTranscriptText(editableTranscription);
 
     setIsRecording(false);
 
@@ -284,7 +260,6 @@ const TranscriptComponent = ({
         <div style={{ textAlign: "right" }}>
           <button
             onClick={() => {
-              //   initWebSocket("login");
               createRoom();
               setIsConnected(true);
             }}
@@ -317,7 +292,6 @@ const TranscriptComponent = ({
                   d="M12 13C13.66 13 14.99 11.66 14.99 10L15 4C15 2.34 13.66 1 12 1C10.34 1 9 2.34 9 4V10C9 11.66 10.34 13 12 13ZM19 10H17.3C17.3 13 14.76 15.1 12 15.1C9.24 15.1 6.7 13 6.7 10H5C5 13.41 7.72 16.23 11 16.72V20H13V16.72C16.28 16.23 19 13.41 19 10Z"
                   fill="#3D3C3C"
                 />
-                {/* <path d="M5 5L19 19" stroke="#3D3C3C" stroke-width="2" stroke-linecap="round" /> */}
                 <path d="M19 5L5 19" stroke="#3D3C3C" stroke-width="2" stroke-linecap="round" />
                 <path
                   d="M7 24H9V22H7V24ZM11 24H13V22H11V24ZM15 24H17V22H15V24ZM12 20V16.72C8.72 16.23 6 13.41 6 10H7.7C7.7 13 10.24 15.1 12 15.1C13.76 15.1 16.3 13 16.3 10H18C18 13.41 15.28 16.23 12 16.72V20H12Z"
