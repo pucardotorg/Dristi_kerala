@@ -8,6 +8,10 @@ import { OrderWorkflowState } from "../../../Utils/orderWorkflow";
 import PublishedOrderModal from "./PublishedOrderModal";
 import TasksComponent from "../../../../../home/src/components/TaskComponent";
 import NextHearingCard from "./NextHearingCard";
+import EmptyStates from "../../../../../home/src/components/EmptyStates";
+import { PreviousHearingIcon, RecentOrdersIcon } from "../../../icons/svgIndex";
+import { CaseWorkflowState } from "../../../Utils/caseWorkflow";
+import { getAdvocates } from "../../citizen/FileCase/EfilingValidationUtils";
 
 const CaseOverview = ({ caseData, openHearingModule, handleDownload, handleSubmitDocument, handleExtensionRequest }) => {
   const { t } = useTranslation();
@@ -19,13 +23,10 @@ const CaseOverview = ({ caseData, openHearingModule, handleDownload, handleSubmi
   const tenantId = window?.Digit.ULBService.getCurrentTenantId();
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [currentOrder, setCurrentOrder] = useState({});
-  const user = localStorage.getItem("user-info");
-  const ordersService = Digit.ComponentRegistryService.getComponent("OrdersService") || {};
   const [taskType, setTaskType] = useState({});
-  const userInfo = JSON.parse(window.localStorage.getItem("user-info"));
+  const userInfo = Digit.UserService.getUser()?.info;
   const userInfoType = useMemo(() => (userInfo?.type === "CITIZEN" ? "citizen" : "employee"), [userInfo]);
-  const userRoles = JSON.parse(user).roles.map((role) => role.code);
-  const isCitizen = userRoles.includes("CITIZEN");
+  const userRoles = userInfo?.roles?.map((role) => role.code);
   const showSubmissionButtons = useMemo(() => {
     const submissionParty = currentOrder?.additionalDetails?.formdata?.submissionParty?.map((item) => item.uuid).flat();
     return submissionParty?.includes(userInfo?.uuid) && userRoles.includes("APPLICATION_CREATOR");
@@ -35,6 +36,20 @@ const CaseOverview = ({ caseData, openHearingModule, handleDownload, handleSubmi
       id: representative?.advocateId,
     };
   });
+
+  const allAdvocates = useMemo(() => getAdvocates(caseData?.case)[userInfo?.uuid], [caseData?.case, userInfo]);
+  const isAdvocatePresent = useMemo(
+    () => (userInfo?.roles?.some((role) => role?.code === "ADVOCATE_ROLE") ? true : allAdvocates?.includes(userInfo?.uuid)),
+    [allAdvocates, userInfo?.roles, userInfo?.uuid]
+  );
+
+  const showMakeSubmission = useMemo(() => {
+    return (
+      isAdvocatePresent &&
+      userRoles?.includes("APPLICATION_CREATOR") &&
+      [CaseWorkflowState.CASE_ADMITTED, CaseWorkflowState.ADMISSION_HEARING_SCHEDULED].includes(caseData?.case?.status)
+    );
+  }, [userRoles, caseData?.case?.status, isAdvocatePresent]);
 
   const { data: advocateDetails, isLoading: isAdvocatesLoading } = useGetIndividualAdvocate(
     {
@@ -60,7 +75,7 @@ const CaseOverview = ({ caseData, openHearingModule, handleDownload, handleSubmi
     true
   );
 
-  const { data: ordersRes, refetch: refetchOrdersData, isLoading: isOrdersLoading } = useGetOrders(
+  const { data: ordersRes, isLoading: isOrdersLoading } = useGetOrders(
     {
       criteria: {
         filingNumber: filingNumber,
@@ -75,13 +90,6 @@ const CaseOverview = ({ caseData, openHearingModule, handleDownload, handleSubmi
   const previousHearing = hearingRes?.HearingList?.filter((hearing) => hearing.endTime < Date.now()).sort(
     (hearing1, hearing2) => hearing2.endTime - hearing1.endTime
   )[0];
-
-  const formatDate = (date) => {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-  };
 
   const navigateOrdersGenerate = () => {
     history.push(`/${window.contextPath}/employee/orders/generate-orders?filingNumber=${filingNumber}`);
@@ -104,72 +112,52 @@ const CaseOverview = ({ caseData, openHearingModule, handleDownload, handleSubmi
         {hearingRes?.HearingList?.length === 0 && orderList?.length === 0 ? (
           <div
             style={{
+              marginLeft: "auto",
+              marginRight: "auto",
+              width: "100%",
+              height: "500px",
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              height: "50vh",
+              backgroundColor: "#fffaf6",
+              padding: "20px",
             }}
           >
-            <div
-              style={{
-                width: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexDirection: "column",
-                gap: "16px",
-              }}
-            >
-              <div
-                style={{
-                  color: "#5F5F5F",
-                  fontWeight: 700,
-                  fontSize: "24px",
-                  lineHeight: "28.13px",
-                  textAlign: "center",
-                }}
-              >
-                An overview of this case will appear here!
-              </div>
-              <div>
+            <EmptyStates
+              heading={"An overview of this case will appear here!"}
+              message={
+                "A summary of this case’s proceedings, hearings, orders and other activities will be visible here. Take your first action on the case."
+              }
+            />
+            <div>
+              {!userRoles.includes("CITIZEN") ? (
                 <div
                   style={{
-                    color: "#5F5F5F",
-                    fontWeight: 400,
-                    fontSize: "16px",
-                    lineHeight: "24px",
-                    textAlign: "center",
+                    display: "flex",
+                    justifyContent: "space-evenly",
+                    width: "100%",
+                    marginTop: "16px",
+                    gap: "16px",
                   }}
                 >
-                  A summary of this case's proceedings, hearings, orders and other activities will be visible here. Take your first action on the case
+                  <Button variation={"outlined"} label={t("SCHEDULE_HEARING")} onButtonClick={openHearingModule} />
+                  {userRoles.includes("ORDER_CREATOR") && (
+                    <Button variation={"outlined"} label={t("GENERATE_ORDERS_LINK")} onButtonClick={() => navigateOrdersGenerate()} />
+                  )}
                 </div>
-                {!userRoles.includes("CITIZEN") ? (
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-evenly",
-                      width: "100%",
-                      marginTop: "16px",
-                    }}
-                  >
-                    <Button variation={"outlined"} label={t("SCHEDULE_HEARING")} onButtonClick={openHearingModule} />
-                    {userRoles.includes("ORDER_CREATOR") && (
-                      <Button variation={"outlined"} label={t("GENERATE_ORDERS_LINK")} onButtonClick={() => navigateOrdersGenerate()} />
-                    )}
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-evenly",
-                      width: "100%",
-                      marginTop: "16px",
-                    }}
-                  >
-                    <Button variation={"outlined"} label={"Raise Application"} onButtonClick={handleMakeSubmission} />
-                  </div>
-                )}
-              </div>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-evenly",
+                    width: "100%",
+                    marginTop: "16px",
+                  }}
+                >
+                  <Button variation={"outlined"} label={"Raise Application"} onClick={handleMakeSubmission} />
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -183,11 +171,16 @@ const CaseOverview = ({ caseData, openHearingModule, handleDownload, handleSubmi
                     fontSize: "16px",
                     lineHeight: "18.75px",
                     color: "#231F20",
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  {`Previous Hearing - ${previousHearing?.hearingType.charAt(0).toUpperCase()}${previousHearing?.hearingType
-                    .slice(1)
-                    .toLowerCase()} Hearing`}
+                  <PreviousHearingIcon />
+                  <span style={{ lineHeight: "normal", marginLeft: "12px" }}>
+                    {`Previous Hearing - ${previousHearing?.hearingType.charAt(0).toUpperCase()}${previousHearing?.hearingType
+                      .slice(1)
+                      .toLowerCase()} Hearing`}
+                  </span>
                 </div>
                 <hr style={{ border: "1px solid #FFF6E880" }} />
                 <div
@@ -219,9 +212,12 @@ const CaseOverview = ({ caseData, openHearingModule, handleDownload, handleSubmi
                       lineHeight: "18.75px",
                       color: "#231F20",
                       width: "40%",
+                      display: "flex",
+                      alignItems: "center",
                     }}
                   >
-                    {t("RECENT_ORDERS")}
+                    <RecentOrdersIcon />
+                    <span style={{ lineHeight: "normal", marginLeft: "12px" }}>{t("RECENT_ORDERS")}</span>{" "}
                   </div>
                   <div
                     style={{ color: "#007E7E", cursor: "pointer", fontWeight: 700, fontSize: "16px", lineHeight: "18.75px" }}

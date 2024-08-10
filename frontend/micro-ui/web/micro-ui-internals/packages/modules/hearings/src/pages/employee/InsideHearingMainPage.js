@@ -1,5 +1,5 @@
-import { Button, TextArea } from "@egovernments/digit-ui-components";
-import { ActionBar, CardLabel, Dropdown, LabelFieldPair } from "@egovernments/digit-ui-react-components";
+import { TextArea } from "@egovernments/digit-ui-components";
+import { ActionBar, CardLabel, Dropdown, LabelFieldPair, Button } from "@egovernments/digit-ui-react-components";
 import debounce from "lodash/debounce";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,6 +11,10 @@ import EndHearing from "./EndHearing";
 import EvidenceHearingHeader from "./EvidenceHeader";
 import HearingSideCard from "./HearingSideCard";
 import MarkAttendance from "./MarkAttendance";
+import WitnessModal from "../../components/WitnessModal";
+import { hearingService } from "../../hooks/services";
+import useGetHearingLink from "../../hooks/hearings/useGetHearingLink";
+
 import TranscriptComponent from "./Transcription";
 const SECOND = 1000;
 
@@ -29,10 +33,11 @@ const InsideHearingMainPage = () => {
   const [endHearingModalOpen, setEndHearingModalOpen] = useState(false);
   const textAreaRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [attendees, setAttendees] = useState([]);
   const tenantId = window?.Digit.ULBService.getCurrentTenantId();
   const { hearingId } = Digit.Hooks.useQueryParams();
   const [filingNumber, setFilingNumber] = useState("");
+  const [witnessModalOpen, setWitnessModalOpen] = useState(false);
+  const [signedDocumentUploadID, setSignedDocumentUploadID] = useState("");
   const { t } = useTranslation();
   // let roomIdLet = null;
 
@@ -61,6 +66,9 @@ const InsideHearingMainPage = () => {
   //   history.push(`/${window.contextPath}/${userType}/home/home-pending-task`);
   // }
 
+  const { data: hearingLink } = useGetHearingLink();
+  const hearingVcLink = hearingLink?.[0];
+
   const reqBody = {
     hearing: { tenantId },
     criteria: {
@@ -68,7 +76,7 @@ const InsideHearingMainPage = () => {
       hearingId: hearingId,
     },
   };
-  const { data: hearingsData } = Digit.Hooks.hearings.useGetHearings(
+  const { data: hearingsData, refetch: refetchHearing } = Digit.Hooks.hearings.useGetHearings(
     reqBody,
     { applicationNumber: "", cnrNumber: "", hearingId },
     "dristi",
@@ -77,7 +85,7 @@ const InsideHearingMainPage = () => {
   );
 
   const { mutateAsync: _updateTranscriptRequest } = Digit.Hooks.useCustomAPIMutationHook({
-    url: Urls.hearing.hearingUpdate,
+    url: Urls.hearing.hearingUpdateTranscript,
     params: { applicationNumber: "", cnrNumber: "" },
     body: { tenantId, hearingType: "", status: "" },
     config: {
@@ -109,7 +117,6 @@ const InsideHearingMainPage = () => {
       if (hearingData) {
         setHearing(hearingData);
         setTranscriptText(hearingData?.transcript[0]);
-        setAttendees(hearingData.attendees || []);
         setFilingNumber(hearingData?.filingNumber[0]);
       }
     }
@@ -175,6 +182,7 @@ const InsideHearingMainPage = () => {
 
   const saveWitnessDeposition = () => {
     const updatedHearing = structuredClone(hearing);
+    setWitnessModalOpen(true);
     updatedHearing.additionalDetails = updatedHearing.additionalDetails || {};
     updatedHearing.additionalDetails.witnessDepositions = updatedHearing.additionalDetails.witnessDepositions || [];
     if (isDepositionSaved) {
@@ -193,7 +201,6 @@ const InsideHearingMainPage = () => {
     const selectedUUID = selectedWitnessOption.value;
     const selectedWitness = additionalDetails?.witnessDetails?.formdata?.find((w) => w.data.uuid === selectedUUID)?.data || {};
     setSelectedWitness(selectedWitness);
-    console.debug(hearing, selectedWitness);
     setWitnessDepositionText(
       hearing?.additionalDetails?.witnessDepositions?.find((witness) => witness.uuid === selectedWitness.uuid)?.deposition || ""
     );
@@ -205,6 +212,39 @@ const InsideHearingMainPage = () => {
 
   const handleExitHearing = () => {
     history.push(`/${window.contextPath}/${userType}/home/home-pending-task`);
+  };
+
+  const handleClose = () => {
+    setWitnessModalOpen(false);
+  };
+
+  const handleProceed = async () => {
+    try {
+      const documents = Array.isArray(hearing?.documents) ? hearing.documents : [];
+      const documentsFile =
+        signedDocumentUploadID !== ""
+          ? {
+              documentType: "WitnessSignedDocument",
+              fileStore: signedDocumentUploadID,
+            }
+          : null;
+
+      const reqBody = {
+        hearing: {
+          ...hearing,
+          documents: documentsFile ? [...documents, documentsFile] : documents,
+        },
+      };
+
+      const updateWitness = await hearingService.customApiService(
+        Urls.hearing.uploadWitnesspdf,
+        { tenantId: tenantId, hearing: reqBody?.hearing, hearingType: "", status: "" },
+        { applicationNumber: "", cnrNumber: "" }
+      );
+      setWitnessModalOpen(false);
+    } catch (error) {
+      console.error("Error updating witness:", error);
+    }
   };
 
   const attendanceCount = useMemo(() => hearing?.attendees?.filter((attendee) => attendee.wasPresent).length || 0, [hearing]);
@@ -477,7 +517,7 @@ const InsideHearingMainPage = () => {
       : transcriptText;
 
   return (
-    <div className="admitted-case" style={{ display: "flex" }}>
+    <div className="admitted-case" style={{ display: "flex", height: "100vh" }}>
       <div className="left-side" style={{ padding: "24px 40px" }}>
         <React.Fragment>
           <EvidenceHearingHeader
@@ -487,6 +527,7 @@ const InsideHearingMainPage = () => {
             activeTab={activeTab}
             filingNumber={filingNumber}
             onAddParty={onClickAddWitness}
+            hearingLink={hearingVcLink}
           ></EvidenceHearingHeader>
         </React.Fragment>
         {activeTab === "Witness Deposition" && (
@@ -575,7 +616,7 @@ const InsideHearingMainPage = () => {
               <Button
                 label={t("SAVE_WITNESS_DEPOSITION")}
                 isDisabled={isDepositionSaved}
-                onClick={() => {
+                onButtonClick={() => {
                   saveWitnessDeposition();
                 }}
               ></Button>
@@ -583,7 +624,7 @@ const InsideHearingMainPage = () => {
           )}
         </div>
       </div>
-      <div className="right-side">
+      <div className="right-side" style={{ borderLeft: "1px solid lightgray" }}>
         <HearingSideCard hearingId={hearingId} caseId={caseData?.criteria?.[0]?.responseList?.[0]?.id} filingNumber={filingNumber}></HearingSideCard>
         {adjournHearing && <AdjournHearing hearing={hearing} updateTranscript={_updateTranscriptRequest} tenantID={tenantId} />}
       </div>
@@ -601,22 +642,48 @@ const InsideHearingMainPage = () => {
               gap: "16px",
             }}
           >
-            <button
-              style={{
-                border: "1px solid blue",
-                backgroundColor: "#e6f0ff",
-                color: "#1a73e8",
-                fontWeight: "bold",
-                padding: "10px 20px",
-                borderRadius: "5px",
-                cursor: "pointer",
-                display: "inline-block",
+            <Button
+              label={"ATTENDANCE_CHIP"}
+              style={{ boxShadow: "none", backgroundColor: "#ECF3FD", borderRadius: "4px", border: "none", padding: "10px" }}
+              textStyles={{
+                fontFamily: "Roboto",
                 fontSize: "16px",
+                fontWeight: 400,
+                lineHeight: "18.75px",
+                textAlign: "center",
+                color: "#0F3B8C",
               }}
             >
-              Attendance: <strong>{attendanceCount}</strong>
-            </button>
-            {userHasRole("EMPLOYEE") && <Button label={"Mark Attendance"} variation={"teritiary"} onClick={handleModal} style={{ width: "100%" }} />}
+              <h2
+                style={{
+                  paddingLeft: "4px",
+                  fontFamily: "Roboto",
+                  fontSize: "16px",
+                  lineHeight: "18.75px",
+                  textAlign: "center",
+                  color: "#0F3B8C",
+                  fontWeight: "700",
+                }}
+              >
+                {`${attendanceCount}`}
+              </h2>
+            </Button>
+            {userHasRole("EMPLOYEE") && (
+              <Button
+                label={"MARK_ATTENDANCE"}
+                variation={"teritiary"}
+                onButtonClick={handleModal}
+                style={{ boxShadow: "none", backgroundColor: "none", borderRadius: "4px", border: "none", padding: "10px" }}
+                textStyles={{
+                  fontFamily: "Roboto",
+                  fontSize: "16px",
+                  fontWeight: 700,
+                  lineHeight: "18.75px",
+                  textAlign: "center",
+                  color: "#007E7E",
+                }}
+              />
+            )}
           </div>
           {userHasRole("EMPLOYEE") ? (
             <div
@@ -624,27 +691,53 @@ const InsideHearingMainPage = () => {
                 display: "flex",
                 gap: "16px",
                 width: "100%",
+                justifyContent: "flex-end",
               }}
             >
-              <Button label={t("ADJOURN_HEARING")} variation={"secondary"} onClick={() => setAdjournHearing(true)} style={{ width: "100%" }} />
+              <Button
+                label={t("ADJOURN_HEARING")}
+                variation={"secondary"}
+                onButtonClick={() => setAdjournHearing(true)}
+                style={{ boxShadow: "none", backgroundColor: "#fff", padding: "10px", width: "166px" }}
+                textStyles={{
+                  fontFamily: "Roboto",
+                  fontSize: "16px",
+                  fontWeight: 700,
+                  lineHeight: "18.75px",
+                  textAlign: "center",
+                  color: "#007E7E",
+                }}
+              />
 
-              <Button label={t("END_HEARING")} variation={"primary"} onClick={handleEndHearingModal} style={{ width: "100%" }} />
+              <Button
+                label={t("END_HEARING")}
+                variation={"primary"}
+                onButtonClick={handleEndHearingModal}
+                style={{ boxShadow: "none", backgroundColor: "#BB2C2F", border: "none", padding: "10px", width: "166px" }}
+                textStyles={{
+                  fontFamily: "Roboto",
+                  fontSize: "16px",
+                  fontWeight: 700,
+                  lineHeight: "18.75px",
+                  textAlign: "center",
+                  color: "#ffffff",
+                }}
+              />
             </div>
           ) : (
             <Button label={t("EXIT_HEARING")} variation={"primary"} onClick={handleExitHearing} />
           )}
-          {isOpen && (
-            <MarkAttendance
-              handleModal={handleModal}
-              attendees={attendees}
-              setAttendees={setAttendees}
-              hearingData={hearing}
-              setAddPartyModal={setAddPartyModal}
-            />
-          )}
         </div>
       </ActionBar>
-
+      {isOpen && (
+        <MarkAttendance
+          handleModal={handleModal}
+          attendees={hearing.attendees || []}
+          refetchHearing={refetchHearing}
+          hearingData={hearing}
+          setAddPartyModal={setAddPartyModal}
+        />
+      )}
       <div>
         {addPartyModal && (
           <AddParty
@@ -654,10 +747,19 @@ const InsideHearingMainPage = () => {
             }}
             caseData={caseData}
             tenantId={tenantId}
-            hearingId={hearingId}
+            hearing={hearing}
+            refetchHearing={refetchHearing}
           ></AddParty>
         )}
       </div>
+      {witnessModalOpen && (
+        <WitnessModal
+          handleClose={handleClose}
+          hearingId={hearingId}
+          setSignedDocumentUploadID={setSignedDocumentUploadID}
+          handleProceed={handleProceed}
+        />
+      )}
       {endHearingModalOpen && <EndHearing handleEndHearingModal={handleEndHearingModal} hearingId={hearingId} hearing={hearing} />}
     </div>
   );
