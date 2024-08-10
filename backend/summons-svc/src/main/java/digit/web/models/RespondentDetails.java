@@ -1,7 +1,8 @@
 package digit.web.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.*;
+
+import jakarta.validation.constraints.Email;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.validation.annotation.Validated;

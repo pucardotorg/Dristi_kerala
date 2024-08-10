@@ -128,4 +128,8 @@ public class Configuration {
 
     @Value("${payment.calculator.calculate.endpoint}")
     private String paymentCalculatorCalculateEndpoint;
+
+    //Email
+    @Value("${egov.email.notification.topic}")
+    private String emailNotificationTopic;
 }
