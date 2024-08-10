@@ -55,7 +55,7 @@ public class EmailService {
         if(task.getDocuments() != null) {
             HashMap<String, String> fileStoreIds = new HashMap<>();
             for(Document document : task.getDocuments()) {
-                fileStoreIds.put(document.getFileStore(), document.getFileStore());
+                fileStoreIds.put(document.getFileStore(),"Summon.pdf");
             }
             email.setFileStoreId(fileStoreIds);
         }
