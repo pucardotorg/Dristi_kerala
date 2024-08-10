@@ -308,25 +308,35 @@ const InsideHearingMainPage = () => {
                       style={{ width: "100%", minHeight: "40vh" }}
                       value={witnessDepositionText}
                       onChange={handleChange}
-                      disabled={activeTab === "Witness Deposition" && isDepositionSaved}
+                      disabled={(activeTab === "Witness Deposition" && isDepositionSaved) || userHasRole("HEARING_VIEWER")}
                     />
-                    <TranscriptComponent
-                      setWitnessDepositionText={setWitnessDepositionText}
-                      isRecording={isRecording}
-                      setIsRecording={setIsRecording}
-                      activeTab={activeTab}
-                    ></TranscriptComponent>
+                    {!!userHasRole("HEARING_VIEWER") && (
+                      <TranscriptComponent
+                        setWitnessDepositionText={setWitnessDepositionText}
+                        isRecording={isRecording}
+                        setIsRecording={setIsRecording}
+                        activeTab={activeTab}
+                      ></TranscriptComponent>
+                    )}
                   </div>
                 )}
                 {activeTab !== "Witness Deposition" && (
                   <div>
-                    <TextArea ref={textAreaRef} style={{ width: "100%", minHeight: "40vh" }} value={transcriptText} onChange={handleChange} />
-                    <TranscriptComponent
-                      setTranscriptText={setTranscriptText}
-                      isRecording={isRecording}
-                      setIsRecording={setIsRecording}
-                      activeTab={activeTab}
-                    ></TranscriptComponent>
+                    <TextArea
+                      ref={textAreaRef}
+                      style={{ width: "100%", minHeight: "40vh" }}
+                      value={transcriptText}
+                      onChange={handleChange}
+                      disabled={userHasRole("HEARING_VIEWER")}
+                    />
+                    {!!userHasRole("HEARING_VIEWER") && (
+                      <TranscriptComponent
+                        setTranscriptText={setTranscriptText}
+                        isRecording={isRecording}
+                        setIsRecording={setIsRecording}
+                        activeTab={activeTab}
+                      ></TranscriptComponent>
+                    )}
                   </div>
                 )}
               </React.Fragment>
