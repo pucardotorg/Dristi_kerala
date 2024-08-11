@@ -127,6 +127,9 @@ public class Configuration {
     @Value("${egov.case.path}")
     private String caseExistsPath;
 
+    @Value("${egov.case.search.path}")
+    private String caseSearchPath;
+
     // Application Config
     @Value("${egov.application.host}")
     private String applicationHost;
@@ -136,4 +139,17 @@ public class Configuration {
 
     @Value("${verify.attendee.individual.id}")
     private Boolean verifyAttendeeIndividualId;
+
+    @Value("${update.start.end.time.topic}")
+    public String startEndTimeUpdateTopic;
+
+    // Pdf Config
+    @Value("${egov.pdf.create}")
+    private String generatePdfUrl;
+
+    @Value("${egov.pdf.host}")
+    private String generatePdfHost;
+
+    @Value("${egov.pdf.witness.key}")
+    private String witnessPdfKey;
 }

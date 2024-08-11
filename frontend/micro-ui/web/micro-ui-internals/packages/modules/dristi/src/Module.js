@@ -55,6 +55,8 @@ import UploadSignatureModal from "./components/UploadSignatureModal";
 import CommentComponent from "./components/CommentComponent";
 import { RightArrow } from "./icons/svgIndex";
 import useBillSearch from "./hooks/dristi/useBillSearch";
+import SelectTranscriptTextArea from "./components/SelectTranscriptTextArea";
+
 
 export const DRISTIModule = ({ stateCode, userType, tenants }) => {
   const { path } = useRouteMatch();
@@ -71,7 +73,7 @@ export const DRISTIModule = ({ stateCode, userType, tenants }) => {
   const urlParams = new URLSearchParams(window.location.search);
   const result = urlParams.get("result");
   const fileStoreId = urlParams.get("filestoreId");
-  console.log(result, "result");
+  console.log(result, fileStoreId, "result");
   if (userType === "citizen" && userInfo?.type !== "EMPLOYEE") {
     return (
       <ToastProvider>
@@ -146,6 +148,7 @@ const componentsToRegister = {
   CustomCalendar,
   RightArrow,
   useBillSearch,
+  SelectTranscriptTextArea
 };
 
 const overrideHooks = () => {

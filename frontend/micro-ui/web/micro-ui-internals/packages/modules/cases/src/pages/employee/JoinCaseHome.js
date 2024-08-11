@@ -19,6 +19,7 @@ import isEqual from "lodash/isEqual";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
 import { formatDate } from "../../utils";
+import { FileUploadIcon } from "../../../../dristi/src/icons/svgIndex";
 
 const CloseBtn = (props) => {
   return (
@@ -1288,6 +1289,17 @@ const JoinCaseHome = ({ refreshInbox }) => {
                       className={"aadhar-sign-in"}
                       labelClassName={"aadhar-sign-in"}
                     ></CustomButton>
+                    <CustomButton
+                      icon={<FileUploadIcon />}
+                      label={t("Upload Signature")}
+                      onButtonClick={() => {
+                        // setOpenUploadSignatureModal(true);
+                        // setIsSigned(true);
+                        setIsSignedAdvocate(true);
+                      }}
+                      className={"upload-signature"}
+                      labelClassName={"upload-signature-label"}
+                    ></CustomButton>
                   </div>
                 )}
               </div>
@@ -1315,6 +1327,17 @@ const JoinCaseHome = ({ refreshInbox }) => {
                       }}
                       className={"aadhar-sign-in"}
                       labelClassName={"aadhar-sign-in"}
+                    ></CustomButton>
+                    <CustomButton
+                      icon={<FileUploadIcon />}
+                      label={t("Upload Signature")}
+                      onButtonClick={() => {
+                        // setOpenUploadSignatureModal(true);
+                        // setIsSigned(true);
+                        setIsSignedParty(true);
+                      }}
+                      className={"upload-signature"}
+                      labelClassName={"upload-signature-label"}
                     ></CustomButton>
                   </div>
                 )}
@@ -1745,7 +1768,13 @@ const JoinCaseHome = ({ refreshInbox }) => {
     } else if (step === 4) {
       localStorage.removeItem("adovacteVakalatnama");
       localStorage.removeItem("appState");
-      setStep(step + 1);
+      // setStep(step + 1); // uncomment when you need payment modal
+      // remove the below condition to add payment modal
+      if (roleOfNewAdvocate === t(JoinHomeLocalisation.PRIMARY_ADVOCATE)) {
+        setStep(step + 2);
+      } else {
+        setStep(step + 3);
+      }
       setIsDisabled(false);
     } else if (step === 5) {
       if (roleOfNewAdvocate === t(JoinHomeLocalisation.PRIMARY_ADVOCATE)) {
@@ -2308,12 +2337,12 @@ const JoinCaseHome = ({ refreshInbox }) => {
             if (step === 0 && caseDetails?.caseNumber) {
               setCaseDetails({});
             } else if (step === 6) {
-              setStep(step - 3);
+              setStep(step - 2);
             } else if (step === 7) {
-              if (userType === "Litigant") setStep(step - 5);
+              if (userType === "Litigant") setStep(step - 3);
               else {
                 if (roleOfNewAdvocate === t(JoinHomeLocalisation.PRIMARY_ADVOCATE)) setStep(step - 1);
-                else setStep(step - 4);
+                else setStep(step - 3);
               }
               setValidationCode("");
               setErrors({

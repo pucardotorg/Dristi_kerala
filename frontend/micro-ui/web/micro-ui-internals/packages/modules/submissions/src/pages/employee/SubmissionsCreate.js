@@ -27,6 +27,7 @@ import { orderTypes } from "../../utils/orderTypes";
 import { SubmissionWorkflowAction, SubmissionWorkflowState } from "../../../../dristi/src/Utils/submissionWorkflow";
 import { Urls } from "../../hooks/services/Urls";
 import { getAdvocates } from "@egovernments/digit-ui-module-dristi/src/pages/citizen/FileCase/EfilingValidationUtils";
+import usePaymentProcess from "../../../../home/src/hooks/usePaymentProcess";
 
 const fieldStyle = { marginRight: 0 };
 
@@ -37,7 +38,7 @@ const stateSla = {
   MAKE_PAYMENT_SUBMISSION: 2 * 24 * 3600 * 1000,
 };
 
-const SubmissionsCreate = () => {
+const SubmissionsCreate = ({ path }) => {
   const tenantId = Digit.ULBService.getCurrentTenantId();
   const { t } = useTranslation();
   const history = useHistory();
@@ -45,7 +46,6 @@ const SubmissionsCreate = () => {
   const [formdata, setFormdata] = useState({});
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showsignatureModal, setShowsignatureModal] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [makePaymentLabel, setMakePaymentLabel] = useState(false);
   const [loader, setLoader] = useState(false);
@@ -54,6 +54,8 @@ const SubmissionsCreate = () => {
   const individualId = localStorage.getItem("individualId");
   const [signedDoucumentUploadedID, setSignedDocumentUploadID] = useState("");
   const todayDate = new Date().getTime();
+  const [paymentStatus, setPaymentStatus] = useState();
+  const scenario = "applicationSubmission";
   const submissionType = useMemo(() => {
     return formdata?.submissionType?.code;
   }, [formdata?.submissionType?.code]);
@@ -203,10 +205,18 @@ const SubmissionsCreate = () => {
     return caseData?.criteria?.[0]?.responseList?.[0];
   }, [caseData]);
   const allAdvocates = useMemo(() => getAdvocates(caseDetails), [caseDetails]);
-  const onBehalfOf = useMemo(() => Object.keys(allAdvocates)?.find((key) => allAdvocates[key].includes(userInfo?.uuid)), [
+  const onBehalfOfuuid = useMemo(() => Object.keys(allAdvocates)?.find((key) => allAdvocates[key].includes(userInfo?.uuid)), [
     allAdvocates,
     userInfo?.uuid,
   ]);
+  const onBehalfOfLitigent = useMemo(() => caseDetails?.litigants?.find((item) => item.additionalDetails.uuid === onBehalfOfuuid), [
+    caseDetails,
+    onBehalfOfuuid,
+  ]);
+  const sourceType = useMemo(() => (onBehalfOfLitigent?.partyType?.toLowerCase()?.includes("complainant") ? "COMPLAINANT" : "ACCUSED"), [
+    onBehalfOfLitigent,
+  ]);
+
   const { data: orderData, isloading: isOrdersLoading } = Digit.Hooks.orders.useSearchOrdersService(
     { tenantId, criteria: { filingNumber, applicationNumber: "", cnrNumber: caseDetails?.cnrNumber, orderNumber: orderNumber } },
     { tenantId },
@@ -229,6 +239,7 @@ const SubmissionsCreate = () => {
           isactive: true,
           name: "APPLICATION_TYPE_RE_SCHEDULE",
         },
+        applicationDate: formatDate(new Date()),
       };
     } else if (orderNumber) {
       if (orderDetails?.orderType === orderTypes.MANDATORY_SUBMISSIONS_RESPONSES) {
@@ -282,6 +293,7 @@ const SubmissionsCreate = () => {
             code: "APPLICATION",
             name: "APPLICATION",
           },
+          applicationDate: formatDate(new Date()),
         };
       }
     } else if (applicationType) {
@@ -303,6 +315,7 @@ const SubmissionsCreate = () => {
           code: "APPLICATION",
           name: "APPLICATION",
         },
+        applicationDate: formatDate(new Date()),
       };
     }
   }, [
@@ -393,14 +406,18 @@ const SubmissionsCreate = () => {
       if (formdata?.reasonForDocumentsSubmission?.documents?.length > 0) {
         documentsList = [...documentsList, ...formdata?.reasonForDocumentsSubmission?.documents];
       }
-      if (formdata?.documentsListForBail?.documents) {
-        documentsList = [...documentsList, ...formdata?.documentsListForBail?.documents];
-      }
-      const documentres = await Promise.all(documentsList?.map((doc) => onDocumentUpload(doc, doc?.name)));
+      const bailDocuments =
+        formdata?.additionalDetails?.submissionDocuments?.submissionDocuments?.map((item) => ({
+          fileType: item?.document?.documentType,
+          fileStore: item?.document?.fileStore,
+          additionalDetails: item?.document?.additionalDetails,
+        })) || [];
+      const documentres = (await Promise.all(documentsList?.map((doc) => onDocumentUpload(doc, doc?.name)))) || [];
       let documents = [];
       let file = null;
       let evidenceReqBody = {};
-      documentres.forEach((res) => {
+      const uploadedDocumentList = [...(documentres || []), ...bailDocuments];
+      uploadedDocumentList.forEach((res) => {
         file = {
           documentType: res?.fileType,
           fileStore: res?.file?.files?.[0]?.fileStoreId,
@@ -415,8 +432,7 @@ const SubmissionsCreate = () => {
             tenantId,
             comments: [],
             file,
-            sourceType: "COMPLAINANT",
-            //ACCUSED // COURT - if respondant is uplading submission
+            sourceType,
           },
         };
         DRISTIService.createEvidence(evidenceReqBody);
@@ -439,7 +455,7 @@ const SubmissionsCreate = () => {
             formdata,
             ...(orderDetails && { orderDate: formatDate(new Date(orderDetails?.auditDetails?.lastModifiedTime)) }),
             ...(orderDetails?.additionalDetails?.formdata?.documentName && { documentName: orderDetails?.additionalDetails?.formdata?.documentName }),
-            onBehalOfName: userInfo.name,
+            onBehalOfName: onBehalfOfLitigent?.additionalDetails?.fullName,
             partyType: "complainant.primary",
             ...(orderDetails &&
               orderDetails?.additionalDetails?.formdata?.isResponseRequired?.code === "Yes" && {
@@ -449,7 +465,8 @@ const SubmissionsCreate = () => {
             ...(hearingId && { hearingId }),
           },
           documents,
-          onBehalfOf: [userInfo?.uuid],
+          onBehalfOf: [onBehalfOfuuid],
+          comment: [],
           workflow: {
             id: "workflow123",
             action: SubmissionWorkflowAction.CREATE,
@@ -471,25 +488,26 @@ const SubmissionsCreate = () => {
   const updateSubmission = async (action) => {
     try {
       const localStorageID = localStorage.getItem("fileStoreId");
-      const documents =
+      const documents = Array.isArray(applicationDetails?.documents) ? applicationDetails.documents : [];
+      const documentsFile =
         signedDoucumentUploadedID !== "" || localStorageID
-          ? [
-              {
-                signaturedDocument: {
-                  fileStoreId: signedDoucumentUploadedID || localStorageID,
-                },
-              },
-            ]
-          : [{}];
+          ? {
+              documentType: "SIGNED",
+              fileStore: signedDoucumentUploadedID || localStorageID,
+            }
+          : null;
+
       localStorage.removeItem("fileStoreId");
       const reqBody = {
         application: {
           ...applicationDetails,
-          workflow: { ...applicationDetails?.workflow, documents, action },
+          documents: documentsFile ? [...documents, documentsFile] : documents,
+          workflow: { ...applicationDetails?.workflow, documents: [{}], action },
           tenantId,
         },
         tenantId,
       };
+
       await submissionService.updateApplication(reqBody, { tenantId });
       await createPendingTask({ name: t("ESIGN_THE_SUBMISSION"), status: "ESIGN_THE_SUBMISSION", isCompleted: true });
       await createPendingTask({
@@ -533,7 +551,9 @@ const SubmissionsCreate = () => {
   };
 
   const handleBack = () => {
-    history.replace(`/digit-ui/${userType}/dristi/home/view-case?caseId=${caseDetails?.id}&filingNumber=${filingNumber}&tab=Submissions`);
+    if (!paymentLoader) {
+      history.replace(`/digit-ui/${userType}/dristi/home/view-case?caseId=${caseDetails?.id}&filingNumber=${filingNumber}&tab=Submissions`);
+    }
   };
 
   const handleAddSignature = () => {
@@ -547,17 +567,93 @@ const SubmissionsCreate = () => {
   };
 
   const handleSkipPayment = () => {
-    setMakePaymentLabel(true);
-    setShowPaymentModal(false);
-    setShowSuccessModal(true);
+    if (!paymentLoader) {
+      setMakePaymentLabel(true);
+      setShowPaymentModal(false);
+      setShowSuccessModal(true);
+    }
   };
+  let entityType = "async-voluntary-submission-managelifecycle";
+  let taxHeadMasterCode = "ASYNC_VOLUNTARY_SUNMISSION_ADVANCE_CARRYFORWARD";
+  if (orderNumber) {
+    entityType =
+      orderDetails?.additionalDetails?.formdata?.isResponseRequired?.code === "Yes"
+        ? "async-submission-with-response-managelifecycle"
+        : "async-order-submission-managelifecycle";
 
-  const handleMakePayment = async () => {
-    setMakePaymentLabel(false);
-    setShowPaymentModal(false);
-    setShowSuccessModal(true);
-    await updateSubmission(SubmissionWorkflowAction.PAY);
-    createPendingTask({ name: t("MAKE_PAYMENT_SUBMISSION"), status: "MAKE_PAYMENT_SUBMISSION", isCompleted: true });
+    taxHeadMasterCode =
+      orderDetails?.additionalDetails?.formdata?.isResponseRequired?.code === "Yes"
+        ? "ASYNC_SUBMISSION_RESPONSE_ADVANCE_CARRYFORWARD"
+        : "ASYNC_ORDER_SUBMISSION_ADVANCE_CARRYFORWARD";
+  }
+
+  const { fetchBill, openPaymentPortal, paymentLoader, showPaymentModal, setShowPaymentModal, billPaymentStatus } = usePaymentProcess({
+    tenantId,
+    consumerCode: applicationDetails?.applicationNumber,
+    service: entityType,
+    path,
+    caseDetails,
+    totalAmount: "4",
+    scenario,
+  });
+  const { data: billResponse, isLoading: isBillLoading } = Digit.Hooks.dristi.useBillSearch(
+    {},
+    { tenantId, consumerCode: applicationDetails?.applicationNumber, service: entityType },
+    "dristi",
+    Boolean(applicationDetails?.applicationNumber)
+  );
+
+  const handleMakePayment = async (totalAmount) => {
+    try {
+      if (billResponse?.Bill?.length === 0) {
+        await DRISTIService.createDemand({
+          Demands: [
+            {
+              tenantId,
+              consumerCode: applicationDetails?.applicationNumber,
+              consumerType: entityType,
+              businessService: entityType,
+              taxPeriodFrom: Date.now().toString(),
+              taxPeriodTo: Date.now().toString(),
+              demandDetails: [
+                {
+                  taxHeadMasterCode: taxHeadMasterCode,
+                  taxAmount: 4,
+                  collectionAmount: 0,
+                },
+              ],
+            },
+          ],
+        });
+      }
+      const bill = await fetchBill(applicationDetails?.applicationNumber, tenantId, entityType);
+      if (bill?.Bill?.length) {
+        const billPaymentStatus = await openPaymentPortal(bill);
+        setPaymentStatus(billPaymentStatus);
+        await applicationRefetch();
+        console.log(billPaymentStatus);
+        if (billPaymentStatus === true) {
+          setMakePaymentLabel(false);
+          setShowPaymentModal(false);
+          setShowSuccessModal(true);
+          await updateSubmission(SubmissionWorkflowAction.PAY);
+          applicationType === "PRODUCTION_DOCUMENTS" &&
+            orderNumber &&
+            createPendingTask({
+              refId: `${userInfo?.uuid}_${orderNumber}`,
+              isCompleted: true,
+              status: "Completed",
+            });
+          createPendingTask({ name: t("MAKE_PAYMENT_SUBMISSION"), status: "MAKE_PAYMENT_SUBMISSION", isCompleted: true });
+        } else {
+          setMakePaymentLabel(true);
+          setShowPaymentModal(false);
+          setShowSuccessModal(true);
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleDownloadSubmission = () => {
@@ -586,6 +682,7 @@ const SubmissionsCreate = () => {
         onFormValueChange={onFormValueChange}
         onSubmit={handleOpenReview}
         fieldStyle={fieldStyle}
+        key={applicationType}
       />
       {showReviewModal && (
         <ReviewSubmissionModal
@@ -608,7 +705,16 @@ const SubmissionsCreate = () => {
         />
       )}
       {showPaymentModal && (
-        <PaymentModal t={t} handleClosePaymentModal={handleBack} handleSkipPayment={handleSkipPayment} handleMakePayment={handleMakePayment} />
+        <PaymentModal
+          t={t}
+          handleClosePaymentModal={handleBack}
+          handleSkipPayment={handleSkipPayment}
+          handleMakePayment={handleMakePayment}
+          tenantId={tenantId}
+          consumerCode={applicationDetails?.applicationNumber}
+          paymentLoader={paymentLoader}
+          entityType={entityType}
+        />
       )}
       {showSuccessModal && (
         <SuccessModal
@@ -620,6 +726,7 @@ const SubmissionsCreate = () => {
           applicationNumber={applicationNumber}
           createdDate={applicationDetails?.createdDate}
           makePayment={makePaymentLabel}
+          paymentStatus={paymentStatus}
         />
       )}
     </div>

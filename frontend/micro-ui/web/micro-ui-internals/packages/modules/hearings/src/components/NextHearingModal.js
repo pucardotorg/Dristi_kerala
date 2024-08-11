@@ -76,7 +76,7 @@ const NextHearingModal = ({ hearingId, hearing, stepper, setStepper, transcript 
       );
       setCaseDetails(response?.criteria[0]?.responseList[0]);
     } catch (error) {
-      console.log("error fetching case details", error);
+      // console.log("error fetching case details", error);
     }
   };
 
@@ -107,7 +107,6 @@ const NextHearingModal = ({ hearingId, hearing, stepper, setStepper, transcript 
   };
 
   const onGenerateOrder = () => {
-    console.log(caseDetails, "caseDetails");
     const requestBody = {
       order: {
         createdDate: new Date().getTime(),
@@ -136,8 +135,8 @@ const NextHearingModal = ({ hearingId, hearing, stepper, setStepper, transcript 
               code: "SCHEDULING_NEXT_HEARING",
               name: "ORDER_TYPE_SCHEDULING_NEXT_HEARING",
             },
-            nextHearingDate: formatDate(new Date(selectedDate)),
-            transcriptSummary: transcript,
+            hearingDate: formatDate(new Date(selectedDate)),
+            lastHearingTranscript: { text: transcript },
           },
         },
       },
@@ -261,7 +260,6 @@ const NextHearingModal = ({ hearingId, hearing, stepper, setStepper, transcript 
               label={"Select Custom Date"}
               variation={"teritiary"}
               onButtonClick={() => {
-                console.log(isCalendarModalOpen);
                 setIsCalendarModalOpen(true);
               }}
               style={{ border: "none" }}
@@ -294,7 +292,6 @@ const NextHearingModal = ({ hearingId, hearing, stepper, setStepper, transcript 
             onCalendarConfirm={(date) => {
               // setScheduleHearingParam({ ...scheduleHearingParams, date: formatDateInMonth(date) });
               // setSelectedCustomDate(date);
-              // console.log(date, "DATE");
               setSelectedDate(selectedCustomDate);
               setIsCustomDateSelected(true);
               setIsCalendarModalOpen(false);

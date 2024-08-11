@@ -18,6 +18,7 @@ import useBillSearch from "./dristi/useBillSearch";
 import useCreateDemand from "./dristi/useCreateDemand";
 import useApplicationDetails from "./dristi/useApplicationDetails.js";
 import useJudgeAvailabilityDates from "./dristi/useJudgeAvailabilityDates.js";
+import { useGetPendingTask } from "./dristi/useGetPendingTask.js";
 
 export const Urls = {
   Authenticate: "/user/oauth/token",
@@ -41,7 +42,11 @@ export const Urls = {
     ordersCreate: "/order/v1/create",
     submissionsSearch: "/application/v1/search",
     submissionsUpdate: "/application/v1/update",
+    addSubmissionComment: "/application/v1/addcomment",
+    addEvidenceComment: "/evidence/v1/addcomment",
     pendingTask: "/analytics/pending_task/v1/create",
+    getPendingTaskFields: "/inbox/v2/_getFields",
+
     //Solutions
     billFileStoreId: "/etreasury/payment/v1/_getPaymentReceipt",
     eSign: "/e-sign-svc/v1/_esign",
@@ -53,7 +58,7 @@ export const Urls = {
     judgeAvailabilityDates: "/scheduler/judge/v1/_availability",
   },
   case: {
-    addWitness: "/case/case/v1/add/witness",
+    addWitness: "/case/v1/add/witness",
   },
   FileFetchById: "/filestore/v1/files/id",
 };
@@ -74,6 +79,7 @@ const dristi = {
   useApplicationDetails,
   useEvidenceDetails,
   useToast,
+  useGetPendingTask,
   useBillSearch,
   useCreateDemand,
   useJudgeAvailabilityDates,

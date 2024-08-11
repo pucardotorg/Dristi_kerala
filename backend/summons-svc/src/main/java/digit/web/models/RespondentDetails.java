@@ -1,7 +1,6 @@
 package digit.web.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Data;

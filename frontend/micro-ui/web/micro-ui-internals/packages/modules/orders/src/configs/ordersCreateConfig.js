@@ -16,7 +16,7 @@ export const applicationTypeConfig = [
             masterName: "OrderType",
             localePrefix: "ORDER_TYPE",
             select:
-              "(data) => {return data['Order'].OrderType?.filter((item)=>[`BAIL`,`SECTION_202_CRPC`, `MANDATORY_SUBMISSIONS_RESPONSES`, `REFERRAL_CASE_TO_ADR`, `SCHEDULE_OF_HEARING_DATE`, `WARRANT`, `OTHERS`, `JUDGEMENT`].includes(item.type)).map((item) => {return { ...item, name: 'ORDER_TYPE_'+item.code };});}",
+              "(data) => {return data['Order'].OrderType?.filter((item)=>[`SUMMONS`,`SECTION_202_CRPC`, `MANDATORY_SUBMISSIONS_RESPONSES`, `REFERRAL_CASE_TO_ADR`, `SCHEDULE_OF_HEARING_DATE`, `WARRANT`, `OTHERS`, `JUDGEMENT`].includes(item.type)).map((item) => {return { ...item, name: 'ORDER_TYPE_'+item.code };});}",
           },
         },
       },
@@ -97,18 +97,41 @@ export const configs = [
   },
   {
     body: [
+      // {
+      //   type: "component",
+      //   component: "SelectCustomTextArea",
+      //   key: "orderAdditionalNotes",
+      //   populators: {
+      //     inputs: [
+      //       {
+      //         textAreaSubHeader: "CS_ORDER_ADDITIONAL_NOTES",
+      //         type: "TextAreaComponent",
+      //         isOptional: true,
+      //       },
+      //     ],
+      //     validation: {
+      //       customValidationFn: {
+      //         moduleName: "dristiOrders",
+      //         masterName: "alphaNumericValidation",
+      //       },
+      //     },
+      //     mdmsConfig: {
+      //       moduleName: "Order",
+      //       masterName: "", // TO DO: ADD CONFIG IN MDMS
+      //       localePrefix: "",
+      //     },
+      //   },
+      // },
       {
         type: "component",
-        component: "SelectCustomTextArea",
+        component: "SelectTranscriptTextArea",
         key: "orderAdditionalNotes",
         populators: {
-          inputs: [
-            {
-              textAreaSubHeader: "CS_ORDER_ADDITIONAL_NOTES",
-              type: "TextAreaComponent",
-              isOptional: true,
-            },
-          ],
+          input: {
+            textAreaSubHeader: "CS_ORDER_ADDITIONAL_NOTES",
+            type: "TranscriptionTextAreaComponent",
+            isOptional: true,
+          },
           validation: {
             customValidationFn: {
               moduleName: "dristiOrders",
@@ -552,21 +575,41 @@ export const configsOrderMandatorySubmissions = [
   },
   {
     body: [
+      // {
+      //   type: "component",
+      //   component: "SelectCustomTextArea",
+      //   key: "additionalComments",
+      //   isMandatory: false,
+      //   populators: {
+      //     inputs: [
+      //       {
+      //         name: "text",
+      //         textAreaSubHeader: "ADDITIONAL_COMMENTS",
+      //         placeholder: "TYPE_HERE_PLACEHOLDER",
+      //         isOptional: true,
+      //         type: "TextAreaComponent",
+      //       },
+      //     ],
+      //     validation: {
+      //       customValidationFn: {
+      //         moduleName: "dristiOrders",
+      //         masterName: "alphaNumericValidation",
+      //       },
+      //     },
+      //   },
+      // },
       {
         type: "component",
-        component: "SelectCustomTextArea",
+        component: "SelectTranscriptTextArea",
         key: "additionalComments",
-        isMandatory: false,
         populators: {
-          inputs: [
-            {
-              name: "text",
-              textAreaSubHeader: "ADDITIONAL_COMMENTS",
-              placeholder: "TYPE_HERE_PLACEHOLDER",
-              isOptional: true,
-              type: "TextAreaComponent",
-            },
-          ],
+          input: {
+            name: "text",
+            textAreaSubHeader: "ADDITIONAL_COMMENTS",
+            type: "TranscriptionTextAreaComponent",
+            placeholder: "TYPE_HERE_PLACEHOLDER",
+            isOptional: true,
+          },
           validation: {
             customValidationFn: {
               moduleName: "dristiOrders",
@@ -939,6 +982,148 @@ export const configsScheduleHearingDate = [
         key: "refApplicationId",
         disable: true,
         type: "text",
+        populators: { name: "refApplicationId", hideInForm: true },
+      },
+      {
+        label: "COURT_NAME",
+        isMandatory: true,
+        key: "courtName",
+        type: "text",
+        populators: { name: "courtName", hideInForm: true },
+      },
+      {
+        label: "CASE_NAME",
+        isMandatory: true,
+        key: "caseName",
+        type: "text",
+        populators: { name: "caseName", hideInForm: true },
+      },
+      {
+        label: "CNR_NUMBER",
+        isMandatory: true,
+        key: "cnrNumber",
+        type: "text",
+        populators: { name: "cnrNumber", hideInForm: true },
+      },
+      {
+        label: "DATE_OF_ORDER",
+        isMandatory: true,
+        key: "dateOfOrder",
+        type: "date",
+        populators: { name: "dateOfOrder", hideInForm: true },
+      },
+      {
+        label: "HEARING_PURPOSE",
+        isMandatory: true,
+        key: "hearingPurpose",
+        type: "dropdown",
+        populators: {
+          name: "hearingPurpose",
+          optionsKey: "code",
+          error: "CORE_REQUIRED_FIELD_ERROR",
+          required: true,
+          isMandatory: true,
+          hideInForm: false,
+          mdmsConfig: {
+            masterName: "HearingType",
+            moduleName: "Hearing",
+            localePrefix: "HEARING_PURPOSE",
+          },
+        },
+      },
+      {
+        label: "HEARING_DATE",
+        isMandatory: true,
+        key: "hearingDate",
+        type: "date",
+        labelChildren: "OutlinedInfoIcon",
+        tooltipValue: "ONLY_CURRENT_AND_FUTURE_DATES_ARE_ALLOWED",
+        populators: {
+          name: "hearingDate",
+          error: "CORE_REQUIRED_FIELD_ERROR",
+          validation: {
+            customValidationFn: {
+              moduleName: "dristiOrders",
+              masterName: "minTodayDateValidation",
+            },
+          },
+        },
+      },
+      {
+        label: "JUDGE_NAME",
+        isMandatory: true,
+        key: "judgeName",
+        type: "text",
+        populators: { name: "judgeName", hideInForm: true },
+      },
+      {
+        label: "JUDGE_DESIGNATION",
+        isMandatory: true,
+        key: "judgeDesignation",
+        type: "text",
+        populators: { name: "judgeDesignation", hideInForm: true },
+      },
+      {
+        label: "NAMES_OF_PARTIES_REQUIRED",
+        isMandatory: true,
+        key: "namesOfPartiesRequired",
+        type: "dropdown",
+        populators: {
+          name: "namesOfPartiesRequired",
+          allowMultiSelect: true,
+          optionsKey: "name",
+          error: "CORE_REQUIRED_FIELD_ERROR",
+          required: true,
+          isMandatory: true,
+          selectedText: "party(s)",
+          options: [
+            {
+              code: "PARTY_1",
+              name: "PARTY_1",
+            },
+          ],
+        },
+      },
+    ],
+  },
+  {
+    body: [
+      {
+        type: "component",
+        component: "SelectCustomTextArea",
+        key: "comments",
+        isMandatory: false,
+        populators: {
+          inputs: [
+            {
+              name: "text",
+              textAreaSubHeader: "COMMENTS",
+              placeholder: "TYPE_HERE_PLACEHOLDER",
+              isOptional: true,
+              type: "TextAreaComponent",
+            },
+          ],
+          validation: {
+            customValidationFn: {
+              moduleName: "dristiOrders",
+              masterName: "alphaNumericValidation",
+            },
+          },
+        },
+      },
+    ],
+  },
+];
+
+export const configsScheduleNextHearingDate = [
+  {
+    body: [
+      {
+        label: "REF_APPLICATION_ID",
+        isMandatory: false,
+        key: "refApplicationId",
+        disable: true,
+        type: "text",
         populators: { name: "refApplicationId" },
       },
       {
@@ -1039,6 +1224,32 @@ export const configsScheduleHearingDate = [
               name: "PARTY_1",
             },
           ],
+        },
+      },
+    ],
+  },
+  {
+    body: [
+      {
+        type: "component",
+        component: "SelectCustomTextArea",
+        key: "lastHearingTranscript",
+        isMandatory: true,
+        populators: {
+          inputs: [
+            {
+              name: "text",
+              textAreaSubHeader: "LAST_HEARING_TRANSCRIPT",
+              placeholder: "TYPE_HERE_PLACEHOLDER",
+              type: "TextAreaComponent",
+            },
+          ],
+          validation: {
+            customValidationFn: {
+              moduleName: "dristiOrders",
+              masterName: "alphaNumericValidation",
+            },
+          },
         },
       },
     ],
@@ -1181,7 +1392,7 @@ export const configsRescheduleHearingDate = [
         populators: { name: "reschedulingReason", hideInForm: true },
       },
       {
-        label: "APPLICTION_STATUS",
+        label: "APPLICATION_STATUS",
         isMandatory: true,
         key: "applicationStatus",
         type: "text",
@@ -1612,14 +1823,13 @@ export const configRejectSubmission = [
         type: "component",
         component: "SelectCustomTextArea",
         key: "comments",
-        isMandatory: false,
+        isMandatory: true,
         populators: {
           inputs: [
             {
               name: "text",
               textAreaSubHeader: "REASON_FOR_REJECTION_SUBMISSION",
               placeholder: "TYPE_HERE_PLACEHOLDER",
-              isOptional: true,
               type: "TextAreaComponent",
             },
           ],
@@ -2504,19 +2714,10 @@ export const configsBail = [
         label: "BAIL_OF",
         isMandatory: true,
         key: "bailOf",
-        type: "dropdown",
+        disable: true,
+        type: "text",
         populators: {
           name: "bailOf",
-          optionsKey: "name",
-          error: "CORE_REQUIRED_FIELD_ERROR",
-          required: true,
-          isMandatory: true,
-          options: [
-            {
-              code: "NAME_OF_PARTY",
-              name: "Name of Party",
-            },
-          ],
         },
       },
       {
@@ -2537,7 +2738,7 @@ export const configsBail = [
         label: "BAIL_TYPE",
         isMandatory: true,
         key: "bailType",
-        // disable: true,
+        disable: true,
         type: "dropdown",
         populators: {
           name: "bailType",
@@ -2553,10 +2754,74 @@ export const configsBail = [
         },
       },
       {
+        label: "APPLICATION_STATUS",
+        isMandatory: true,
+        key: "applicationStatus",
+        type: "text",
+        disable: true,
+        populators: { name: "applicationStatus" },
+      },
+      {
+        type: "component",
+        component: "AddSubmissionDocument",
+        key: "submissionDocuments",
+        inline: false,
+        disable: true,
+        populators: {
+          inputs: [
+            {
+              isMandatory: true,
+              key: "documentType",
+              type: "dropdown",
+              label: "Document Type",
+              name: "documentType",
+              disable: false,
+              populators: {
+                name: "documentType",
+                optionsKey: "name",
+                required: true,
+                options: [
+                  {
+                    code: "TAX_RECORDS",
+                    name: "TAX_RECORDS",
+                  },
+                  {
+                    code: "SALARY_RECIEPTS",
+                    name: "SALARY_RECIEPTS",
+                  },
+                ],
+              },
+            },
+            {
+              label: "Document Title",
+              type: "text",
+              name: "documentTitle",
+              validation: {
+                isRequired: true,
+                pattern: /^[0-9A-Z/]{0,20}$/,
+                errMsg: "",
+              },
+              isMandatory: true,
+            },
+            {
+              label: "Attachment",
+              type: "documentUpload",
+              name: "document",
+              validation: {
+                isRequired: true,
+              },
+              isMandatory: true,
+              allowedFileTypes: /(.*?)(png|jpeg|jpg|pdf)$/i,
+            },
+          ],
+        },
+      },
+      {
         inline: true,
         label: "Brief Summary",
         type: "textarea",
         key: "briefSummary",
+        isMandatory: true,
         populators: {
           name: "briefSummary",
         },
@@ -3207,20 +3472,40 @@ export const configsJudgement = [
   },
   {
     body: [
+      // {
+      //   type: "component",
+      //   component: "SelectCustomTextArea",
+      //   key: "sentence",
+      //   isMandatory: true,
+      //   populators: {
+      //     inputs: [
+      //       {
+      //         name: "text",
+      //         textAreaSubHeader: "SENTENCE",
+      //         placeholder: "TYPE_HERE_PLACEHOLDER",
+      //         type: "TextAreaComponent",
+      //       },
+      //     ],
+      //     validation: {
+      //       customValidationFn: {
+      //         moduleName: "dristiOrders",
+      //         masterName: "alphaNumericValidation",
+      //       },
+      //     },
+      //   },
+      // },
       {
         type: "component",
-        component: "SelectCustomTextArea",
+        component: "SelectTranscriptTextArea",
         key: "sentence",
         isMandatory: true,
         populators: {
-          inputs: [
-            {
-              name: "text",
-              textAreaSubHeader: "SENTENCE",
-              placeholder: "TYPE_HERE_PLACEHOLDER",
-              type: "TextAreaComponent",
-            },
-          ],
+          input: {
+            name: "text",
+            textAreaSubHeader: "SENTENCE",
+            placeholder: "TYPE_HERE_PLACEHOLDER",
+            type: "TranscriptionTextAreaComponent",
+          },
           validation: {
             customValidationFn: {
               moduleName: "dristiOrders",
