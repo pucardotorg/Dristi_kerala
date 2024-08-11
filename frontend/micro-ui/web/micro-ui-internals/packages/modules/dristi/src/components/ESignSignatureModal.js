@@ -17,7 +17,7 @@ const CloseBtn = (props) => {
   );
 };
 
-function ESignSignatureModal({ t, handleIssueOrder, handleGoBackSignatureModal, saveOnsubmitLabel, setSignedDocumentUploadID }) {
+function ESignSignatureModal({ t, handleIssueOrder, handleGoBackSignatureModal, saveOnsubmitLabel, setSignedDocumentUploadID, doctype }) {
   const [isSigned, setIsSigned] = useState(false);
   const { handleEsign, checkSignStatus } = Digit.Hooks.orders.useESign();
   const [formData, setFormData] = useState({}); // storing the file upload data
@@ -99,7 +99,7 @@ function ESignSignatureModal({ t, handleIssueOrder, handleGoBackSignatureModal, 
           label={t("PLEASE_NOTE")}
           additionalElements={[
             <p>
-              {t("YOU_ARE_ADDING_YOUR_SIGNATURE_TO_THE")} <span style={{ fontWeight: "bold" }}>{t("HHH")}</span>
+              {t("YOU_ARE_ADDING_YOUR_SIGNATURE_TO_THE")} <span style={{ fontWeight: "bold" }}>{t(`${doctype}`)}</span>
             </p>,
           ]}
           inline
@@ -127,7 +127,7 @@ function ESignSignatureModal({ t, handleIssueOrder, handleGoBackSignatureModal, 
                 onButtonClick={() => {
                   // setOpenUploadSignatureModal(true);
                   setIsSigned(true);
-                //   setOpenUploadSignatureModal(true);
+                  //   setOpenUploadSignatureModal(true);
                 }}
                 className={"upload-signature"}
                 labelClassName={"upload-signature-label"}

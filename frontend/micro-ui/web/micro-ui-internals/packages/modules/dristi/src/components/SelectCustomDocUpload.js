@@ -73,6 +73,7 @@ function SelectCustomDocUpload({ t, config, formUploadData = {}, setData }) {
         <ESignSignatureModal
           t={t}
           saveOnsubmitLabel={t("Add Document")}
+          doctype={formUploadData?.SelectUserTypeComponent?.selectIdType?.code}
           handleGoBackSignatureModal={handleGoBackSignatureModal}
           handleIssueOrder={handleEsign}
         />
