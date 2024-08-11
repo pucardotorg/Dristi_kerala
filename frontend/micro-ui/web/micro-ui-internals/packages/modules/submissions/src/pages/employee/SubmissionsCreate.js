@@ -484,7 +484,7 @@ const SubmissionsCreate = ({ path }) => {
       return null;
     }
   };
-  
+
   const updateSubmission = async (action) => {
     try {
       const localStorageID = localStorage.getItem("fileStoreId");
@@ -492,8 +492,8 @@ const SubmissionsCreate = ({ path }) => {
       const documentsFile =
         signedDoucumentUploadedID !== "" || localStorageID
           ? {
-              documentType: "Signed",
-              fileStoreId: signedDoucumentUploadedID || localStorageID,
+              documentType: "SIGNED",
+              fileStore: signedDoucumentUploadedID || localStorageID,
             }
           : null;
 

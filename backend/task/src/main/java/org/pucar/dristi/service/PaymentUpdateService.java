@@ -82,11 +82,14 @@ public class PaymentUpdateService {
             requestInfo.getUserInfo().getRoles().add(role);
 
             for (Task task : tasks) {
+                log.info("Updating pending payment status for task: {}", task);
                 if (task.getTaskType().equals(SUMMON)) {
-                    Workflow workflow = task.getWorkflow();
+                    Workflow workflow = new Workflow();
                     workflow.setAction("MAKE PAYMENT");
-                    workflowUtil.updateWorkflowStatus(requestInfo, tenantId, task.getTaskNumber(),
+                    task.setWorkflow(workflow);
+                    String status = workflowUtil.updateWorkflowStatus(requestInfo, tenantId, task.getTaskNumber(),
                             config.getTaskSummonBusinessServiceName(), workflow, config.getTaskSummonBusinessName());
+                    task.setStatus(status);
                     TaskRequest taskRequest = TaskRequest.builder().requestInfo(requestInfo).task(task).build();
                     producer.push(config.getTaskUpdateTopic(), taskRequest);
                 }

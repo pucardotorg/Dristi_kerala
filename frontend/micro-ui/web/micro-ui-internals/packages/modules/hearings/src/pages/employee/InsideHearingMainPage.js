@@ -11,8 +11,11 @@ import EndHearing from "./EndHearing";
 import EvidenceHearingHeader from "./EvidenceHeader";
 import HearingSideCard from "./HearingSideCard";
 import MarkAttendance from "./MarkAttendance";
+import WitnessModal from "../../components/WitnessModal";
+import { hearingService } from "../../hooks/services";
 import useGetHearingLink from "../../hooks/hearings/useGetHearingLink";
 
+import TranscriptComponent from "./Transcription";
 const SECOND = 1000;
 
 const InsideHearingMainPage = () => {
@@ -33,6 +36,8 @@ const InsideHearingMainPage = () => {
   const tenantId = window?.Digit.ULBService.getCurrentTenantId();
   const { hearingId } = Digit.Hooks.useQueryParams();
   const [filingNumber, setFilingNumber] = useState("");
+  const [witnessModalOpen, setWitnessModalOpen] = useState(false);
+  const [signedDocumentUploadID, setSignedDocumentUploadID] = useState("");
   const { t } = useTranslation();
 
   const onCancel = () => {
@@ -176,6 +181,7 @@ const InsideHearingMainPage = () => {
 
   const saveWitnessDeposition = () => {
     const updatedHearing = structuredClone(hearing);
+    setWitnessModalOpen(true);
     updatedHearing.additionalDetails = updatedHearing.additionalDetails || {};
     updatedHearing.additionalDetails.witnessDepositions = updatedHearing.additionalDetails.witnessDepositions || [];
     if (isDepositionSaved) {
@@ -207,7 +213,41 @@ const InsideHearingMainPage = () => {
     history.push(`/${window.contextPath}/${userType}/home/home-pending-task`);
   };
 
+  const handleClose = () => {
+    setWitnessModalOpen(false);
+  };
+
+  const handleProceed = async () => {
+    try {
+      const documents = Array.isArray(hearing?.documents) ? hearing.documents : [];
+      const documentsFile =
+        signedDocumentUploadID !== ""
+          ? {
+              documentType: "SIGNED",
+              fileStore: signedDocumentUploadID,
+            }
+          : null;
+
+      const reqBody = {
+        hearing: {
+          ...hearing,
+          documents: documentsFile ? [...documents, documentsFile] : documents,
+        },
+      };
+
+      const updateWitness = await hearingService.customApiService(
+        Urls.hearing.uploadWitnesspdf,
+        { tenantId: tenantId, hearing: reqBody?.hearing, hearingType: "", status: "" },
+        { applicationNumber: "", cnrNumber: "" }
+      );
+      setWitnessModalOpen(false);
+    } catch (error) {
+      console.error("Error updating witness:", error);
+    }
+  };
+
   const attendanceCount = useMemo(() => hearing?.attendees?.filter((attendee) => attendee.wasPresent).length || 0, [hearing]);
+  const [isRecording, setIsRecording] = useState(false);
 
   return (
     <div className="admitted-case" style={{ display: "flex", height: "100vh" }}>
@@ -260,19 +300,54 @@ const InsideHearingMainPage = () => {
         <div style={{ padding: "40px, 40px", gap: "16px" }}>
           <div style={{ gap: "16px", border: "1px solid", marginTop: "2px" }}>
             {userHasRole("EMPLOYEE") ? (
-              <TextArea
-                ref={textAreaRef}
-                style={{ width: "100%", minHeight: "40vh" }}
-                value={activeTab === "Witness Deposition" ? witnessDepositionText : transcriptText}
-                onChange={handleChange}
-                disabled={activeTab === "Witness Deposition" && isDepositionSaved}
-              />
+              <React.Fragment>
+                {activeTab === "Witness Deposition" && (
+                  <div>
+                    <TextArea
+                      ref={textAreaRef}
+                      style={{ width: "100%", minHeight: "40vh" }}
+                      value={witnessDepositionText}
+                      onChange={handleChange}
+                      disabled={(activeTab === "Witness Deposition" && isDepositionSaved) || userHasRole("HEARING_VIEWER")}
+                    />
+                    {!!userHasRole("HEARING_VIEWER") && (
+                      <TranscriptComponent
+                        setWitnessDepositionText={setWitnessDepositionText}
+                        isRecording={isRecording}
+                        setIsRecording={setIsRecording}
+                        activeTab={activeTab}
+                      ></TranscriptComponent>
+                    )}
+                  </div>
+                )}
+                {activeTab !== "Witness Deposition" && (
+                  <div>
+                    <TextArea
+                      ref={textAreaRef}
+                      style={{ width: "100%", minHeight: "40vh" }}
+                      value={transcriptText}
+                      onChange={handleChange}
+                      disabled={userHasRole("HEARING_VIEWER")}
+                    />
+                    {!!userHasRole("HEARING_VIEWER") && (
+                      <TranscriptComponent
+                        setTranscriptText={setTranscriptText}
+                        isRecording={isRecording}
+                        setIsRecording={setIsRecording}
+                        activeTab={activeTab}
+                      ></TranscriptComponent>
+                    )}
+                  </div>
+                )}
+              </React.Fragment>
             ) : (
-              <TextArea
-                style={{ width: "100%", minHeight: "40vh", cursor: "default", backgroundColor: "#E8E8E8", color: "#3D3C3C" }}
-                value={activeTab === "Witness Deposition" ? witnessDepositionText : transcriptText}
-                disabled
-              />
+              <>
+                <TextArea
+                  style={{ width: "100%", minHeight: "40vh", cursor: "default", backgroundColor: "#E8E8E8", color: "#3D3C3C" }}
+                  value={activeTab === "Witness Deposition" ? witnessDepositionText : transcriptText}
+                  disabled
+                ></TextArea>
+              </>
             )}
           </div>
         </div>
@@ -418,6 +493,14 @@ const InsideHearingMainPage = () => {
           ></AddParty>
         )}
       </div>
+      {witnessModalOpen && (
+        <WitnessModal
+          handleClose={handleClose}
+          hearingId={hearingId}
+          setSignedDocumentUploadID={setSignedDocumentUploadID}
+          handleProceed={handleProceed}
+        />
+      )}
       {endHearingModalOpen && <EndHearing handleEndHearingModal={handleEndHearingModal} hearingId={hearingId} hearing={hearing} />}
     </div>
   );
