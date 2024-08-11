@@ -79,7 +79,6 @@ const ReviewSummonsNoticeAndWarrant = () => {
   };
 
   const infos = useMemo(() => {
-    debugger;
     if (rowData?.taskDetails) {
       const caseDetails = JSON.parse(rowData?.taskDetails);
       return [
