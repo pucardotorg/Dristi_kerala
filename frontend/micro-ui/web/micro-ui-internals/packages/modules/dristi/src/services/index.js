@@ -243,6 +243,30 @@ export const DRISTIService = {
       data,
       params,
     }),
+  sendDocuemntForOCR: (data, params) =>
+    Request({
+      url: Urls.dristi.sendOCR,
+      useCache: false,
+      userService: true,
+      data,
+      params,
+    }),
+  getOCRData: (data, params) =>
+    Request({
+      url: Urls.dristi.receiveOCR,
+      useCache: false,
+      userService: true,
+      data,
+      params,
+    }),
+  getTaskDocuments: (data, params) =>
+    Request({
+      url: Urls.dristi.taskDocuments,
+      useCache: false,
+      userService: true,
+      data,
+      params,
+    }),
   judgeAvailabilityDates: (data, params) => {
     return Request({
       url: Urls.dristi.judgeAvailabilityDates,

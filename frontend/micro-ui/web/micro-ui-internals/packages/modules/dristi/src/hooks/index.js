@@ -18,6 +18,7 @@ import useBillSearch from "./dristi/useBillSearch";
 import useCreateDemand from "./dristi/useCreateDemand";
 import useApplicationDetails from "./dristi/useApplicationDetails.js";
 import useJudgeAvailabilityDates from "./dristi/useJudgeAvailabilityDates.js";
+import useGetOCRData from "./dristi/useGetOCRData.js";
 import { useGetPendingTask } from "./dristi/useGetPendingTask.js";
 
 export const Urls = {
@@ -56,6 +57,9 @@ export const Urls = {
     eTreasury: "/etreasury/payment/v1/_processChallan",
     demandCreate: "/billing-service/demand/_create",
     judgeAvailabilityDates: "/scheduler/judge/v1/_availability",
+    sendOCR: "/ocr-service/verify",
+    receiveOCR: "/ocr-service/data",
+    taskDocuments: "/task/v1/document",
   },
   case: {
     addWitness: "/case/v1/add/witness",
@@ -83,6 +87,7 @@ const dristi = {
   useBillSearch,
   useCreateDemand,
   useJudgeAvailabilityDates,
+  useGetOCRData,
 };
 
 const Hooks = {

@@ -1712,6 +1712,7 @@ export const configsAssignNewHearingDate = [
         isMandatory: true,
         key: "newHearingDate",
         type: "date",
+        disable: true,
         labelChildren: "OutlinedInfoIcon",
         tooltipValue: "ONLY_CURRENT_AND_FUTURE_DATES_ARE_ALLOWED",
         populators: {
@@ -2965,7 +2966,7 @@ export const configsCreateOrderWarrant = [
       {
         isMandatory: true,
         key: "warrantFor",
-        type: "text",
+        type: "dropdown",
         label: "WARRANT_FOR_PARTY",
         disable: true,
         populators: {

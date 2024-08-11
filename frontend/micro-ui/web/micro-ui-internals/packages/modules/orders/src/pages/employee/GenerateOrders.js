@@ -513,6 +513,32 @@ const GenerateOrders = () => {
           };
         });
       }
+      if (orderType === "WARRANT") {
+        orderTypeForm = orderTypeForm?.map((section) => {
+          return {
+            ...section,
+            body: section.body.map((field) => {
+              if (field.key === "warrantFor") {
+                return {
+                  ...field,
+                  ...(!currentOrder?.additionalDetails?.warrantFor && {
+                    disable: false,
+                  }),
+                  populators: {
+                    ...field.populators,
+                    options: [
+                      ...(currentOrder?.additionalDetails?.warrantFor
+                        ? [currentOrder?.additionalDetails?.warrantFor]
+                        : [...respondents, ...unJoinedLitigant].map((data) => data?.name || "")),
+                    ],
+                  },
+                };
+              }
+              return field;
+            }),
+          };
+        });
+      }
       newConfig = [...newConfig, ...orderTypeForm];
     }
     const updatedConfig = newConfig.map((config) => {
@@ -622,8 +648,14 @@ const GenerateOrders = () => {
                 email: item.data.emails?.emailId,
               },
             }))?.[0],
-          selectedChannels: [],
+          selectedChannels: currentOrder?.additionalDetails?.formdata?.SummonsOrder?.selectedChannels,
         };
+      }
+    }
+    if (orderType === "WARRANT") {
+      console.debug(hearingDetails);
+      if (hearingDetails?.startTime) {
+        updatedFormdata.dateOfHearing = formatDate(new Date(hearingDetails?.startTime));
       }
     }
     if (
@@ -1020,17 +1052,17 @@ const GenerateOrders = () => {
       { tenantId }
     );
   };
-  const handleRescheduleHearing = async ({ hearingNumber, rescheduledRequestId, comments, requesterId, date }) => {
+  const handleRescheduleHearing = async ({ hearingType, hearingBookingId, rescheduledRequestId, comments, requesterId, date }) => {
     await schedulerService.RescheduleHearing(
       {
         RescheduledRequest: [
           {
             rescheduledRequestId: rescheduledRequestId,
-            hearingBookingId: hearingNumber,
+            hearingBookingId: hearingBookingId,
             tenantId: tenantId,
-            judgeId: "",
+            judgeId: "super",
             caseId: filingNumber,
-            hearingType: "TRIAL_HEARING",
+            hearingType: "ADMISSION",
             requesterId: requesterId,
             reason: comments,
             availableAfter: date,
@@ -1077,7 +1109,7 @@ const GenerateOrders = () => {
     const orderData = orderDetails?.order;
     const orderFormData = orderDetails?.order?.additionalDetails?.formdata?.SummonsOrder?.party?.data;
     const selectedChannel = orderData?.additionalDetails?.formdata?.SummonsOrder?.selectedChannels;
-    const respondentAddress = orderFormData?.addressDetails?.map((data) => generateAddress({ ...data?.addressDetails }));
+    const respondentAddress = orderFormData?.addressDetails?.map((data) => ({ ...data?.addressDetails }));
     const respondentName = `${orderFormData?.respondentFirstName || ""}${
       orderFormData?.respondentMiddleName ? " " + orderFormData?.respondentMiddleName + " " : " "
     }${orderFormData?.respondentLastName || ""}`.trim();
@@ -1098,7 +1130,7 @@ const GenerateOrders = () => {
       complainantDetails?.name?.otherNames ? " " + complainantDetails?.name?.otherNames + " " : " "
     }${complainantDetails?.name?.familyName || ""}`;
     const address = `${doorNo ? doorNo + "," : ""} ${buildingName ? buildingName + "," : ""} ${street}`.trim();
-    const complainantAddress = generateAddress({
+    const complainantAddress = {
       pincode: pincode,
       district: addressLine2,
       city: city,
@@ -1108,17 +1140,18 @@ const GenerateOrders = () => {
         latitude: longitude,
       },
       locality: address,
-    });
+    };
     const courtDetails = courtRoomData?.Court_Rooms?.find((data) => data?.code === caseDetails?.courtId);
     switch (orderType) {
       case "SUMMONS":
         payload = {
           summonDetails: {
             issueDate: orderData?.auditDetails?.lastModifiedTime,
+            caseFilingDate: caseDetails?.filingDate,
           },
           respondentDetails: {
             name: respondentName,
-            address: typeof respondentAddress[0] === "object" ? generateAddress(respondentAddress[0]) : respondentAddress[0],
+            address: respondentAddress[0],
             phone: respondentPhoneNo[0] || "",
             email: respondentEmail[0] || "",
             age: "",
@@ -1149,9 +1182,13 @@ const GenerateOrders = () => {
         break;
       case "WARRANT":
         payload = {
+          warrantDetails: {
+            issueDate: orderData?.auditDetails?.lastModifiedTime,
+            caseFilingDate: caseDetails?.filingDate,
+          },
           respondentDetails: {
             name: respondentName,
-            address: typeof respondentAddress[0] === "object" ? generateAddress(respondentAddress[0]) : respondentAddress[0],
+            address: respondentAddress[0],
             phone: respondentPhoneNo[0] || "",
             email: respondentEmail[0] || "",
             age: "",
@@ -1183,7 +1220,7 @@ const GenerateOrders = () => {
         payload = {
           respondentDetails: {
             name: respondentName,
-            address: typeof respondentAddress[0] === "object" ? generateAddress(respondentAddress[0]) : respondentAddress[0],
+            address: respondentAddress[0],
             phone: respondentPhoneNo[0] || "",
             email: respondentEmail[0] || "",
             age: "",
@@ -1218,25 +1255,13 @@ const GenerateOrders = () => {
             channelName: channelTypeEnum?.[item?.type]?.type,
           };
 
-          const address =
-            typeof respondentAddress[channelMap.get(item?.type) - 1] === "object"
-              ? generateAddress(...respondentAddress[channelMap.get(item?.type) - 1])
-              : respondentAddress[channelMap.get(item?.type) - 1];
-          const sms =
-            typeof respondentPhoneNo[channelMap.get(item?.type) - 1] === "object"
-              ? generateAddress(...respondentPhoneNo[channelMap.get(item?.type) - 1])
-              : respondentPhoneNo[channelMap.get(item?.type) - 1];
-          const email =
-            typeof respondentEmail[channelMap.get(item?.type) - 1] === "object"
-              ? generateAddress(...respondentEmail[channelMap.get(item?.type) - 1])
-              : respondentEmail[channelMap.get(item?.type) - 1];
+          const address = respondentAddress[channelMap.get(item?.type) - 1];
+          const sms = respondentPhoneNo[channelMap.get(item?.type) - 1];
+          const email = respondentEmail[channelMap.get(item?.type) - 1];
+
           payload.respondentDetails = {
             ...payload.respondentDetails,
-            address: ["Post", "Via Police"].includes(item?.type)
-              ? typeof item?.value === "object"
-                ? generateAddress({ ...item?.value })
-                : item?.value
-              : address || "",
+            address: ["Post", "Via Police"].includes(item?.type) ? item?.value : address || "",
             phone: ["SMS"].includes(item?.type) ? item?.value : sms || "",
             email: ["E-mail"].includes(item?.type) ? item?.value : email || "",
             age: "",
@@ -1256,33 +1281,21 @@ const GenerateOrders = () => {
             [channelDetailsEnum?.[item?.type]]: item?.value || "",
           };
 
-          const address =
-            typeof respondentAddress[channelMap.get(item?.type) - 1] === "object"
-              ? generateAddress(...respondentAddress[channelMap.get(item?.type) - 1])
-              : respondentAddress[channelMap.get(item?.type) - 1];
+          const address = respondentAddress[channelMap.get(item?.type) - 1];
 
-          const sms =
-            typeof respondentPhoneNo[channelMap.get(item?.type) - 1] === "object"
-              ? generateAddress(...respondentPhoneNo[channelMap.get(item?.type) - 1])
-              : respondentPhoneNo[channelMap.get(item?.type) - 1];
-          const email =
-            typeof respondentEmail[channelMap.get(item?.type) - 1] === "object"
-              ? generateAddress(...respondentEmail[channelMap.get(item?.type) - 1])
-              : respondentEmail[channelMap.get(item?.type) - 1];
+          const sms = respondentPhoneNo[channelMap.get(item?.type) - 1];
+          const email = respondentEmail[channelMap.get(item?.type) - 1];
 
           payload.respondentDetails = {
             ...payload.respondentDetails,
-            address: ["Post", "Via Police"].includes(item?.type)
-              ? typeof item?.value === "object"
-                ? generateAddress({ ...item?.value })
-                : item?.value
-              : address || "",
+            address: ["Post", "Via Police"].includes(item?.type) ? item?.value : address || "",
             phone: ["SMS"].includes(item?.type) ? item?.value : sms || "",
             email: ["E-mail"].includes(item?.type) ? item?.value : email || "",
             age: "",
             gender: "",
           };
         }
+
         await ordersService.customApiService(Urls.orders.taskCreate, {
           task: {
             taskDetails: payload,
@@ -1482,12 +1495,20 @@ const GenerateOrders = () => {
         const requesterId = "";
         const rescheduledRequestId = currentOrder?.additionalDetails?.formdata?.refApplicationId;
         const comments = currentOrder?.comments || "";
+        const hearingBookingId = currentOrder?.hearingNumber;
         await handleUpdateHearing({
           action: HearingWorkflowAction.RESCHEDULE,
           startTime: Date.parse(currentOrder?.additionalDetails?.formdata?.newHearingDate),
           endTime: Date.parse(currentOrder?.additionalDetails?.formdata?.newHearingDate),
         });
-        await handleRescheduleHearing({ hearingNumber, rescheduledRequestId, comments, requesterId, date });
+        await handleRescheduleHearing({ hearingBookingId, rescheduledRequestId, comments, requesterId, date });
+      }
+      if (orderType === "ASSIGNING_DATE_RESCHEDULED_HEARING") {
+        await handleUpdateHearing({
+          action: HearingWorkflowAction.SETDATE,
+          startTime: Date.parse(currentOrder?.additionalDetails?.formdata?.newHearingDate),
+          endTime: Date.parse(currentOrder?.additionalDetails?.formdata?.newHearingDate),
+        });
       }
       referenceId && (await handleApplicationAction(currentOrder));
       const orderResponse = await updateOrder(
