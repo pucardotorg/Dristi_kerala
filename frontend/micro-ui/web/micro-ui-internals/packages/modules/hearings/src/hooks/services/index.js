@@ -38,6 +38,15 @@ export const hearingService = {
       params,
     });
   },
+  bulkReschedule: (data, params) => {
+    return Request({
+      url: Urls.scheduler.bulkReschedule,
+      useCache: false,
+      userService: false,
+      data,
+      params,
+    });
+  },
   customApiService: (url, data, params, useCache = false, userService = true) =>
     Request({
       url: url,
