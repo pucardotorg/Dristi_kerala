@@ -183,11 +183,11 @@ const NextHearingModal = ({ hearingId, hearing, stepper, setStepper, transcript 
 
   const getNextNDates = (n, availableDates) => {
     const datesArray = [];
-
+    const options = { day: "numeric", month: "long", year: "numeric" };
     for (let i = 0; i < n; i++) {
       if (i < availableDates.length) {
         const dateObject = availableDates[i].date;
-        datesArray.push(formatDateInMonth(dateObject));
+        datesArray.push(dateObject.toLocaleDateString("en-GB", options));
       } else {
         break;
       }

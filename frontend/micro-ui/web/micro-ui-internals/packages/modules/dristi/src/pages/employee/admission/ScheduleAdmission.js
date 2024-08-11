@@ -44,6 +44,7 @@ function ScheduleAdmission({
 
   //   return datesArray;
   // };
+
   const [nextFiveDates, setNextFiveDates] = useState([]);
   const [showErrorToast, setShowErrorToast] = useState(false);
   const closeToast = () => {
