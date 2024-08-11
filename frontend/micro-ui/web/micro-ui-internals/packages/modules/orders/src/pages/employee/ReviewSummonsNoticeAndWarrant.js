@@ -181,7 +181,7 @@ const ReviewSummonsNoticeAndWarrant = () => {
               onClickRow: (props) => {
                 console.log("props?.original :>> ", props?.original);
                 setRowData(props?.original);
-                setActionModalType("signed");
+                setActionModalType("SIGN_PENDING");
                 setShowActionModal(true);
               },
             },
@@ -189,7 +189,7 @@ const ReviewSummonsNoticeAndWarrant = () => {
         ></InboxSearchComposer>
         {showActionModal && (
           <DocumentModal
-            config={config?.label === "Pending" ? (actionModalType !== "signed" ? signedModalConfig : unsignedModalConfig) : sentModalConfig}
+            config={config?.label === "Pending" ? (actionModalType !== "SIGN_PENDING" ? signedModalConfig : unsignedModalConfig) : sentModalConfig}
           />
         )}
       </div>
