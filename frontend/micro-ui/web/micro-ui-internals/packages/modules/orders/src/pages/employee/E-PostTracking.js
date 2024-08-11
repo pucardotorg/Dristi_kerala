@@ -7,6 +7,7 @@ import DocumentModal from "../../components/DocumentModal";
 import EpostPrintAndSendDocument from "./EpostPrintAndSendDocument";
 import EpostUpdateStatus from "./EpostUpdateStatus";
 import { EpostService } from "../../hooks/services";
+import DocumentViewerWithComment from "../../components/DocumentViewerWithComment";
 
 const EpostTrackingPage = () => {
   const { t } = useTranslation();
@@ -129,13 +130,7 @@ const EpostTrackingPage = () => {
     return [
       {
         fileName: "Summons Document",
-        fileStoreId: "a236b4e0-5ddd-4ece-9ba3-4d02edf15adc",
-        documentName: "file_example_JPG_100kB.jpg",
-        documentType: "image/jpeg",
-      },
-      {
-        fileName: "Receiver’s Address",
-        fileStoreId: "a236b4e0-5ddd-4ece-9ba3-4d02edf15adc",
+        fileStoreId: "03e93220-7254-4877-ac80-bb808a722a61",
         documentName: "file_example_JPG_100kB.jpg",
         documentType: "image/jpeg",
       },
@@ -194,9 +189,10 @@ const EpostTrackingPage = () => {
           isDisabled: rowData?.original?.deliveryStatus === "DELIVERED" || rowData?.original?.deliveryStatus === "NOT_DELIVERED" ? true : false,
         },
         {
-          heading: { label: "E-post Status" },
+          type: showDocument && "document",
+          heading: { label: showDocument ? "Documents" : "E-post Status" },
           modalBody: showDocument ? (
-            <DocViewerWrapper docWidth={"calc(80vw* 62/ 100)"} docHeight={"60vh"} fileStoreId={fileStoreId} tenantId={tenantId} />
+            <DocumentViewerWithComment documents={printDocuments} />
           ) : (
             <EpostUpdateStatus
               t={t}
@@ -211,7 +207,7 @@ const EpostTrackingPage = () => {
           ),
           isDisabled: rowData?.original?.deliveryStatus === "DELIVERED" || rowData?.original?.deliveryStatus === "NOT_DELIVERED" ? true : false,
           actionSaveOnSubmit: () => onUpdateClick(),
-          actionSaveLabel: "Update Status",
+          actionSaveLabel: !showDocument && "Update Status",
           handleClose: showDocument ? () => setShowDocument(false) : undefined,
         },
       ],

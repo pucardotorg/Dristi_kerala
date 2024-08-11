@@ -259,4 +259,12 @@ export const DRISTIService = {
       data,
       params,
     }),
+  getTaskDocuments: (data, params) =>
+    Request({
+      url: Urls.dristi.taskDocuments,
+      useCache: false,
+      userService: true,
+      data,
+      params,
+    }),
 };

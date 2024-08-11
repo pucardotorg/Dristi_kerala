@@ -57,6 +57,7 @@ export const Urls = {
     demandCreate: "/billing-service/demand/_create",
     sendOCR: "/ocr-service/verify",
     receiveOCR: "/ocr-service/data",
+    taskDocuments: "/task/v1/document",
   },
   case: {
     addWitness: "/case/v1/add/witness",
