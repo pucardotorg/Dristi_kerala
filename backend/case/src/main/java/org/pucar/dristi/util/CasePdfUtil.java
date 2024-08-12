@@ -32,7 +32,7 @@ public class CasePdfUtil {
 
     public ByteArrayResource generateCasePdf(CaseRequest caseRequest, StringBuilder uri) {
         try {
-            HttpEntity<CaseRequest> requestEntity = new HttpEntity<>(caseRequest, headers);
+            HttpEntity<CaseRequest> requestEntity = new HttpEntity<>(caseRequest);
 
             ResponseEntity<ByteArrayResource> responseEntity = restTemplate.postForEntity(uri.toString(),
                     requestEntity, ByteArrayResource.class);
