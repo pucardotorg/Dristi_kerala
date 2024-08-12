@@ -5,9 +5,9 @@ const DashboardPage = () => {
   const getCurrentDate = () => {
     const today = new Date();
     const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const month = String(today.getMonth() + 1).padStart(2, "0"); 
     const day = String(today.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+    return `${year}-${month}-${day}`; 
   };
   const [stepper, setStepper] = useState(1);
   const [startDate, setStartDate] = useState(getCurrentDate());
@@ -15,7 +15,6 @@ const DashboardPage = () => {
   const [selectedRange, setSelectedRange] = useState({ startDate: startDate, endDate: endDate });
 
   const handleSubmit = () => {
-    console.log(selectedRange);
     if (startDate == null || endDate == null || startDate > endDate) {
       setStepper(4);
     } else {
@@ -121,11 +120,6 @@ const DashboardPage = () => {
               width="100%"
               title="Kibana Dashboard"
             />
-          )}
-          {stepper == 5 && (
-            <div>
-              <div></div>
-            </div>
           )}
           {stepper === 4 && <span>End date should be after the start date</span>}
         </div>

@@ -8,6 +8,8 @@ import DocumentViewerWithComment from "../../components/DocumentViewerWithCommen
 import AddSignatureComponent from "../../components/AddSignatureComponent";
 import CustomStepperSuccess from "../../components/CustomStepperSuccess";
 import UpdateDeliveryStatusComponent from "../../components/UpdateDeliveryStatusComponent";
+import { formatDate } from "../../utils";
+import { taskService } from "../../hooks/services";
 
 const defaultSearchValues = {
   eprocess: "",
@@ -16,6 +18,7 @@ const defaultSearchValues = {
 
 const ReviewSummonsNoticeAndWarrant = () => {
   const { t } = useTranslation();
+  const tenantId = window?.Digit.ULBService.getCurrentTenantId();
   const [defaultValues, setDefaultValues] = useState(defaultSearchValues);
   const [config, setConfig] = useState(SummonsTabsConfig?.SummonsTabsConfig?.[0]);
   const [showActionModal, setShowActionModal] = useState(false);
@@ -24,6 +27,9 @@ const ReviewSummonsNoticeAndWarrant = () => {
   const [isDisabled, setIsDisabled] = useState(true);
   const [rowData, setRowData] = useState({});
   const [taskDocuments, setTaskDocumens] = useState([]);
+  const [nextHearingDate, setNextHearingDate] = useState();
+  const [step, setStep] = useState(0);
+  const [signatureId, setSignatureId] = useState("");
 
   const [tabData, setTabData] = useState(
     SummonsTabsConfig?.SummonsTabsConfig?.map((configItem, index) => ({ key: index, label: configItem.label, active: index === 0 ? true : false }))
@@ -44,11 +50,47 @@ const ReviewSummonsNoticeAndWarrant = () => {
   useEffect(() => {
     // Set default values when component mounts
     setDefaultValues(defaultSearchValues);
+    const isSignSuccess = localStorage.getItem("esignProcess");
+    const isRowData = JSON.parse(localStorage.getItem("ESignSummons"));
+    if (isSignSuccess) {
+      if (rowData) {
+        setRowData(isRowData);
+      }
+      setShowActionModal(true);
+      setActionModalType("SIGN_PENDING");
+      setStep(1);
+      localStorage.removeItem("esignProcess");
+      localStorage.removeItem("ESignSummons");
+    }
   }, []);
 
   const onTabChange = (n) => {
     setTabData((prev) => prev.map((i, c) => ({ ...i, active: c === n ? true : false }))); //setting tab enable which is being clicked
     setConfig(SummonsTabsConfig?.SummonsTabsConfig?.[n]); // as per tab number filtering the config
+  };
+
+  function findNextHearings(objectsList) {
+    const now = Date.now();
+    const futureStartTimes = objectsList.filter((obj) => obj.startTime > now);
+    futureStartTimes.sort((a, b) => a.startTime - b.startTime);
+    return futureStartTimes.length > 0 ? futureStartTimes[0] : null;
+  }
+
+  const getHearingFromCaseId = async () => {
+    try {
+      const response = await Digit.HearingService.searchHearings(
+        {
+          criteria: {
+            tenantId: Digit.ULBService.getCurrentTenantId(),
+            filingNumber: rowData?.filingNumber,
+          },
+        },
+        {}
+      );
+      setNextHearingDate(findNextHearings(response?.HearingList));
+    } catch (error) {
+      console.error("error :>> ", error);
+    }
   };
 
   const getTaskDocuments = async () => {
@@ -79,25 +121,25 @@ const ReviewSummonsNoticeAndWarrant = () => {
   };
 
   const infos = useMemo(() => {
-    if (rowData?.taskDetails) {
+    if (rowData?.taskDetails || nextHearingDate) {
       const caseDetails = JSON.parse(rowData?.taskDetails);
       return [
         { key: "Issued to", value: caseDetails?.respondentDetails?.name },
         { key: "Issued Date", value: rowData?.createdDate },
-        { key: "Next Hearing Date", value: "04/07/2024" },
+        { key: "Next Hearing Date", value: nextHearingDate?.startTime ? formatDate(nextHearingDate?.startTime) : "N/A" },
         { key: "Amount Paid", value: `Rs. ${caseDetails?.deliveryChannels?.fees}` },
         { key: "Channel Details", value: caseDetails?.deliveryChannels?.channelName },
       ];
     }
-  }, [rowData]);
+  }, [rowData, nextHearingDate]);
 
   const links = useMemo(() => {
     return [{ text: "View order", link: "" }];
   }, []);
 
   const documents = useMemo(() => {
-    return taskDocuments;
-  }, [taskDocuments]);
+    if (rowData?.documents) return rowData?.documents;
+  }, [rowData]);
 
   const submissionData = useMemo(() => {
     return [
@@ -105,6 +147,38 @@ const ReviewSummonsNoticeAndWarrant = () => {
       { key: "SUBMISSION_ID", value: "875897348579453457", copyData: true },
     ];
   }, []);
+
+  const handleSubmit = async () => {
+    try {
+      const localStorageID = localStorage.getItem("fileStoreId");
+      const documents = Array.isArray(rowData?.documents) ? rowData.documents : [];
+      const documentsFile =
+        signatureId !== "" || localStorageID
+          ? {
+              documentType: "SIGNED",
+              fileStore: signatureId || localStorageID,
+            }
+          : null;
+
+      localStorage.removeItem("fileStoreId");
+
+      const reqBody = {
+        task: {
+          ...rowData,
+          documents: documentsFile ? [...documents, documentsFile] : documents,
+          tenantId,
+        },
+        tenantId,
+      };
+
+      // Attempt to upload the document and handle the response
+      const update = await taskService.UploadTaskDocument(reqBody, { tenantId });
+      console.log("Document upload successful:", update);
+    } catch (error) {
+      // Handle errors that occur during the upload process
+      console.error("Error uploading document:", error);
+    }
+  };
 
   const unsignedModalConfig = useMemo(() => {
     return {
@@ -123,8 +197,17 @@ const ReviewSummonsNoticeAndWarrant = () => {
           heading: { label: "Add Signature (1)" },
           actionSaveLabel: "Send Email",
           actionCancelLabel: "Back",
-          modalBody: <AddSignatureComponent t={t} isSigned={isSigned} handleSigned={() => setIsSigned(true)} />,
+          modalBody: (
+            <AddSignatureComponent
+              t={t}
+              isSigned={isSigned}
+              handleSigned={() => setIsSigned(true)}
+              rowData={rowData}
+              setSignatureId={setSignatureId}
+            />
+          ),
           isDisabled: isSigned ? false : true,
+          actionSaveOnSubmit: handleSubmit,
         },
         {
           type: "success",
@@ -159,7 +242,8 @@ const ReviewSummonsNoticeAndWarrant = () => {
   }, [infos, isDisabled, links, t]);
 
   useEffect(() => {
-    if (rowData?.id) getTaskDocuments();
+    // if (rowData?.id) getTaskDocuments();
+    if (rowData?.filingNumber) getHearingFromCaseId();
   }, [rowData]);
 
   return (
@@ -183,6 +267,8 @@ const ReviewSummonsNoticeAndWarrant = () => {
                 setRowData(props?.original);
                 setActionModalType("SIGN_PENDING");
                 setShowActionModal(true);
+                setStep(0);
+                setIsSigned(props?.original?.documentStatus === "SIGN_PENDING" ? false : true);
               },
             },
           }}
@@ -190,6 +276,7 @@ const ReviewSummonsNoticeAndWarrant = () => {
         {showActionModal && (
           <DocumentModal
             config={config?.label === "Pending" ? (actionModalType !== "SIGN_PENDING" ? signedModalConfig : unsignedModalConfig) : sentModalConfig}
+            currentStep={step}
           />
         )}
       </div>
