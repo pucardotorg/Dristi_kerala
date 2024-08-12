@@ -45,7 +45,7 @@ public class PdfServiceUtil {
             headers.setContentType(MediaType.APPLICATION_JSON);
             SummonsPdf summonsPdf = createSummonsPdfFromTask(taskRequest.getTask());
             SummonsPdfRequest summonsPdfRequest = SummonsPdfRequest.builder()
-                    .summonsPdf(null).requestInfo(taskRequest.getRequestInfo()).build();
+                    .summonsPdf(summonsPdf).requestInfo(taskRequest.getRequestInfo()).build();
             HttpEntity<SummonsPdfRequest> requestEntity = new HttpEntity<>(summonsPdfRequest, headers);
 
             ResponseEntity<ByteArrayResource> responseEntity = restTemplate.postForEntity(uri.toString(),
