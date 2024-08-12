@@ -9,6 +9,7 @@ import { useToast } from "../../../components/Toast/useToast";
 import { DRISTIService } from "../../../services";
 import { Urls } from "../../../hooks";
 import usePaymentProcess from "../../../../../home/src/hooks/usePaymentProcess";
+import useCasePdfGeneration from "../../../hooks/dristi/useCasePdfGeneration";
 
 const mockSubmitModalInfo = {
   header: "CS_HEADER_FOR_E_FILING_PAYMENT",
@@ -59,7 +60,21 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
     caseId,
     caseId
   );
-
+  const { data: casePdf, isPdfLoading } = useCasePdfGeneration(
+    {
+      criteria: [
+        {
+          caseId: caseId,
+        },
+      ],
+      tenantId,
+    },
+    {},
+    "dristi",
+    caseId,
+    caseId
+  );
+  console.log(casePdf);
   const caseDetails = useMemo(
     () => ({
       ...caseData?.criteria?.[0]?.responseList?.[0],
