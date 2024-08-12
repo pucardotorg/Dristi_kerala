@@ -1,12 +1,13 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom/cjs/react-router-dom.min";
 
 const DashboardPage = () => {
   const getCurrentDate = () => {
     const today = new Date();
     const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0"); 
+    const month = String(today.getMonth() + 1).padStart(2, "0");
     const day = String(today.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`; 
+    return `${year}-${month}-${day}`;
   };
   const [stepper, setStepper] = useState(1);
   const [startDate, setStartDate] = useState(getCurrentDate());
@@ -16,12 +17,9 @@ const DashboardPage = () => {
   const handleSubmit = () => {
     console.log(selectedRange);
     if (startDate == null || endDate == null || startDate > endDate) {
-      alert("ok");
-
       setStepper(4);
     } else {
       setSelectedRange({ startDate: startDate, endDate: endDate });
-      console.log(selectedRange);
     }
   };
 
@@ -61,7 +59,19 @@ const DashboardPage = () => {
         >
           Appearance
         </button>
-      </div> 
+        <a
+          className="dashboard-btn"
+          style={{
+            padding: "16px",
+            color: "green",
+            fontWeight: stepper === 3 ? "600" : "400",
+          }}
+          href={`https://dristi-kerala-dev.pucar.org/kibana/app/management/insightsAndAlerting/reporting`}
+          target="_blank"
+        >
+          View All Reports
+        </a>
+      </div>
       <div
         style={{
           flexGrow: 1,
@@ -111,6 +121,11 @@ const DashboardPage = () => {
               width="100%"
               title="Kibana Dashboard"
             />
+          )}
+          {stepper == 5 && (
+            <div>
+              <div></div>
+            </div>
           )}
           {stepper === 4 && <span>End date should be after the start date</span>}
         </div>
