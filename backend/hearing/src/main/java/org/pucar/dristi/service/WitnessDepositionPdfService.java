@@ -147,6 +147,14 @@ public class WitnessDepositionPdfService {
     }
     private WitnessDeposition buildWitnessWithNoIndividual(JsonNode caseDetails, Hearing hearing,
                                                            String caseYear, String courtCaseNumber, JsonNode witnessDepositionNode) {
+
+        String firstName = getTextOrDefault(witnessDepositionNode, "firstName");
+        String lastName = getTextOrDefault(witnessDepositionNode, "lastName");
+        String mobileNumber = getTextOrDefault(witnessDepositionNode.path("phonenumbers").path("mobileNumber").get(0), "");
+        String deposition = getTextOrDefault(witnessDepositionNode, "deposition");
+        String locality = getTextOrDefault(witnessDepositionNode.path("addressDetails").get(0).path("addressDetails"), "locality");
+        String city = getTextOrDefault(witnessDepositionNode.path("addressDetails").get(0).path("addressDetails"), "city");
+
         return WitnessDeposition.builder()
                 .hearingId(hearing.getHearingId())
                 .caseName(caseDetails.get("caseTitle").asText())
@@ -154,14 +162,18 @@ public class WitnessDepositionPdfService {
                 .filingNumber(caseDetails.get("filingNumber").asText())
                 .caseYear(caseYear)
                 .caseNumber(courtCaseNumber)
-                .name(witnessDepositionNode.path("firstName").asText() + " " + witnessDepositionNode.path("lastName").asText())
-                .mobileNumber(witnessDepositionNode.path("phonenumbers").path("mobileNumber").get(0).asText())
-                .deposition(witnessDepositionNode.path("deposition").asText())
+                .name(firstName + " " + lastName)
+                .mobileNumber(mobileNumber)
+                .deposition(deposition)
                 .hearingDate(formatDateFromMillis(hearing.getEndTime()))
-                .taluk(witnessDepositionNode.path("addressDetails").get(0).path("addressDetails").path("locality").asText())
-                .village(witnessDepositionNode.path("addressDetails").get(0).path("addressDetails").path("city").asText())
+                .taluk(locality)
+                .village(city)
                 .build();
     }
+    private  String getTextOrDefault(JsonNode node, String path) {
+        return node.path(path).asText("");
+    }
+
 
     private Integer calculateAge(Date dateOfBirth) {
         if (dateOfBirth == null) {
