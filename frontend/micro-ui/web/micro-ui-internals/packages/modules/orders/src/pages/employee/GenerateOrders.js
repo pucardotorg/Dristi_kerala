@@ -492,19 +492,12 @@ const GenerateOrders = () => {
                   },
                 };
               }
-              if (field?.populators?.inputs?.some((input) => input?.name === "respondingParty")) {
+              if (field?.key === "respondingParty") {
                 return {
                   ...field,
                   populators: {
                     ...field?.populators,
-                    inputs: field?.populators?.inputs.map((input) =>
-                      input.name === "respondingParty"
-                        ? {
-                            ...input,
-                            options: [...complainants, ...respondents],
-                          }
-                        : input
-                    ),
+                    options: [...complainants, ...respondents],
                   },
                 };
               }
@@ -1170,6 +1163,8 @@ const GenerateOrders = () => {
             courtAddress: courtDetails?.address,
             courtPhone: courtDetails?.phone,
             courtId: caseDetails?.courtId,
+            hearingNumber: orderData?.hearingNumber,
+            judgeName: "super",
           },
           deliveryChannels: {
             channelName: "",

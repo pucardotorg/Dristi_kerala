@@ -64,7 +64,7 @@ const EvidenceModal = ({ caseData, documentSubmission = [], setShow, userRoles, 
     );
   };
   const respondingUuids = useMemo(() => {
-    return documentSubmission?.[0]?.details?.additionalDetails?.respondingParty?.map((party) => party?.uuid.map((uuid) => uuid)).flat() || [];
+    return documentSubmission?.[0]?.details?.additionalDetails?.respondingParty?.map((party) => party?.uuid?.map((uuid) => uuid))?.flat() || [];
   }, [documentSubmission]);
 
   const showSubmit = useMemo(() => {
@@ -898,7 +898,13 @@ const EvidenceModal = ({ caseData, documentSubmission = [], setShow, userRoles, 
                         </div>
                       </div>
                       <div style={{ display: "flex" }}>
-                        <SelectCustomDocUpload t={t} formUploadData={formData} config={[documentUploaderConfig?.[0]]} setData={setData} />
+                        <SelectCustomDocUpload
+                          t={t}
+                          formUploadData={formData}
+                          config={[documentUploaderConfig?.[0]]}
+                          setData={setData}
+                          documentSubmission={documentSubmission}
+                        />
                       </div>
                     </div>
                   </div>

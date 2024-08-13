@@ -378,7 +378,7 @@ export const UICustomizations = {
         config: {
           ...requestCriteria?.config,
           select: (data) => {
-            return { ...data, list: data?.filter((order) => order.taskType) };
+            return { ...data, list: data?.list?.filter((order) => order.taskType) };
           },
         },
       };
@@ -393,7 +393,7 @@ export const UICustomizations = {
         case "Issued":
           return `${formatDateDifference(value)} days ago`;
         case "Delivery Channel":
-          return caseDetails?.deliveryChannels?.channelName;
+          return caseDetails?.deliveryChannels?.channelName || "N/A";
         default:
           return t("ES_COMMON_NA");
       }
