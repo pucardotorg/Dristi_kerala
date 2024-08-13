@@ -3,9 +3,8 @@ package digit.service;
 import digit.config.Configuration;
 import digit.config.ServiceConstants;
 import digit.enrichment.HearingEnrichment;
-import digit.helper.DefaultMasterDataHelper;
-import digit.kafka.Producer;
-import digit.validator.HearingValidator;
+import digit.kafka.producer.Producer;
+import digit.util.MasterDataUtil;
 import digit.web.models.MdmsHearing;
 import digit.web.models.MdmsSlot;
 import digit.web.models.ScheduleHearing;
@@ -43,10 +42,7 @@ public class HearingServiceTest {
     private HearingEnrichment enrichment;
 
     @Mock
-    private DefaultMasterDataHelper helper;
-
-    @Mock
-    private HearingValidator validator;
+    private MasterDataUtil helper;
 
     @InjectMocks
     private HearingService hearingService;
@@ -69,15 +65,14 @@ public class HearingServiceTest {
                 obj -> obj
         ));
 
-        when(helper.getDataFromMDMS(MdmsSlot.class, serviceConstants.DEFAULT_SLOTTING_MASTER_NAME)).thenReturn(defaultSlots);
-        when(helper.getDataFromMDMS(MdmsHearing.class, serviceConstants.DEFAULT_HEARING_MASTER_NAME)).thenReturn(defaultHearings);
+        when(helper.getDataFromMDMS(MdmsSlot.class, serviceConstants.DEFAULT_SLOTTING_MASTER_NAME, serviceConstants.DEFAULT_SLOTTING_MASTER_NAME)).thenReturn(defaultSlots);
+        when(helper.getDataFromMDMS(MdmsHearing.class, serviceConstants.DEFAULT_HEARING_MASTER_NAME, serviceConstants.DEFAULT_SLOTTING_MASTER_NAME)).thenReturn(defaultHearings);
         when(config.getScheduleHearingTopic()).thenReturn("scheduleHearingTopic");
 
         List<ScheduleHearing> hearingList = hearingService.schedule(schedulingRequests);
 
         double totalHrs = defaultSlots.stream().reduce(0.0, (total, slotData) -> total + slotData.getSlotDuration() / 60.0, Double::sum);
 
-        verify(validator, times(1)).validateHearing(schedulingRequests, totalHrs, hearingTypeMap);
         verify(enrichment, times(1)).enrichScheduleHearing(schedulingRequests, defaultSlots, hearingTypeMap);
         verify(producer, times(1)).push("scheduleHearingTopic", schedulingRequests.getHearing());
 

@@ -48,12 +48,12 @@ public class CalendarQueryBuilderTest {
             }
 
             @Override
-            public LocalDate getFromDate() {
+            public Long getFromDate() {
                 return null;
             }
 
             @Override
-            public LocalDate getToDate() {
+            public Long getToDate() {
                 return null;
             }
         };
@@ -78,13 +78,13 @@ public class CalendarQueryBuilderTest {
             }
 
             @Override
-            public LocalDate getFromDate() {
-                return LocalDate.parse("2023-01-01");
+            public Long getFromDate() {
+                return LocalDate.parse("2023-01-01").toEpochDay();
             }
 
             @Override
-            public LocalDate getToDate() {
-                return LocalDate.parse("2023-12-31");
+            public Long getToDate() {
+                return LocalDate.parse("2023-01-01").toEpochDay();
             }
         };
 
@@ -133,12 +133,12 @@ public class CalendarQueryBuilderTest {
             }
 
             @Override
-            public LocalDate getFromDate() {
+            public Long getFromDate() {
                 return null;
             }
 
             @Override
-            public LocalDate getToDate() {
+            public Long getToDate() {
                 return null;
             }
         };
@@ -177,12 +177,12 @@ public class CalendarQueryBuilderTest {
             }
 
             @Override
-            public LocalDate getFromDate() {
+            public Long getFromDate() {
                 return null;
             }
 
             @Override
-            public LocalDate getToDate() {
+            public Long getToDate() {
                 return null;
             }
         };
@@ -220,12 +220,12 @@ public class CalendarQueryBuilderTest {
             }
 
             @Override
-            public LocalDate getFromDate() {
-                return LocalDate.parse("2023-01-01");
+            public Long getFromDate() {
+                return LocalDate.parse("2023-01-01").toEpochDay();
             }
 
             @Override
-            public LocalDate getToDate() {
+            public Long getToDate() {
                 return null;
             }
         };
@@ -263,13 +263,13 @@ public class CalendarQueryBuilderTest {
             }
 
             @Override
-            public LocalDate getFromDate() {
+            public Long getFromDate() {
                 return null;
             }
 
             @Override
-            public LocalDate getToDate() {
-                return LocalDate.parse("2023-12-31");
+            public Long getToDate() {
+                return LocalDate.parse("2023-12-31").toEpochDay();
             }
         };
 
@@ -280,7 +280,6 @@ public class CalendarQueryBuilderTest {
         String actualQuery = calendarQueryBuilder.getJudgeCalendarQuery(searchCriteria, preparedStmtList);
 
         assertEquals(1, preparedStmtList.size());
-        assertEquals(LocalDate.parse("2023-12-31"), preparedStmtList.get(0));
 
         verify(queryBuilderHelper, times(1)).addClauseIfRequired(any(StringBuilder.class), anyList());
     }

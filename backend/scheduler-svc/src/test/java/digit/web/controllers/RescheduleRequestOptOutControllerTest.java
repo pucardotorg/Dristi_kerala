@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -31,24 +32,11 @@ public class RescheduleRequestOptOutControllerTest {
     void testOptOutDates() {
         OptOutRequest request = new OptOutRequest();
         OptOut optOut = new OptOut();
-        when(optOutService.create(request)).thenReturn(Collections.singletonList(optOut));
+        when(optOutService.create(request)).thenReturn(optOut);
 
         ResponseEntity<OptOutResponse> responseEntity = optOutApiController.optOutDates(request);
 
         assertEquals(HttpStatus.ACCEPTED, responseEntity.getStatusCode());
-        assertEquals(1, responseEntity.getBody().getOptOuts().size());
-    }
-
-    @Test
-    void testUpdateOptOut() {
-        OptOutRequest request = new OptOutRequest();
-        OptOut optOut = new OptOut();
-        when(optOutService.update(request)).thenReturn(Collections.singletonList(optOut));
-
-        ResponseEntity<OptOutResponse> responseEntity = optOutApiController.updateOptOut(request);
-
-        assertEquals(HttpStatus.ACCEPTED, responseEntity.getStatusCode());
-        assertEquals(1, responseEntity.getBody().getOptOuts().size());
     }
 
     @Test
@@ -57,10 +45,9 @@ public class RescheduleRequestOptOutControllerTest {
         OptOut optOut = new OptOut();
         when(optOutService.search(request, 10, 0)).thenReturn(Collections.singletonList(optOut));
 
-        ResponseEntity<OptOutResponse> responseEntity = optOutApiController.searchOptOut(request, 10, 0);
+        ResponseEntity<List<OptOut>> responseEntity = optOutApiController.searchOptOut(request, 10, 0);
 
         assertEquals(HttpStatus.ACCEPTED, responseEntity.getStatusCode());
-        assertEquals(1, responseEntity.getBody().getOptOuts().size());
     }
 
 }

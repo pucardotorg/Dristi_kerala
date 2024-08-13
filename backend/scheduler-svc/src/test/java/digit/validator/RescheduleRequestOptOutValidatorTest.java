@@ -1,34 +1,33 @@
 package digit.validator;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import digit.config.Configuration;
+import digit.config.ServiceConstants;
 import digit.repository.RescheduleRequestOptOutRepository;
 import digit.service.ReScheduleHearingService;
-import digit.util.CaseUtil;
+import digit.util.MasterDataUtil;
 import digit.web.models.*;
-import digit.web.models.cases.CaseCriteria;
-import digit.web.models.cases.SearchCaseRequest;
-import digit.web.models.enums.Status;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.tracer.model.CustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
 
 @ExtendWith(MockitoExtension.class)
-public class RescheduleRequestOptOutValidatorTest {
-
-    @InjectMocks
-    private RescheduleRequestOptOutValidator validator;
+class RescheduleRequestOptOutValidatorTest {
 
     @Mock
     private RescheduleRequestOptOutRepository repository;
@@ -40,95 +39,57 @@ public class RescheduleRequestOptOutValidatorTest {
     private Configuration config;
 
     @Mock
-    private CaseUtil caseUtil;
+    private MasterDataUtil mdmsUtil;
+
+    @Mock
+    private ServiceConstants constants;
+
+    @InjectMocks
+    private RescheduleRequestOptOutValidator validator;
 
     private OptOutRequest request;
+    private OptOut optOut;
 
     @BeforeEach
     void setUp() {
-        // Initialize the request object
         request = new OptOutRequest();
         request.setRequestInfo(new RequestInfo());
-        OptOut optOut = new OptOut();
+        optOut = new OptOut();
+        optOut.setRescheduleRequestId("rescheduleRequestId");
+        optOut.setJudgeId("judgeId");
+        optOut.setCaseId("caseId");
+        optOut.setOptoutDates(List.of(2L));
         optOut.setTenantId("tenantId");
         optOut.setIndividualId("individualId");
-        optOut.setRescheduleRequestId("rescheduleRequestId");
-        optOut.setOptoutDates(Arrays.asList(LocalDate.now(), LocalDate.now().plusDays(1)));
-        optOut.setCaseId("caseId");
-        request.setOptOuts(Collections.singletonList(optOut));
+
+        request.setOptOut(optOut);
+
     }
 
     @Test
-    void testValidateRequestWithEmptyTenantId() {
-        request.getOptOuts().get(0).setTenantId(null);
-        assertThrows(CustomException.class, () -> validator.validateRequest(request));
-    }
+    public void validateRequest_Success() {
+        ReScheduleHearing reScheduleHearing = ReScheduleHearing.builder().rescheduledRequestId("rescheduleRequestId").status("ACTIVE").suggestedDates(List.of(1L, 2L, 3L)).build();
+        SchedulerConfig schedulerConfig = SchedulerConfig.builder().identifier("OPT_OUT_SELECTION_LIMIT").unit(1).build();
+        List<SchedulerConfig> schedulerConfigList = new ArrayList<>();
+        schedulerConfigList.add(schedulerConfig);
+        when(reScheduleHearingService.search(any(), any(), any())).thenReturn(List.of(reScheduleHearing));
+        when(mdmsUtil.getDataFromMDMS(SchedulerConfig.class, constants.SCHEDULER_CONFIG_MASTER_NAME, constants.SCHEDULER_CONFIG_MODULE_NAME)).thenReturn(schedulerConfigList);
+        when(repository.getOptOut(OptOutSearchCriteria.builder().rescheduleRequestId("rescheduleRequestId").individualId("individualId").build(), null, null)).thenReturn(new ArrayList<>());
 
-    @Test
-    void testValidateRequestWithEmptyIndividualId() {
-        request.getOptOuts().get(0).setIndividualId(null);
-        assertThrows(CustomException.class, () -> validator.validateRequest(request));
-    }
-
-    @Test
-    void testValidateRequestWithEmptyRescheduleRequestId() {
-        request.getOptOuts().get(0).setRescheduleRequestId(null);
-        assertThrows(CustomException.class, () -> validator.validateRequest(request));
-    }
-
-    @Test
-    void testValidateRequestWithOptOutLimitExceeded() {
-        when(config.getOptOutLimit()).thenReturn(1L);
-        assertThrows(CustomException.class, () -> validator.validateRequest(request));
-    }
-
-    @Test
-    void testValidateRequestWithExistingOptOut() {
-        when(config.getOptOutLimit()).thenReturn(2L);
-        when(repository.getOptOut(any(), any(), any())).thenReturn(Collections.singletonList(new OptOut()));
-        assertThrows(CustomException.class, () -> validator.validateRequest(request));
-    }
-
-    @Test
-    void testValidateRequestWithInvalidIndividualId() {
-        JsonNode mockNode = mock(JsonNode.class);
-        assertThrows(CustomException.class, () -> validator.validateRequest(request));
-    }
-
-    @Test
-    void testValidateRequestWithNonExistingRescheduleRequest() {
-        assertThrows(CustomException.class, () -> validator.validateRequest(request));
-    }
-
-    @Test
-    void testValidateRequestWithNonApprovedRescheduleRequest() {
-        ReScheduleHearing hearing = new ReScheduleHearing();
-        hearing.setStatus(Status.REVIEW);
-        hearing.setRescheduledRequestId("rescheduleRequestId");
-        when(config.getOptOutLimit()).thenReturn(2L);
-        assertThrows(CustomException.class, () -> validator.validateRequest(request));
-    }
-
-    @Test
-    void testValidateRequestWithInvalidOptOutDates() {
-        ReScheduleHearing hearing = new ReScheduleHearing();
-        hearing.setStatus(Status.APPROVED);
-        hearing.setRescheduledRequestId("rescheduleRequestId");
-        hearing.setSuggestedDates(Arrays.asList(LocalDate.now().plusDays(2), LocalDate.now().plusDays(3)));
-        when(config.getOptOutLimit()).thenReturn(2L);
-        assertThrows(CustomException.class, () -> validator.validateRequest(request));
-    }
-
-    @Test
-    void testValidateRequestWithValidData() {
-        ReScheduleHearing hearing = new ReScheduleHearing();
-        hearing.setStatus(Status.APPROVED);
-        hearing.setRescheduledRequestId("rescheduleRequestId");
-        hearing.setSuggestedDates(Arrays.asList(LocalDate.now(), LocalDate.now().plusDays(1)));
-        when(config.getOptOutLimit()).thenReturn(2L);
-        when(reScheduleHearingService.search(any(), any(), any())).thenReturn(Collections.singletonList(hearing));
-        when(caseUtil.getRepresentatives(any(SearchCaseRequest.class))).thenReturn(mock(JsonNode.class));
-        when(caseUtil.getIdsFromJsonNodeArray(any(JsonNode.class))).thenReturn(Collections.singleton("individualId"));
         validator.validateRequest(request);
+
+
     }
+
+    @Test
+    public void validateRequest_Inactive(){
+        ReScheduleHearing reScheduleHearing = ReScheduleHearing.builder().rescheduledRequestId("rescheduleRequestId").status("INACTIVE").suggestedDates(List.of(1L, 2L, 3L)).build();
+        when(reScheduleHearingService.search(any(), any(), any())).thenReturn(List.of(reScheduleHearing));
+        CustomException customException = assertThrows(CustomException.class, () -> {
+            validator.validateRequest(request);
+        });
+        assertEquals("DK_OO_REQUEST_COMPLETED", customException.getCode());
+    }
+
+
 }

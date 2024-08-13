@@ -1,10 +1,7 @@
 package digit.repository.rowmapper;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import digit.models.coremodels.AuditDetails;
 import digit.web.models.ReScheduleHearing;
-import digit.web.models.enums.Status;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -12,7 +9,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -67,8 +63,6 @@ public class ReScheduleHearingRowMapperTest {
         assertEquals("tenant", reScheduleHearing.getTenantId());
         assertEquals("judge", reScheduleHearing.getJudgeId());
         assertEquals("reason", reScheduleHearing.getReason());
-        assertEquals(Status.APPROVED, reScheduleHearing.getStatus());
-        assertEquals("comment", reScheduleHearing.getActionComment());
         assertEquals(1, reScheduleHearing.getRowVersion());
     }
 

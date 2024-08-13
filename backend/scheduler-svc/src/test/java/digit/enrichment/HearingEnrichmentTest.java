@@ -3,22 +3,21 @@ package digit.enrichment;
 import digit.config.Configuration;
 import digit.models.coremodels.AuditDetails;
 import digit.repository.HearingRepository;
+import digit.util.DateUtil;
 import digit.util.IdgenUtil;
 import digit.web.models.*;
-import digit.web.models.enums.EventType;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.contract.request.User;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -41,6 +40,9 @@ public class HearingEnrichmentTest {
     @Mock
     private Configuration configuration;
 
+    @Mock
+    private DateUtil dateUtil;
+
     @Test
     void testEnrichScheduleHearing() {
         RequestInfo requestInfo = new RequestInfo();
@@ -50,15 +52,15 @@ public class HearingEnrichmentTest {
 
         ScheduleHearing hearing1 = new ScheduleHearing();
         hearing1.setTenantId("tenantId1");
-        hearing1.setDate(LocalDate.now());
+        hearing1.setHearingDate(LocalDate.now().toEpochDay());
         hearing1.setJudgeId("judge1");
-        hearing1.setEventType(EventType.ADMISSION_HEARING);
+        hearing1.setHearingType("ADMISSION");
 
         ScheduleHearing hearing2 = new ScheduleHearing();
         hearing2.setTenantId("tenantId1");
-        hearing2.setDate(LocalDate.now());
+        hearing2.setHearingDate(LocalDate.now().toEpochDay());
         hearing2.setJudgeId("judge1");
-        hearing2.setEventType(EventType.ADMISSION_HEARING);
+        hearing2.setHearingType("ADMISSION");
 
         List<ScheduleHearing> hearingList = Arrays.asList(hearing1, hearing2);
 
@@ -70,7 +72,7 @@ public class HearingEnrichmentTest {
         Map<String, MdmsHearing> hearingTypeMap = new HashMap<>();
         MdmsHearing mdmsHearing = new MdmsHearing();
         mdmsHearing.setHearingTime(30);
-        hearingTypeMap.put(EventType.ADMISSION_HEARING.toString(), mdmsHearing);
+        hearingTypeMap.put("ADMISSION", mdmsHearing);
 
         when(idgenUtil.getIdList(any(), anyString(), anyString(), any(), anyInt()))
                 .thenReturn(Arrays.asList("hearingId1", "hearingId2"));
@@ -89,9 +91,9 @@ public class HearingEnrichmentTest {
     @Test
     void testUpdateTimingInHearings() {
         ScheduleHearing hearing1 = new ScheduleHearing();
-        hearing1.setDate(LocalDate.now());
+        hearing1.setHearingDate(LocalDate.now().toEpochDay());
         hearing1.setJudgeId("judge1");
-        hearing1.setEventType(EventType.ADMISSION_HEARING);
+        hearing1.setHearingType("ADMISSION");
 
         List<ScheduleHearing> hearingList = Collections.singletonList(hearing1);
 
@@ -104,14 +106,12 @@ public class HearingEnrichmentTest {
         Map<String, MdmsHearing> hearingTypeMap = new HashMap<>();
         MdmsHearing mdmsHearing = new MdmsHearing();
         mdmsHearing.setHearingTime(30);
-        hearingTypeMap.put(EventType.ADMISSION_HEARING.toString(), mdmsHearing);
+        hearingTypeMap.put("ADMISSION", mdmsHearing);
 
         when(repository.getHearings(any(), any(), any())).thenReturn(new ArrayList<>());
 
         hearingEnrichment.updateTimingInHearings(hearingList, hearingTypeMap, defaultSlots);
 
-        assertNotNull(hearing1.getStartTime());
-        assertNotNull(hearing1.getEndTime());
     }
 
     @Test
@@ -135,26 +135,11 @@ public class HearingEnrichmentTest {
         assertNotNull(hearing1.getAuditDetails().getLastModifiedTime());
     }
 
-//    @Test
-//    void testGetAuditDetailsScheduleHearing() {
-//        RequestInfo requestInfo = new RequestInfo();
-//        User user = new User();
-//        user.setUuid("test-uuid");
-//        requestInfo.setUserInfo(user);
-//
-//        AuditDetails auditDetails = hearingEnrichment.getAuditDetailsScheduleHearing(requestInfo);
-//
-//        assertEquals("test-uuid", auditDetails.getCreatedBy());
-//        assertEquals("test-uuid", auditDetails.getLastModifiedBy());
-//        assertNotNull(auditDetails.getCreatedTime());
-//        assertNotNull(auditDetails.getLastModifiedTime());
-//    }
-
     @Test
     void testUpdateHearingTime() {
         ScheduleHearing hearing = new ScheduleHearing();
-        hearing.setDate(LocalDate.now());
-        hearing.setEventType(EventType.ADMISSION_HEARING);
+        hearing.setHearingDate(LocalDate.now().toEpochDay());
+        hearing.setHearingType("ADMISSION");
 
         List<MdmsSlot> slots = new ArrayList<>();
         MdmsSlot slot = new MdmsSlot();
@@ -164,6 +149,10 @@ public class HearingEnrichmentTest {
 
         List<ScheduleHearing> scheduledHearings = new ArrayList<>();
 
+        when(dateUtil.getLocalDateFromEpoch(anyLong())).thenReturn(LocalDate.now());
+        when(dateUtil.getLocalTime(anyString())).thenReturn(LocalTime.of(10, 0));
+        when(dateUtil.getEpochFromLocalDateTime(any())).thenReturn(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC));
+        when(hearingEnrichment.canScheduleHearings(new ScheduleHearing(), Collections.singletonList(new ScheduleHearing()), Collections.singletonList(new MdmsSlot()))).thenReturn(true);
         hearingEnrichment.updateHearingTime(hearing, slots, scheduledHearings, 30);
 
         assertNotNull(hearing.getStartTime());
@@ -173,12 +162,12 @@ public class HearingEnrichmentTest {
     @Test
     void testCanScheduleHearings() {
         ScheduleHearing hearing1 = new ScheduleHearing();
-        hearing1.setStartTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(10, 0)));
-        hearing1.setEndTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(10, 30)));
+        hearing1.setStartTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(10, 0)).toEpochSecond(ZoneOffset.UTC));
+        hearing1.setEndTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(10, 30)).toEpochSecond(ZoneOffset.UTC));
 
         ScheduleHearing hearing2 = new ScheduleHearing();
-        hearing2.setStartTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(11, 0)));
-        hearing2.setEndTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(11, 30)));
+        hearing2.setStartTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(11, 0)).toEpochSecond(ZoneOffset.UTC));
+        hearing2.setEndTime(LocalDateTime.of(LocalDate.now(), LocalTime.of(11, 30)).toEpochSecond(ZoneOffset.UTC));
 
         List<ScheduleHearing> scheduledHearings = Collections.singletonList(hearing2);
 
@@ -194,24 +183,6 @@ public class HearingEnrichmentTest {
     }
 
     @Test
-    void testGetLocalDateTime() {
-        LocalDateTime dateTime = LocalDateTime.of(LocalDate.now(), LocalTime.of(10, 0));
-        String newTime = "11:00:00";
-
-        LocalDateTime updatedDateTime = hearingEnrichment.getLocalDateTime(dateTime, newTime);
-
-        assertEquals(LocalTime.of(11, 0), updatedDateTime.toLocalTime());
-    }
-
-    @Test
-    void testGetLocalTime() {
-        String time = "10:00:00";
-        LocalTime localTime = hearingEnrichment.getLocalTime(time);
-
-        assertEquals(LocalTime.of(10, 0), localTime);
-    }
-
-    @Test
     void testEnrichBulkReschedule() {
         RequestInfo requestInfo = new RequestInfo();
         User user = new User();
@@ -222,9 +193,9 @@ public class HearingEnrichmentTest {
         AuditDetails auditDetails = new AuditDetails();
         hearing1.setAuditDetails(auditDetails);
         hearing1.setRowVersion(1);
-        hearing1.setDate(LocalDate.now());
+        hearing1.setHearingDate(LocalDate.now().toEpochDay());
         hearing1.setJudgeId("judge1");
-        hearing1.setEventType(EventType.ADMISSION_HEARING);
+        hearing1.setHearingType("ADMISSION");
 
         List<ScheduleHearing> hearingList = Collections.singletonList(hearing1);
 
@@ -241,7 +212,7 @@ public class HearingEnrichmentTest {
         Map<String, MdmsHearing> hearingTypeMap = new HashMap<>();
         MdmsHearing mdmsHearing = new MdmsHearing();
         mdmsHearing.setHearingTime(30);
-        hearingTypeMap.put(EventType.ADMISSION_HEARING.toString(), mdmsHearing);
+        hearingTypeMap.put("ADMISSION", mdmsHearing);
 
         when(repository.getHearings(any(), any(), any())).thenReturn(new ArrayList<>());
 

@@ -1,25 +1,21 @@
 package digit.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import digit.config.Configuration;
 import digit.config.ServiceConstants;
-import digit.kafka.Producer;
+import digit.kafka.producer.Producer;
 import digit.repository.CauseListRepository;
 import digit.repository.HearingRepository;
 import digit.util.MdmsUtil;
 import digit.util.PdfServiceUtil;
 import digit.web.models.*;
-import digit.web.models.enums.EventType;
 import net.minidev.json.JSONArray;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.contract.request.User;
-import org.egov.common.contract.response.ResponseInfo;
 import org.egov.tracer.model.CustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -77,7 +73,7 @@ public class CauseListServiceTest {
     void testUpdateCauseListForTomorrow_withHearings() {
         // Mocking
         List<ScheduleHearing> hearings = new ArrayList<>();
-        hearings.add(ScheduleHearing.builder().judgeId("judge001").eventType(EventType.ADMISSION_HEARING).build());
+        hearings.add(ScheduleHearing.builder().judgeId("judge001").hearingType("ADMISSION").build());
         when(hearingRepository.getHearings(any(), any(), any())).thenReturn(hearings);
         when(mdmsUtil.fetchMdmsData(any(), any(), any(), any())).thenReturn(getMockMdmsData());
         when(config.getCauseListInsertTopic()).thenReturn("causeListInsertTopic");

@@ -2,15 +2,12 @@ package digit.repository.querybuilder;
 
 import digit.helper.QueryBuilderHelper;
 import digit.web.models.ReScheduleHearingReqSearchCriteria;
-import digit.web.models.enums.Status;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.util.CollectionUtils;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +38,7 @@ public class ReScheduleHearingQueryBuilderTest {
         searchCriteria.setCaseId("case1");
         searchCriteria.setHearingBookingId("booking1");
         searchCriteria.setRequesterId("requester1");
-        searchCriteria.setStatus(Status.SCHEDULED);
+        searchCriteria.setStatus(1L);
         searchCriteria.setDueDate(2L);
 
         List<Object> preparedStmtList = new ArrayList<>();

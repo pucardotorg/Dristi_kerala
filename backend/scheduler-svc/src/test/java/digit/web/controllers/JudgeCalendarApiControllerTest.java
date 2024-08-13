@@ -36,10 +36,10 @@ public class JudgeCalendarApiControllerTest {
     @Test
     public void testGetJudgeCalendar(){
         JudgeCalendarSearchRequest searchRequest = new JudgeCalendarSearchRequest();
-        CalendarSearchCriteria searchCriteria = CalendarSearchCriteria.builder().judgeId("judgeId").tenantId("tenantId").fromDate(LocalDate.now()).toDate(LocalDate.now().plusDays(10)).build();
+        CalendarSearchCriteria searchCriteria = CalendarSearchCriteria.builder().judgeId("judgeId").tenantId("tenantId").fromDate(LocalDate.now().toEpochDay()).toDate(LocalDate.now().plusDays(10).toEpochDay()).build();
         searchRequest.setCriteria(searchCriteria);
 
-        HearingCalendar hearingCalendar = HearingCalendar.builder().judgeId("judgeId").date(LocalDate.now()).build();
+        HearingCalendar hearingCalendar = HearingCalendar.builder().judgeId("judgeId").date(LocalDate.now().toEpochDay()).build();
         List<HearingCalendar> calendarList = List.of(hearingCalendar);
         when(calendarService.getJudgeCalendar(searchRequest)).thenReturn(calendarList);
 

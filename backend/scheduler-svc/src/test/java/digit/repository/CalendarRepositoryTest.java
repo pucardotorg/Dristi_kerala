@@ -61,12 +61,12 @@ public class CalendarRepositoryTest {
             }
 
             @Override
-            public LocalDate getFromDate() {
+            public Long getFromDate() {
                 return null;
             }
 
             @Override
-            public LocalDate getToDate() {
+            public Long getToDate() {
                 return null;
             }
         };

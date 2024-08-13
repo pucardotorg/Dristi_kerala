@@ -1,6 +1,7 @@
 package digit.validator;
 
 import digit.web.models.JudgeCalendarRule;
+import digit.web.models.SearchCriteria;
 import digit.web.models.enums.JudgeRuleType;
 import org.egov.tracer.model.CustomException;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +14,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -24,78 +27,59 @@ public class JudgeCalendarValidatorTest {
     private JudgeCalendarValidator validator;
 
     @Test
-    public void testValidateUpdateJudgeCalendar() {
-        List<JudgeCalendarRule> judgeCalendarRule = new ArrayList<>();
-        JudgeCalendarRule rule = new JudgeCalendarRule();
-        rule.setTenantId("tenantId");
-        rule.setJudgeId("judgeId");
-        rule.setDate(LocalDate.now());
-        rule.setRuleType(JudgeRuleType.OTHER);
-        judgeCalendarRule.add(rule);
-        validator.validateUpdateJudgeCalendar(judgeCalendarRule);
+    void validateSearchRequest_throwsException_whenTenantIdIsEmpty() {
+        SearchCriteria criteria = mock(SearchCriteria.class);
+
+        when(criteria.getTenantId()).thenReturn(null);
+
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            validator.validateSearchRequest(criteria);
+        });
+
+        assertEquals("DK_SH_SEARCH_ERR", exception.getCode());
+        assertEquals("tenantId is mandatory for search", exception.getMessage());
     }
 
     @Test
-    public void testValidateUpdateJudgeCalendar_WithEmptyTenantId() {
-        List<JudgeCalendarRule> judgeCalendarRule = new ArrayList<>();
-        JudgeCalendarRule rule = new JudgeCalendarRule();
-        rule.setJudgeId("judgeId");
-        rule.setDate(LocalDate.now());
-        rule.setRuleType(JudgeRuleType.OTHER);
-        judgeCalendarRule.add(rule);
-        assertThrows(CustomException.class, () -> validator.validateUpdateJudgeCalendar(judgeCalendarRule));
+    void validateSearchRequest_throwsException_whenJudgeIdIsEmpty() {
+        SearchCriteria criteria = mock(SearchCriteria.class);
+
+        when(criteria.getTenantId()).thenReturn("someTenantId");
+        when(criteria.getJudgeId()).thenReturn(null);
+
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            validator.validateSearchRequest(criteria);
+        });
+
+        assertEquals("DK_SH_SEARCH_ERR", exception.getCode());
+        assertEquals("judgeId is mandatory for search", exception.getMessage());
     }
 
     @Test
-    public void testValidateUpdateJudgeCalendar_WithEmptyJudgeId() {
-        List<JudgeCalendarRule> judgeCalendarRule = new ArrayList<>();
-        JudgeCalendarRule rule = new JudgeCalendarRule();
-        rule.setTenantId("tenantId");
-        rule.setDate(LocalDate.now());
-        rule.setRuleType(JudgeRuleType.OTHER);
-        judgeCalendarRule.add(rule);
-        assertThrows(CustomException.class, () -> validator.validateUpdateJudgeCalendar(judgeCalendarRule));
+    void validateSearchRequest_throwsException_whenCourtIdIsEmpty() {
+        SearchCriteria criteria = mock(SearchCriteria.class);
+
+        when(criteria.getTenantId()).thenReturn("someTenantId");
+        when(criteria.getJudgeId()).thenReturn("someJudgeId");
+        when(criteria.getCourtId()).thenReturn(null);
+
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            validator.validateSearchRequest(criteria);
+        });
+
+        assertEquals("DK_SH_SEARCH_ERR", exception.getCode());
+        assertEquals("courtId is mandatory for search", exception.getMessage());
     }
 
     @Test
-    public void testValidateUpdateJudgeCalendar_WithEmptyDate() {
-        List<JudgeCalendarRule> judgeCalendarRule = new ArrayList<>();
-        JudgeCalendarRule rule = new JudgeCalendarRule();
-        rule.setTenantId("tenantId");
-        rule.setJudgeId("judgeId");
-        rule.setRuleType(JudgeRuleType.OTHER);
-        judgeCalendarRule.add(rule);
+    void validateSearchRequest_doesNotThrowException_whenAllFieldsArePresent() {
+        SearchCriteria criteria = mock(SearchCriteria.class);
 
-        assertThrows(CustomException.class, () -> validator.validateUpdateJudgeCalendar(judgeCalendarRule));
-    }
+        when(criteria.getTenantId()).thenReturn("someTenantId");
+        when(criteria.getJudgeId()).thenReturn("someJudgeId");
+        when(criteria.getCourtId()).thenReturn("someCourtId");
 
-    @Test
-    public void testValidateUpdateJudgeCalendar_WithPastDate() {
-        List<JudgeCalendarRule> judgeCalendarRule = new ArrayList<>();
-        JudgeCalendarRule rule = new JudgeCalendarRule();
-        rule.setTenantId("tenantId");
-        rule.setJudgeId("judgeId");
-        rule.setDate(LocalDate.now().minusDays(1));
-        rule.setRuleType(JudgeRuleType.OTHER);
-        judgeCalendarRule.add(rule);
-        assertThrows(CustomException.class, () -> validator.validateUpdateJudgeCalendar(judgeCalendarRule));
-    }
-
-    @Test
-    public void testValidateUpdateJudgeCalendar_WithEmptyRuleType() {
-        List<JudgeCalendarRule> judgeCalendarRule = new ArrayList<>();
-        JudgeCalendarRule rule = new JudgeCalendarRule();
-        rule.setTenantId("tenantId");
-        rule.setJudgeId("judgeId");
-        rule.setDate(LocalDate.now());
-        judgeCalendarRule.add(rule);
-        assertThrows(CustomException.class, () -> validator.validateUpdateJudgeCalendar(judgeCalendarRule));
-    }
-
-    @Test
-    public void testValidateUpdateJudgeCalendar_WithEmptyList() {
-        List<JudgeCalendarRule> judgeCalendarRule = new ArrayList<>();
-        validator.validateUpdateJudgeCalendar(judgeCalendarRule);
+        assertDoesNotThrow(() -> validator.validateSearchRequest(criteria));
     }
 }
 

@@ -94,22 +94,16 @@ public class ReScheduleRequestEnrichmentTest {
             existingReScheduleHearings.add(hearing);
         }
 
-        reScheduleHearings.get(0).setWorkflow(new Workflow());
-        reScheduleHearings.get(0).setAvailableAfter(LocalDate.now());
-        reScheduleHearings.get(0).setScheduleDate(LocalDate.now().plusDays(1));
+        reScheduleHearings.get(0).setAvailableAfter(LocalDate.now().toEpochDay());
         reScheduleHearings.get(0).setRowVersion(1);
 
-        reScheduleHearings.get(1).setWorkflow(new Workflow());
-        reScheduleHearings.get(1).setAvailableAfter(LocalDate.now());
-        reScheduleHearings.get(1).setScheduleDate(LocalDate.now().plusDays(1));
+        reScheduleHearings.get(1).setAvailableAfter(LocalDate.now().toEpochDay());
         reScheduleHearings.get(1).setRowVersion(1);
 
-        reScheduleHearings.get(2).setWorkflow(new Workflow());
-        reScheduleHearings.get(2).setAvailableAfter(LocalDate.now());
-        reScheduleHearings.get(2).setScheduleDate(LocalDate.now().plusDays(1));
+        reScheduleHearings.get(2).setAvailableAfter(LocalDate.now().toEpochDay());
         reScheduleHearings.get(2).setRowVersion(1);
 
-        reScheduleRequestEnrichment.enrichRequestOnUpdate(reScheduleHearingRequest, existingReScheduleHearings);
+        reScheduleRequestEnrichment.enrichRescheduleRequest(reScheduleHearingRequest);
 
         for (int i = 0; i < existingReScheduleHearings.size(); i++) {
             ReScheduleHearing hearing = existingReScheduleHearings.get(i);
@@ -129,19 +123,10 @@ public class ReScheduleRequestEnrichmentTest {
         assertNotNull(exception);
     }
 
-//    @Test
-//    public void testEnrichRescheduleRequest_WithEmptyHearingList() {
-//        reScheduleHearingRequest.setReScheduleHearing(new ArrayList<>());
-//
-//        reScheduleRequestEnrichment.enrichRescheduleRequest(reScheduleHearingRequest);
-//
-//        assertTrue(reScheduleHearingRequest.getReScheduleHearing().isEmpty());
-//    }
-
     @Test
     public void testEnrichRequestOnUpdate_WithNullExistingHearingList() {
         Exception exception = assertThrows(NullPointerException.class, () -> {
-            reScheduleRequestEnrichment.enrichRequestOnUpdate(reScheduleHearingRequest, null);
+            reScheduleRequestEnrichment.enrichRescheduleRequest(reScheduleHearingRequest);
         });
 
         assertNotNull(exception);

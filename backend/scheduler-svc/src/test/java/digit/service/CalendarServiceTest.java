@@ -3,20 +3,17 @@ package digit.service;
 import digit.config.Configuration;
 import digit.config.ServiceConstants;
 import digit.enrichment.JudgeCalendarEnrichment;
-import digit.helper.DefaultMasterDataHelper;
-import digit.kafka.Producer;
+import digit.kafka.producer.Producer;
 import digit.repository.CalendarRepository;
+import digit.util.MasterDataUtil;
 import digit.util.MdmsUtil;
 import digit.validator.JudgeCalendarValidator;
 import digit.web.models.*;
 import digit.web.models.enums.PeriodType;
-import digit.web.models.enums.Status;
 import net.minidev.json.JSONArray;
-import org.egov.tracer.model.CustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -58,7 +55,7 @@ class CalendarServiceTest {
     private HearingService hearingService;
 
     @Mock
-    private DefaultMasterDataHelper helper;
+    private MasterDataUtil helper;
 
     @BeforeEach
     void setUp() {
@@ -69,7 +66,7 @@ class CalendarServiceTest {
     void testGetJudgeAvailability_success() {
         JudgeAvailabilitySearchRequest request = new JudgeAvailabilitySearchRequest();
         JudgeAvailabilitySearchCriteria criteria = new JudgeAvailabilitySearchCriteria();
-        criteria.setFromDate(LocalDate.now());
+        criteria.setFromDate(LocalDate.now().toEpochDay());
         criteria.setJudgeId("JUDGE1");
         criteria.setTenantId("TENANT1");
         criteria.setCourtId("COURT1");
@@ -79,7 +76,7 @@ class CalendarServiceTest {
         MdmsSlot mdmsSlot = new MdmsSlot();
         mdmsSlot.setSlotDuration(60);
         List<MdmsSlot> defaultSlots = List.of(mdmsSlot);
-        when(helper.getDataFromMDMS(MdmsSlot.class, serviceConstants.DEFAULT_SLOTTING_MASTER_NAME)).thenReturn(defaultSlots);
+        when(helper.getDataFromMDMS(MdmsSlot.class, serviceConstants.DEFAULT_SLOTTING_MASTER_NAME, serviceConstants.DEFAULT_SLOTTING_MASTER_NAME)).thenReturn(defaultSlots);
 
         Map<String, Map<String, JSONArray>> defaultCalendarResponse = new HashMap<>();
         Map<String, JSONArray> innerMap = new HashMap<>();
@@ -92,7 +89,7 @@ class CalendarServiceTest {
 
         when(mdmsUtil.fetchMdmsData(any(), any(), any(), any())).thenReturn(defaultCalendarResponse);
 
-        List<JudgeCalendarRule> judgeCalendarRules = Collections.singletonList(JudgeCalendarRule.builder().date(LocalDate.now()).tenantId("tenant").judgeId("judge").build());
+        List<JudgeCalendarRule> judgeCalendarRules = Collections.singletonList(JudgeCalendarRule.builder().date(LocalDate.now().toEpochDay()).tenantId("tenant").judgeId("judge").build());
         when(calendarRepository.getJudgeRule(any())).thenReturn(judgeCalendarRules);
 
         List<AvailabilityDTO> availableDates = Collections.singletonList(new AvailabilityDTO(LocalDate.now().toString(), 1.0));
@@ -108,7 +105,7 @@ class CalendarServiceTest {
     void testGetJudgeAvailability_noAvailableDates() {
         JudgeAvailabilitySearchRequest request = new JudgeAvailabilitySearchRequest();
         JudgeAvailabilitySearchCriteria criteria = new JudgeAvailabilitySearchCriteria();
-        criteria.setFromDate(LocalDate.now());
+        criteria.setFromDate(LocalDate.now().toEpochDay());
         criteria.setJudgeId("JUDGE1");
         criteria.setTenantId("TENANT1");
         criteria.setCourtId("COURT1");
@@ -116,7 +113,7 @@ class CalendarServiceTest {
         request.setCriteria(criteria);
 
         List<MdmsSlot> defaultSlots = Collections.singletonList(new MdmsSlot());
-        when(helper.getDataFromMDMS(MdmsSlot.class, serviceConstants.DEFAULT_SLOTTING_MASTER_NAME)).thenReturn(defaultSlots);
+        when(helper.getDataFromMDMS(MdmsSlot.class, serviceConstants.DEFAULT_SLOTTING_MASTER_NAME, serviceConstants.DEFAULT_SLOTTING_MASTER_NAME)).thenReturn(defaultSlots);
 
         Map<String, Map<String, JSONArray>> defaultCalendarResponse = new HashMap<>();
         Map<String, JSONArray> innerMap = new HashMap<>();
@@ -127,7 +124,7 @@ class CalendarServiceTest {
 
         when(mdmsUtil.fetchMdmsData(any(), any(), any(), any())).thenReturn(defaultCalendarResponse);
 
-        List<JudgeCalendarRule> judgeCalendarRules = Collections.singletonList(JudgeCalendarRule.builder().date(LocalDate.now()).tenantId("tenant").judgeId("judge").build());
+        List<JudgeCalendarRule> judgeCalendarRules = Collections.singletonList(JudgeCalendarRule.builder().date(LocalDate.now().toEpochDay()).tenantId("tenant").judgeId("judge").build());
         when(calendarRepository.getJudgeRule(any())).thenReturn(judgeCalendarRules);
 
         List<AvailabilityDTO> availableDates = Collections.emptyList();
@@ -188,7 +185,7 @@ class CalendarServiceTest {
     @Test
     void testGetFromAndToDateFromPeriodType_currentDate() {
         PeriodType periodType = PeriodType.CURRENT_DATE;
-        Pair<LocalDate, LocalDate> result = calendarService.getFromAndToDateFromPeriodType(periodType);
+        Pair<Long, Long> result = calendarService.getFromAndToDateFromPeriodType(periodType);
 
         assertNotNull(result);
         assertEquals(LocalDate.now(), result.getKey());
@@ -198,7 +195,7 @@ class CalendarServiceTest {
     @Test
     void testGetFromAndToDateFromPeriodType_currentWeek() {
         PeriodType periodType = PeriodType.CURRENT_WEEK;
-        Pair<LocalDate, LocalDate> result = calendarService.getFromAndToDateFromPeriodType(periodType);
+        Pair<Long, Long> result = calendarService.getFromAndToDateFromPeriodType(periodType);
 
         assertNotNull(result);
         assertEquals(LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)), result.getKey());
@@ -208,7 +205,7 @@ class CalendarServiceTest {
     @Test
     void testGetFromAndToDateFromPeriodType_currentMonth() {
         PeriodType periodType = PeriodType.CURRENT_MONTH;
-        Pair<LocalDate, LocalDate> result = calendarService.getFromAndToDateFromPeriodType(periodType);
+        Pair<Long, Long> result = calendarService.getFromAndToDateFromPeriodType(periodType);
 
         assertNotNull(result);
         assertEquals(LocalDate.now().with(TemporalAdjusters.firstDayOfMonth()), result.getKey());
@@ -218,7 +215,7 @@ class CalendarServiceTest {
     @Test
     void testGetFromAndToDateFromPeriodType_currentYear() {
         PeriodType periodType = PeriodType.CURRENT_YEAR;
-        Pair<LocalDate, LocalDate> result = calendarService.getFromAndToDateFromPeriodType(periodType);
+        Pair<Long, Long> result = calendarService.getFromAndToDateFromPeriodType(periodType);
 
         assertNotNull(result);
         assertEquals(LocalDate.now().with(TemporalAdjusters.firstDayOfYear()), result.getKey());

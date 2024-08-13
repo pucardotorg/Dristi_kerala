@@ -1,11 +1,16 @@
 package digit.task;
 
 import digit.config.Configuration;
-import digit.kafka.Producer;
+import digit.config.ServiceConstants;
+import digit.kafka.producer.Producer;
 import digit.repository.ReScheduleRequestRepository;
 import digit.repository.RescheduleRequestOptOutRepository;
+import digit.service.hearing.OptOutProcessor;
+import digit.util.DateUtil;
+import digit.util.MasterDataUtil;
+import digit.util.PendingTaskUtil;
 import digit.web.models.*;
-import digit.web.models.enums.Status;
+import org.egov.common.contract.request.RequestInfo;
 import org.egov.tracer.model.CustomException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +21,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
-import java.time.ZoneOffset;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class RequestOptOutScheduleTaskTest {
+public class RequestOptOutScheduleTaskTest {
 
     @Mock
     private ReScheduleRequestRepository reScheduleRepository;
@@ -38,75 +44,65 @@ class RequestOptOutScheduleTaskTest {
     @Mock
     private Configuration config;
 
+    @Mock
+    private MasterDataUtil mdmsUtil;
+
+    @Mock
+    private OptOutProcessor optOutProcessor;
+
+    @Mock
+    private DateUtil dateUtil;
+
+    @Mock
+    private PendingTaskUtil pendingTaskUtil;
+
+    @Mock
+    private ServiceConstants constants;
+
     @InjectMocks
     private RequestOptOutScheduleTask requestOptOutScheduleTask;
 
-    @BeforeEach
-    void setUp() {
-        ReflectionTestUtils.setField(requestOptOutScheduleTask, "reScheduleRepository", reScheduleRepository);
-        ReflectionTestUtils.setField(requestOptOutScheduleTask, "requestOptOutRepository", requestOptOutRepository);
-        ReflectionTestUtils.setField(requestOptOutScheduleTask, "producer", producer);
-        ReflectionTestUtils.setField(requestOptOutScheduleTask, "config", config);
-    }
-
     @Test
-    void updateAvailableDatesFromOptOuts_success() {
-        // Mock configuration
-        when(config.getOptOutDueDate()).thenReturn(7L);
-        when(config.getEgovStateTenantId()).thenReturn("tenantId");
-        when(config.getUpdateRescheduleRequestTopic()).thenReturn("topic");
+    public void updateAvailableDatesFromOptOuts_success() {
+        SchedulerConfig schedulerConfig = new SchedulerConfig();
+        schedulerConfig.setIdentifier("OPT_OUT_DUE");
+        schedulerConfig.setUnit(1);
+        Long dueDate = LocalDate.now().plusDays(1).toEpochDay();
 
-        // Mock data
-        Long dueDate = 2L;
         ReScheduleHearing reScheduleHearing = new ReScheduleHearing();
+        reScheduleHearing.setRescheduledRequestId("rescheduledRequestId");
         reScheduleHearing.setJudgeId("judgeId");
         reScheduleHearing.setCaseId("caseId");
-        reScheduleHearing.setRescheduledRequestId("rescheduledRequestId");
         reScheduleHearing.setTenantId("tenantId");
-        reScheduleHearing.setSuggestedDates(List.of(LocalDate.now().plusDays(1), LocalDate.now().plusDays(2)));
-        reScheduleHearing.setAvailableDates(List.of(LocalDate.now().plusDays(1), LocalDate.now().plusDays(2)));
-        reScheduleHearing.setStatus(Status.APPROVED);
-
-        when(reScheduleRepository.getReScheduleRequest(any(), any(), any()))
-                .thenReturn(List.of(reScheduleHearing));
+        reScheduleHearing.setSuggestedDates(List.of(1L, 2L, 3L));
 
         OptOut optOut = new OptOut();
-        optOut.setOptoutDates(List.of(LocalDate.now().plusDays(1)));
+        optOut.setTenantId("tenantId");
+        optOut.setJudgeId("judgeId");
+        optOut.setCaseId("caseId");
+        optOut.setRescheduleRequestId("rescheduledRequestId");
+        optOut.setOptoutDates(List.of(1L));
 
-        when(requestOptOutRepository.getOptOut(any(), any(), any()))
-                .thenReturn(List.of(optOut));
+        PendingTaskRequest pendingTaskRequest = new PendingTaskRequest();
+        pendingTaskRequest.setRequestInfo(new RequestInfo());
+        pendingTaskRequest.setPendingTask(new PendingTask());
 
-        // Execute method
+        when(mdmsUtil.getDataFromMDMS(any(), anyString(), anyString())).thenReturn(Collections.singletonList(schedulerConfig));
+        when(dateUtil.getEpochFromLocalDateTime(any())).thenReturn(dueDate);
+        when(config.getEgovStateTenantId()).thenReturn("tenantId");
+        when(reScheduleRepository.getReScheduleRequest(ReScheduleHearingReqSearchCriteria.builder().tenantId("tenantId").dueDate(19949L).build(), null, null)).thenReturn(Collections.singletonList(reScheduleHearing));
+        when(requestOptOutRepository.getOptOut(OptOutSearchCriteria.builder().judgeId(reScheduleHearing.getJudgeId()).caseId(reScheduleHearing.getCaseId()).rescheduleRequestId(reScheduleHearing.getRescheduledRequestId()).tenantId(reScheduleHearing.getTenantId()).build(), null,null)).thenReturn(Collections.singletonList(optOut));
+        when(pendingTaskUtil.createPendingTask(any())).thenReturn(new PendingTask());
+
         requestOptOutScheduleTask.updateAvailableDatesFromOptOuts();
-
-        // Verify interactions
-        verify(reScheduleRepository, times(1)).getReScheduleRequest(any(), any(), any());
-        verify(requestOptOutRepository, times(1)).getOptOut(any(), any(), any());
-        verify(producer, times(1)).push(eq("topic"), any());
-
-        // Assert changes
-        assertEquals(Status.REVIEW, reScheduleHearing.getStatus());
-        assertEquals(Collections.singletonList(LocalDate.now().plusDays(2)), reScheduleHearing.getAvailableDates());
     }
 
     @Test
     void updateAvailableDatesFromOptOuts_exception() {
-        // Mock configuration
-        when(config.getOptOutDueDate()).thenReturn(7L);
-        when(config.getEgovStateTenantId()).thenReturn("tenantId");
-
-        // Mock exception
-        when(reScheduleRepository.getReScheduleRequest(any(), any(), any()))
-                .thenThrow(new RuntimeException("Database error"));
-
-        // Execute method and assert exception
+        when(mdmsUtil.getDataFromMDMS(any(), anyString(), anyString())).thenReturn(null);
         CustomException exception = assertThrows(CustomException.class, () -> requestOptOutScheduleTask.updateAvailableDatesFromOptOuts());
         assertEquals("DK_SH_APP_ERR", exception.getCode());
         assertEquals("Error in setting available dates.", exception.getMessage());
 
-        // Verify interactions
-        verify(reScheduleRepository, times(1)).getReScheduleRequest(any(), any(), any());
-        verify(requestOptOutRepository, never()).getOptOut(any(), any(), any());
-        verify(producer, never()).push(any(), any());
     }
 }

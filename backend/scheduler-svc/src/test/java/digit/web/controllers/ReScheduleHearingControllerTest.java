@@ -44,17 +44,6 @@ public class ReScheduleHearingControllerTest {
         assertEquals(reScheduleHearings.size(), responseEntity.getBody().getReScheduleHearings().size());
     }
 
-    @Test
-    void testUpdateReScheduleHearing() {
-        ReScheduleHearingRequest request = new ReScheduleHearingRequest();
-        ReScheduleHearing reScheduleHearing = new ReScheduleHearing();
-        when(reScheduleHearingService.update(request)).thenReturn(Collections.singletonList(reScheduleHearing));
-
-        ResponseEntity<ReScheduleHearingResponse> responseEntity = reScheduleHearingController.updateReScheduleHearing(request);
-
-        assertEquals(HttpStatus.ACCEPTED, responseEntity.getStatusCode());
-        assertEquals(1, responseEntity.getBody().getReScheduleHearings().size());
-    }
 
     @Test
     void testSearchRescheduleHearing() {
