@@ -539,9 +539,21 @@ function SelectReviewAccordion({ t, config, onSelect, formData = {}, errors, for
                 }}
               />
               <Button
-                label={!defaultError ? t("CS_MARK_ERROR") : defaultError === scrutinyError ? t("CS_COMMON_CANCEL") : t("CS_COMMON_UPDATE")}
+                label={
+                  !defaultError
+                    ? t("CS_MARK_ERROR")
+                    : systemDefaultError
+                    ? t("CS_CONFIRM_ERROR")
+                    : defaultError === scrutinyError
+                    ? t("CS_COMMON_CANCEL")
+                    : t("CS_COMMON_UPDATE")
+                }
                 isDisabled={!scrutinyError?.trim()}
                 onButtonClick={() => {
+                  if (systemDefaultError) {
+                    handleAddError();
+                    return;
+                  }
                   if (defaultError === scrutinyError) {
                     handleClosePopup();
                   } else {
