@@ -62,6 +62,9 @@ class DemandServiceTest {
     @Mock
     private List<Calculation> calculations;
 
+    @Mock
+    private Address address;
+
     @Test
     public void fetchPaymentDetailsAndGenerateDemandAndBillTest() {
         // Arrange
@@ -72,8 +75,8 @@ class DemandServiceTest {
         when(task.getTaskDetails()).thenReturn(taskDetails);
         when(taskDetails.getDeliveryChannel()).thenReturn(deliveryChannel);
         when(taskDetails.getRespondentDetails()).thenReturn(respondentDetails);
-        when(deliveryChannel.getChannelName()).thenReturn(ChannelName.SMS);
-        when(respondentDetails.getPinCode()).thenReturn("123456");
+        when(respondentDetails.getAddress()).thenReturn(address);
+        when(deliveryChannel.getChannelName()).thenReturn(ChannelName.SMS.toString());
         when(task.getTenantId()).thenReturn("tenant1");
         when(task.getTaskNumber()).thenReturn("TN001");
         when(repository.fetchResult(any(), any())).thenReturn(new Object());
@@ -105,8 +108,8 @@ class DemandServiceTest {
         when(task.getTaskDetails()).thenReturn(taskDetails);
         when(taskDetails.getDeliveryChannel()).thenReturn(deliveryChannel);
         when(taskDetails.getRespondentDetails()).thenReturn(respondentDetails);
-        when(deliveryChannel.getChannelName()).thenReturn(ChannelName.SMS);
-        when(respondentDetails.getPinCode()).thenReturn("123456");
+        when(respondentDetails.getAddress()).thenReturn(address);
+        when(deliveryChannel.getChannelName()).thenReturn(ChannelName.SMS.toString());
         when(task.getTenantId()).thenReturn("tenant1");
         when(task.getTaskNumber()).thenReturn("TN001");
 
@@ -137,8 +140,6 @@ class DemandServiceTest {
         List<Demand> demands = Collections.singletonList(mock(Demand.class));
 
         when(calculation.getTenantId()).thenReturn("tenant1");
-        when(calculation.getTotalAmount()).thenReturn(100.0);
-        when(calculation.getApplicationId()).thenReturn("APP001");
 
         when(config.getTaskTaxHeadMasterCode()).thenReturn("TH001");
         when(config.getTaxConsumerType()).thenReturn("CT001");
@@ -153,7 +154,7 @@ class DemandServiceTest {
         when(demandResponse.getDemands()).thenReturn(demands);
 
         // Act
-        List<Demand> result = demandService.generateDemands(requestInfo, calculations);
+        List<Demand> result = demandService.generateDemands(requestInfo, calculations,task);
 
         // Assert
         assertNotNull(result);

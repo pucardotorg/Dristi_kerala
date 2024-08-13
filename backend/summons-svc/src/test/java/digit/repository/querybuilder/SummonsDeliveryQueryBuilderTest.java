@@ -24,10 +24,10 @@ class SummonsDeliveryQueryBuilderTest {
     @Test
     void testGetSummonsQueryWithOrderId() {
         SummonsDeliverySearchCriteria searchCriteria = new SummonsDeliverySearchCriteria();
-        searchCriteria.setOrderId("order123");
+        searchCriteria.setTaskNumber("order123");
         List<String> preparedStmtList = new ArrayList<>();
 
-        String expectedQuery = "SELECT summons_delivery_id, task_number, case_id, tenant_id, doc_type, doc_sub_type, party_type, channel_name, payment_fees, payment_transaction_id, payment_status, is_accepted_by_channel, channel_acknowledgement_id, delivery_request_date, delivery_status, additional_fields, created_by, last_modified_by, created_time, last_modified_time, row_version  FROM summons_delivery  WHERE  summons_delivery_unique_id = ? ";
+        String expectedQuery = "SELECT summons_delivery_id, task_number, case_id, tenant_id, doc_type, doc_sub_type, party_type, channel_name, payment_fees, payment_transaction_id, payment_status, is_accepted_by_channel, channel_acknowledgement_id, delivery_request_date, delivery_status, additional_fields, created_by, last_modified_by, created_time, last_modified_time, row_version  FROM summons_delivery  WHERE  task_number = ? ";
         String actualQuery = queryBuilder.getSummonsQuery(searchCriteria, preparedStmtList);
 
         assertEquals(expectedQuery, actualQuery);
@@ -38,10 +38,10 @@ class SummonsDeliveryQueryBuilderTest {
     @Test
     void testGetSummonsQueryWithSummonsId() {
         SummonsDeliverySearchCriteria searchCriteria = new SummonsDeliverySearchCriteria();
-        searchCriteria.setSummonsId("summons123");
+        searchCriteria.setTaskNumber("summons123");
         List<String> preparedStmtList = new ArrayList<>();
 
-        String expectedQuery = "SELECT summons_delivery_id, task_number, case_id, tenant_id, doc_type, doc_sub_type, party_type, channel_name, payment_fees, payment_transaction_id, payment_status, is_accepted_by_channel, channel_acknowledgement_id, delivery_request_date, delivery_status, additional_fields, created_by, last_modified_by, created_time, last_modified_time, row_version  FROM summons_delivery  WHERE  summons_id = ? ";
+        String expectedQuery = "SELECT summons_delivery_id, task_number, case_id, tenant_id, doc_type, doc_sub_type, party_type, channel_name, payment_fees, payment_transaction_id, payment_status, is_accepted_by_channel, channel_acknowledgement_id, delivery_request_date, delivery_status, additional_fields, created_by, last_modified_by, created_time, last_modified_time, row_version  FROM summons_delivery  WHERE  task_number = ? ";
         String actualQuery = queryBuilder.getSummonsQuery(searchCriteria, preparedStmtList);
 
         assertEquals(expectedQuery, actualQuery);
@@ -52,17 +52,17 @@ class SummonsDeliveryQueryBuilderTest {
     @Test
     void testGetSummonsQueryWithOrderIdAndSummonsId() {
         SummonsDeliverySearchCriteria searchCriteria = new SummonsDeliverySearchCriteria();
-        searchCriteria.setOrderId("order123");
-        searchCriteria.setSummonsId("summons123");
+        searchCriteria.setTaskNumber("order123");
+        searchCriteria.setSummonsDeliveryId("summons123");
         List<String> preparedStmtList = new ArrayList<>();
 
-        String expectedQuery = "SELECT summons_delivery_id, task_number, case_id, tenant_id, doc_type, doc_sub_type, party_type, channel_name, payment_fees, payment_transaction_id, payment_status, is_accepted_by_channel, channel_acknowledgement_id, delivery_request_date, delivery_status, additional_fields, created_by, last_modified_by, created_time, last_modified_time, row_version  FROM summons_delivery  WHERE  summons_delivery_unique_id = ?  AND  summons_id = ? ";
+        String expectedQuery = "SELECT summons_delivery_id, task_number, case_id, tenant_id, doc_type, doc_sub_type, party_type, channel_name, payment_fees, payment_transaction_id, payment_status, is_accepted_by_channel, channel_acknowledgement_id, delivery_request_date, delivery_status, additional_fields, created_by, last_modified_by, created_time, last_modified_time, row_version  FROM summons_delivery  WHERE  summons_delivery_id = ?  AND  task_number = ? ";
         String actualQuery = queryBuilder.getSummonsQuery(searchCriteria, preparedStmtList);
 
         assertEquals(expectedQuery, actualQuery);
         assertEquals(2, preparedStmtList.size());
-        assertEquals("order123", preparedStmtList.get(0));
-        assertEquals("summons123", preparedStmtList.get(1));
+        assertEquals("summons123", preparedStmtList.get(0));
+        assertEquals("order123", preparedStmtList.get(1));
     }
 
     @Test

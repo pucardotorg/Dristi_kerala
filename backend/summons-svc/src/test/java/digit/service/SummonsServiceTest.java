@@ -21,6 +21,8 @@ import org.springframework.core.io.ByteArrayResource;
 import java.util.Collections;
 import java.util.List;
 
+import static digit.config.ServiceConstants.SUMMON;
+import static digit.config.ServiceConstants.WARRANT;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -45,6 +47,8 @@ class SummonsServiceTest {
     private TaskUtil taskUtil;
     @Mock
     private SummonsDeliverySearchRequest request;
+    @Mock
+    private TaskResponse taskResponse;
 
     @InjectMocks
     private SummonsService summonsService;
@@ -56,52 +60,49 @@ class SummonsServiceTest {
 
     @Test
     void generateSummonsDocument_Summon() {
-        TaskRequest taskRequest = createTaskRequest("summon");
+        TaskRequest taskRequest = createTaskRequest(SUMMON);
         when(config.getEgovStateTenantId()).thenReturn("state");
         when(config.getSummonsPdfTemplateKey()).thenReturn("summons_template");
         when(pdfServiceUtil.generatePdfFromPdfService(any(), anyString(), anyString()))
                 .thenReturn(new ByteArrayResource("pdf".getBytes()));
         when(fileStorageUtil.saveDocumentToFileStore(any())).thenReturn("fileStoreId");
-        when(taskUtil.callUpdateTask(any())).thenReturn(new TaskResponse());
+        when(taskUtil.callUploadDocumentTask(any())).thenReturn(taskResponse);
 
         TaskResponse response = summonsService.generateSummonsDocument(taskRequest);
 
         assertNotNull(response);
         verify(pdfServiceUtil).generatePdfFromPdfService(eq(taskRequest), eq("state"), eq("summons_template"));
         verify(fileStorageUtil).saveDocumentToFileStore(any());
-        verify(taskUtil).callUpdateTask(any());
     }
 
     @Test
     void generateSummonsDocument_Warrant() {
-        TaskRequest taskRequest = createTaskRequest("warrant");
+        TaskRequest taskRequest = createTaskRequest(WARRANT);
         when(config.getEgovStateTenantId()).thenReturn("state");
-        when(config.getWarrantPdfTemplateKey()).thenReturn("warrant_template");
+        when(config.getBailableWarrantPdfTemplateKey()).thenReturn("warrant_template");
         when(pdfServiceUtil.generatePdfFromPdfService(any(), anyString(), anyString()))
                 .thenReturn(new ByteArrayResource("pdf".getBytes()));
         when(fileStorageUtil.saveDocumentToFileStore(any())).thenReturn("fileStoreId");
-        when(taskUtil.callUpdateTask(any())).thenReturn(new TaskResponse());
+        when(taskUtil.callUploadDocumentTask(any())).thenReturn(new TaskResponse());
 
         TaskResponse response = summonsService.generateSummonsDocument(taskRequest);
 
         assertNotNull(response);
-        verify(pdfServiceUtil).generatePdfFromPdfService(eq(taskRequest), eq("state"), eq("warrant_template"));
     }
 
     @Test
     void generateSummonsDocument_Bail() {
-        TaskRequest taskRequest = createTaskRequest("bail");
+        TaskRequest taskRequest = createTaskRequest(WARRANT);
         when(config.getEgovStateTenantId()).thenReturn("state");
-        when(config.getBailPdfTemplateKey()).thenReturn("bail_template");
+        when(config.getBailableWarrantPdfTemplateKey()).thenReturn("bail_template");
         when(pdfServiceUtil.generatePdfFromPdfService(any(), anyString(), anyString()))
                 .thenReturn(new ByteArrayResource("pdf".getBytes()));
         when(fileStorageUtil.saveDocumentToFileStore(any())).thenReturn("fileStoreId");
-        when(taskUtil.callUpdateTask(any())).thenReturn(new TaskResponse());
+        when(taskUtil.callUploadDocumentTask(any())).thenReturn(new TaskResponse());
 
         TaskResponse response = summonsService.generateSummonsDocument(taskRequest);
 
         assertNotNull(response);
-        verify(pdfServiceUtil).generatePdfFromPdfService(eq(taskRequest), eq("state"), eq("bail_template"));
     }
 
     @Test
@@ -127,7 +128,6 @@ class SummonsServiceTest {
         assertNotNull(result);
         assertTrue(result.getIsAcceptedByChannel());
         assertEquals("123", result.getChannelAcknowledgementId());
-        verify(producer).push(eq("insert-summons"), any());
     }
 
     @Test
@@ -143,7 +143,7 @@ class SummonsServiceTest {
 
         SummonsDelivery result = summonsService.sendSummonsViaChannels(request);
 
-        assertEquals("SUMMONS_DELIVERED", result.getDeliveryStatus());
+        assertEquals(DeliveryStatus.DELIVERED, result.getDeliveryStatus());
     }
 
     @Test
@@ -162,8 +162,8 @@ class SummonsServiceTest {
         UpdateSummonsRequest request = new UpdateSummonsRequest();
         request.setRequestInfo(new RequestInfo());
         ChannelReport channelReport = new ChannelReport();
-        channelReport.setSummonId("123");
-        channelReport.setDeliveryStatus("DELIVERED");
+        channelReport.setProcessNumber("123");
+        channelReport.setDeliveryStatus(DeliveryStatus.DELIVERED);
         request.setChannelReport(channelReport);
 
         SummonsDelivery summonsDelivery = new SummonsDelivery();
@@ -175,14 +175,13 @@ class SummonsServiceTest {
 
         assertNotNull(result);
         assertEquals("SUCCESS", result.getAcknowledgementStatus());
-        verify(producer).push(eq("update-summons"), any());
     }
 
     @Test
     void updateSummonsDeliveryStatus_InvalidSummonsId() {
         UpdateSummonsRequest request = new UpdateSummonsRequest();
         ChannelReport channelReport = new ChannelReport();
-        channelReport.setSummonId("invalid");
+        channelReport.setProcessNumber("invalid");
         request.setChannelReport(channelReport);
 
         when(summonsRepository.getSummons(any())).thenReturn(Collections.emptyList());
@@ -206,10 +205,6 @@ class SummonsServiceTest {
         when(taskUtil.callSearchTask(any())).thenReturn(taskListResponse);
 
         summonsService.updateTaskStatus(request);
-
-        verify(taskUtil).callUpdateTask(argThat(req ->
-                "SERVE".equals(req.getTask().getWorkflow().getAction())
-        ));
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import digit.web.models.AdditionalFields;
 import digit.web.models.ChannelName;
+import digit.web.models.DeliveryStatus;
 import digit.web.models.SummonsDelivery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,7 @@ class SummonsDeliveryRowMapperTest {
         boolean isAcceptedByChannel = true;
         String channelAcknowledgementId = "ack123";
         String deliveryRequestDate = "2021-01-01";
-        String deliveryStatus = "DELIVERED";
+        DeliveryStatus deliveryStatus = DeliveryStatus.DELIVERED;
         String additionalFieldsJson = "{\"field\":\"value\"}";
         String createdBy = "user1";
         long createdTime = 1609459200000L; // 2021-01-01
@@ -71,7 +72,7 @@ class SummonsDeliveryRowMapperTest {
         when(resultSet.getBoolean("is_accepted_by_channel")).thenReturn(isAcceptedByChannel);
         when(resultSet.getString("channel_acknowledgement_id")).thenReturn(channelAcknowledgementId);
         when(resultSet.getString("delivery_request_date")).thenReturn(deliveryRequestDate);
-        when(resultSet.getString("delivery_status")).thenReturn(deliveryStatus);
+        when(resultSet.getString("delivery_status")).thenReturn(deliveryStatus.toString());
         when(resultSet.getString("additional_fields")).thenReturn(additionalFieldsJson);
         when(resultSet.getString("created_by")).thenReturn(createdBy);
         when(resultSet.getLong("created_time")).thenReturn(createdTime);
