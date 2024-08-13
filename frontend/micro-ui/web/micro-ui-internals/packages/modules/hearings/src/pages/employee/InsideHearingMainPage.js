@@ -69,8 +69,6 @@ const InsideHearingMainPage = () => {
   const { data: hearingLink } = useGetHearingLink();
   const hearingVcLink = hearingLink?.[0];
   const refetchTime = disableTextArea ? 10 * SECOND : "";
-  const refetchTime = disableTextArea ? 10 * SECOND : "";
-
   const reqBody = {
     hearing: { tenantId },
     criteria: {
@@ -82,8 +80,6 @@ const InsideHearingMainPage = () => {
     reqBody,
     { applicationNumber: "", cnrNumber: "", hearingId },
     "dristi",
-    true,
-    refetchTime
     true,
     refetchTime
   );
@@ -380,7 +376,6 @@ const InsideHearingMainPage = () => {
             setAdjournHearing={setAdjournHearing}
             disableTextArea={disableTextArea}
             setTranscriptText={setTranscriptText}
-            setTranscriptText={setTranscriptText}
           />
         )}
       </div>
@@ -439,7 +434,6 @@ const InsideHearingMainPage = () => {
                   color: "#007E7E",
                 }}
               />
-            )} */}
             )} */}
           </div>
           {userHasRole("EMPLOYEE") ? (
@@ -524,7 +518,6 @@ const InsideHearingMainPage = () => {
           hearing={hearing}
           transcriptText={transcriptText}
           disableTextArea={disableTextArea}
-          setTranscriptText={setTranscriptText}
           setTranscriptText={setTranscriptText}
         />
       )}
