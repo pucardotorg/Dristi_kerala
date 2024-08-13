@@ -30,6 +30,8 @@ const ReviewSummonsNoticeAndWarrant = () => {
   const [nextHearingDate, setNextHearingDate] = useState();
   const [step, setStep] = useState(0);
   const [signatureId, setSignatureId] = useState("");
+  const [deliveryChannel, setDeliveryChannel] = useState("");
+  const [refetch, setRefetch] = useState(false);
 
   const [tabData, setTabData] = useState(
     SummonsTabsConfig?.SummonsTabsConfig?.map((configItem, index) => ({ key: index, label: configItem.label, active: index === 0 ? true : false }))
@@ -46,6 +48,7 @@ const ReviewSummonsNoticeAndWarrant = () => {
 
   const handleClose = () => {
     setShowActionModal(false);
+    setRefetch(!refetch);
   };
   useEffect(() => {
     // Set default values when component mounts
@@ -195,7 +198,7 @@ const ReviewSummonsNoticeAndWarrant = () => {
         },
         {
           heading: { label: "Add Signature (1)" },
-          actionSaveLabel: "Send Email",
+          actionSaveLabel: deliveryChannel === "Post" ? "Proceed to Send" : "Send Email",
           actionCancelLabel: "Back",
           modalBody: (
             <AddSignatureComponent
@@ -246,6 +249,25 @@ const ReviewSummonsNoticeAndWarrant = () => {
     if (rowData?.filingNumber) getHearingFromCaseId();
   }, [rowData]);
 
+  const handleTaskDetails = (taskDetails) => {
+    try {
+      // Try parsing the taskDetails string
+      const parsed = JSON.parse(taskDetails);
+
+      // Check if the result is a string (indicating it's a double-escaped JSON)
+      if (typeof parsed === "string") {
+        // Attempt to parse it again as JSON
+        return JSON.parse(parsed);
+      }
+
+      // Return the parsed object if it's already a valid JSON object
+      return parsed;
+    } catch (error) {
+      console.error("Failed to parse taskDetails:", error);
+      return null;
+    }
+  };
+
   return (
     <div className="review-summon-warrant">
       <div className="header-wraper">
@@ -255,6 +277,7 @@ const ReviewSummonsNoticeAndWarrant = () => {
       <div className="inbox-search-wrapper pucar-home home-view">
         {/* Pass defaultValues as props to InboxSearchComposer */}
         <InboxSearchComposer
+          key={`inbox-composer-${refetch}`}
           configs={config}
           defaultValues={defaultValues}
           showTab={true}
@@ -263,12 +286,12 @@ const ReviewSummonsNoticeAndWarrant = () => {
           additionalConfig={{
             resultsTable: {
               onClickRow: (props) => {
-                console.log("props?.original :>> ", props?.original);
                 setRowData(props?.original);
                 setActionModalType(props?.original?.documentStatus);
                 setShowActionModal(true);
                 setStep(0);
                 setIsSigned(props?.original?.documentStatus === "SIGN_PENDING" ? false : true);
+                setDeliveryChannel(handleTaskDetails(props?.original?.taskDetails)?.deliveryChannels?.channelName);
               },
             },
           }}
