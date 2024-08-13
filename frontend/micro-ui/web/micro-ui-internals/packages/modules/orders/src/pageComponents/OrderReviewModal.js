@@ -10,6 +10,7 @@ const OrderPreviewOrderTypeMap = {
   ASSIGNING_DATE_RESCHEDULED_HEARING: "new-hearing-date-after-rescheduling",
   SCHEDULE_OF_HEARING_DATE: "schedule-hearing-date",
   SUMMONS: "summons-issue",
+  INITIATING_RESCHEDULING_OF_HEARING_DATE: "accept-reschedule-request",
 };
 
 function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal, showActions = true }) {
