@@ -62,8 +62,9 @@ const EvidenceHearingHeader = ({ hearing, caseData, filingNumber, setActiveTab, 
     <div className="admitted-case-header" style={{ padding: "0px", border: "none" }}>
       <div className="admitted-case-details" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div className="case-details-title" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <Header>{t(`HEARING_TYPE_${hearing.hearingType}`)}</Header>
-          <div className="sub-details-text">Aparna vs. Subarna</div>
+          {/* <Header>{t(`HEARING_TYPE_${hearing.hearingType}`)}</Header> */}
+          <Header>{hearing.hearingType} Hearing</Header>
+          {/* <div className="sub-details-text">Aparna vs. Subarna</div> */}
           <div className="vertical-line"></div>
           <div className="sub-details-text">NIA 138</div>
           <div className="vertical-line"></div>
@@ -72,18 +73,18 @@ const EvidenceHearingHeader = ({ hearing, caseData, filingNumber, setActiveTab, 
         <div className="judge-action-block">
           <div className="evidence-header-wrapper">
             <div className="evidence-hearing-header" style={{ background: "transparent" }}>
-              <div className="evidence-actions">
+              {/* <div className="evidence-actions">
                 <Button
                   style={{
                     backgroundColor: "#fff",
                   }}
                   textStyles={{
-                    fontFamily: "Roboto",
-                    fontSize: "16px",
-                    fontWeight: 700,
-                    lineHeight: "18.75px",
-                    textAlign: "center",
-                    color: "#007E7E",
+                    // fontFamily: "Roboto",
+                    // fontSize: "16px",
+                    // fontWeight: 700,
+                    // lineHeight: "18.75px",
+                    // textAlign: "center",
+                    // color: "#007E7E",
                   }}
                   variation={"tertiary"}
                   label={"Share"}
@@ -91,7 +92,7 @@ const EvidenceHearingHeader = ({ hearing, caseData, filingNumber, setActiveTab, 
                   iconFill={"#007E7E"}
                   className={"take-action-btn-class"}
                 ></Button>
-              </div>
+              </div> */}
             </div>
           </div>
           {userRoles.includes("EMPLOYEE") ? (
