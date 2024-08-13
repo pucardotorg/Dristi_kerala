@@ -3,12 +3,12 @@ import utils from "../utils";
 
 import { ordersService } from "./services";
 import useSearchOrdersService from "./orders/useSearchOrdersService";
-import useESign from "./orders/useESign";
+import { useGetPendingTask } from "./orders/useGetPendingTask";
 
 const orders = {
   useIndividualView,
   useSearchOrdersService,
-  useESign,
+  useGetPendingTask,
 };
 
 const Hooks = {
