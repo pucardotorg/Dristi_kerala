@@ -60,15 +60,16 @@ async function scheduleHearingDate(req, res, qrCode) {
             renderError(res, "Court case not found", 404);
         }
         
+        // FIXME: Commenting out HRMS calls is it not impl in solution
         // Search for HRMS details
-        const resHrms = await handleApiCall(
-            () => search_hrms(tenantId, "JUDGE", courtCase.courtId, requestInfo),
-            "Failed to query HRMS service"
-        );
-        const employee = resHrms?.data?.Employees[0];
-        if (!employee) {
-            renderError(res, "Employee not found", 404);
-        }
+        // const resHrms = await handleApiCall(
+        //     () => search_hrms(tenantId, "JUDGE", courtCase.courtId, requestInfo),
+        //     "Failed to query HRMS service"
+        // );
+        // const employee = resHrms?.data?.Employees[0];
+        // if (!employee) {
+        //     renderError(res, "Employee not found", 404);
+        // }
 
         // Search for MDMS court room details
         const resMdms = await handleApiCall(
@@ -80,15 +81,16 @@ async function scheduleHearingDate(req, res, qrCode) {
             renderError(res, "Court room MDMS master not found", 404);
         }
 
+        // FIXME: Commenting out MDMS court establishment calls as it is not implemented in the solution
         // Search for MDMS court establishment details
-        const resMdms1 = await handleApiCall(
-            () => search_mdms(mdmsCourtRoom.courtEstablishmentId, "case.CourtEstablishment", tenantId, requestInfo),
-            "Failed to query MDMS service for court establishment"
-        );
-        const mdmsCourtEstablishment = resMdms1?.data?.mdms[0]?.data;
-        if (!mdmsCourtEstablishment) {
-            renderError(res, "Court establishment MDMS master not found", 404);
-        }
+        // const resMdms1 = await handleApiCall(
+        //     () => search_mdms(mdmsCourtRoom.courtEstablishmentId, "case.CourtEstablishment", tenantId, requestInfo),
+        //     "Failed to query MDMS service for court establishment"
+        // );
+        // const mdmsCourtEstablishment = resMdms1?.data?.mdms[0]?.data;
+        // if (!mdmsCourtEstablishment) {
+        //     renderError(res, "Court establishment MDMS master not found", 404);
+        // }
 
         // Search for order details
         const resOrder = await handleApiCall(
@@ -158,8 +160,8 @@ async function scheduleHearingDate(req, res, qrCode) {
             "Data": [
                 {
                     "courtName": mdmsCourtRoom.name,
-                    "place": mdmsCourtEstablishment.boundaryName,
-                    "state": mdmsCourtEstablishment.rootBoundaryName,
+                    "place": "BOUNDARY_NAME", // FIXME: mdmsCourtEstablishment.boundaryName,
+                    "state": "ROOT_BOUNDARY_NAME", //FIXME: mdmsCourtEstablishment.rootBoundaryName,
                     "caseNumber": courtCase.cnrNumber,
                     "year": year,
                     "caseName": courtCase.caseTitle,
@@ -168,7 +170,7 @@ async function scheduleHearingDate(req, res, qrCode) {
                     "partyNames": `${individual.name.givenName} ${individual.name.familyName}`,
                     "additionalComments": order.comments,
                     "judgeSignature": "Judges Signature",
-                    "judgeName": employee.user.name,
+                    "judgeName": "JUDGE_NAME", // FIXME: employee.user.name,
                     "courtSeal": "Court Seal",
                     "qrCodeUrl": base64Url
                 }
@@ -181,8 +183,10 @@ async function scheduleHearingDate(req, res, qrCode) {
             () => create_pdf(tenantId, pdfKey, data, req.body),
             "Failed to generate PDF of order for Scheduling of Hearing Date"
         )
+        const filename = `${pdfKey}_${new Date().getTime()}`;
         res.writeHead(200, {
-            "Content-Type": "application/json",
+            "Content-Type": "application/pdf",
+            "Content-Disposition": `attachment; filename=${filename}.pdf`
         });
         pdfResponse.data.pipe(res).on('finish', () => {
             res.end();

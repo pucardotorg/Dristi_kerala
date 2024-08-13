@@ -774,10 +774,12 @@ const GenerateOrders = () => {
           : null;
 
       localStorage.removeItem("fileStoreId");
+      const orderSchema = Digit.Customizations.dristiOrders.OrderFormSchemaUtils.formToSchema(order.additionalDetails.formdata, modifiedFormConfig);
       return await ordersService.updateOrder(
         {
           order: {
             ...order,
+            ...orderSchema,
             documents: documentsFile ? [...documents, documentsFile] : documents,
             workflow: { ...order.workflow, action, documents: [{}] },
           },
@@ -791,8 +793,20 @@ const GenerateOrders = () => {
 
   const createOrder = async (order) => {
     try {
-      return await ordersService.createOrder({ order }, { tenantId });
-    } catch (error) {}
+      const orderSchema = Digit.Customizations.dristiOrders.OrderFormSchemaUtils.formToSchema(order.additionalDetails.formdata, modifiedFormConfig);
+      // const formOrder = await Digit.Customizations.dristiOrders.OrderFormSchemaUtils.schemaToForm(orderDetails, modifiedFormConfig);
+      return await ordersService.createOrder(
+        {
+          order: {
+            ...order,
+            ...orderSchema,
+          },
+        },
+        { tenantId }
+      );
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleAddOrder = () => {
@@ -1399,7 +1413,7 @@ const GenerateOrders = () => {
         ? [{}]
         : currentOrder?.additionalDetails?.formdata?.namesOfPartiesRequired?.filter((data) => data?.partyType === "respondent");
       const promiseList = summonsArray?.map((data) =>
-        ordersService.createOrder(
+        createOrder(
           {
             ...reqbody,
             order: {
@@ -1531,7 +1545,7 @@ const GenerateOrders = () => {
       setLoader(false);
       setShowSuccessModal(true);
     } catch (error) {
-      showErrorToast({ label: t("INTERNAL_ERROR_OCCURRED"), error: true });
+      setShowErrorToast({ label: t("INTERNAL_ERROR_OCCURRED"), error: true });
       setLoader(false);
     }
   };
