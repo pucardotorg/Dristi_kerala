@@ -16,6 +16,19 @@ const defaultSearchValues = {
   caseId: "",
 };
 
+const handleTaskDetails = (taskDetails) => {
+  try {
+    const parsed = JSON.parse(taskDetails);
+    if (typeof parsed === "string") {
+      return JSON.parse(parsed);
+    }
+    return parsed;
+  } catch (error) {
+    console.error("Failed to parse taskDetails:", error);
+    return null;
+  }
+};
+
 const ReviewSummonsNoticeAndWarrant = () => {
   const { t } = useTranslation();
   const tenantId = window?.Digit.ULBService.getCurrentTenantId();
@@ -32,6 +45,7 @@ const ReviewSummonsNoticeAndWarrant = () => {
   const [signatureId, setSignatureId] = useState("");
   const [deliveryChannel, setDeliveryChannel] = useState("");
   const [refetch, setRefetch] = useState(false);
+  const [taskDetails, setTaskDetails] = useState({});
 
   const [tabData, setTabData] = useState(
     SummonsTabsConfig?.SummonsTabsConfig?.map((configItem, index) => ({ key: index, label: configItem.label, active: index === 0 ? true : false }))
@@ -47,6 +61,7 @@ const ReviewSummonsNoticeAndWarrant = () => {
   };
 
   const handleClose = () => {
+    localStorage.removeItem("SignedFileStoreID");
     setShowActionModal(false);
     setRefetch(!refetch);
   };
@@ -55,9 +70,13 @@ const ReviewSummonsNoticeAndWarrant = () => {
     setDefaultValues(defaultSearchValues);
     const isSignSuccess = localStorage.getItem("esignProcess");
     const isRowData = JSON.parse(localStorage.getItem("ESignSummons"));
+    const delieveryCh = localStorage.getItem("delieveryChannel");
     if (isSignSuccess) {
       if (rowData) {
         setRowData(isRowData);
+      }
+      if (delieveryCh) {
+        setDeliveryChannel(delieveryCh);
       }
       setShowActionModal(true);
       setActionModalType("SIGN_PENDING");
@@ -125,7 +144,7 @@ const ReviewSummonsNoticeAndWarrant = () => {
 
   const infos = useMemo(() => {
     if (rowData?.taskDetails || nextHearingDate) {
-      const caseDetails = JSON.parse(rowData?.taskDetails);
+      const caseDetails = handleTaskDetails(rowData?.taskDetails);
       return [
         { key: "Issued to", value: caseDetails?.respondentDetails?.name },
         { key: "Issued Date", value: rowData?.createdDate },
@@ -141,7 +160,10 @@ const ReviewSummonsNoticeAndWarrant = () => {
   }, []);
 
   const documents = useMemo(() => {
-    if (rowData?.documents) return rowData?.documents;
+    if (rowData?.documents)
+      return rowData?.documents?.map((document) => {
+        return { ...document, fileName: "Summons Document" };
+      });
   }, [rowData]);
 
   const submissionData = useMemo(() => {
@@ -151,7 +173,7 @@ const ReviewSummonsNoticeAndWarrant = () => {
     ];
   }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmitEsign = async () => {
     try {
       const localStorageID = localStorage.getItem("fileStoreId");
       const documents = Array.isArray(rowData?.documents) ? rowData.documents : [];
@@ -162,9 +184,8 @@ const ReviewSummonsNoticeAndWarrant = () => {
               fileStore: signatureId || localStorageID,
             }
           : null;
-
       localStorage.removeItem("fileStoreId");
-
+      localStorage.setItem("SignedFileStoreID", documentsFile?.fileStore);
       const reqBody = {
         task: {
           ...rowData,
@@ -207,15 +228,24 @@ const ReviewSummonsNoticeAndWarrant = () => {
               handleSigned={() => setIsSigned(true)}
               rowData={rowData}
               setSignatureId={setSignatureId}
+              deliveryChannel={deliveryChannel}
             />
           ),
           isDisabled: isSigned ? false : true,
-          actionSaveOnSubmit: handleSubmit,
+          actionSaveOnSubmit: handleSubmitEsign,
         },
         {
           type: "success",
           hideSubmit: true,
-          modalBody: <CustomStepperSuccess closeButtonAction={handleClose} t={t} submissionData={submissionData} documents={documents} />,
+          modalBody: (
+            <CustomStepperSuccess
+              closeButtonAction={handleClose}
+              t={t}
+              submissionData={submissionData}
+              documents={documents}
+              deliveryChannel={deliveryChannel}
+            />
+          ),
         },
       ],
     };
@@ -227,7 +257,9 @@ const ReviewSummonsNoticeAndWarrant = () => {
       heading: { label: "Print & Send Documents" },
       actionSaveLabel: "Mark As Sent",
       isStepperModal: false,
-      modalBody: <PrintAndSendDocumentComponent infos={infos} documents={documents} links={links} t={t} />,
+      modalBody: (
+        <PrintAndSendDocumentComponent infos={infos} documents={documents?.filter((docs) => docs.documentType === "SIGNED")} links={links} t={t} />
+      ),
       actionSaveOnSubmit: handleClose,
     };
   }, [documents, infos, links, t]);
@@ -248,25 +280,6 @@ const ReviewSummonsNoticeAndWarrant = () => {
     // if (rowData?.id) getTaskDocuments();
     if (rowData?.filingNumber) getHearingFromCaseId();
   }, [rowData]);
-
-  const handleTaskDetails = (taskDetails) => {
-    try {
-      // Try parsing the taskDetails string
-      const parsed = JSON.parse(taskDetails);
-
-      // Check if the result is a string (indicating it's a double-escaped JSON)
-      if (typeof parsed === "string") {
-        // Attempt to parse it again as JSON
-        return JSON.parse(parsed);
-      }
-
-      // Return the parsed object if it's already a valid JSON object
-      return parsed;
-    } catch (error) {
-      console.error("Failed to parse taskDetails:", error);
-      return null;
-    }
-  };
 
   return (
     <div className="review-summon-warrant">
@@ -292,6 +305,7 @@ const ReviewSummonsNoticeAndWarrant = () => {
                 setStep(0);
                 setIsSigned(props?.original?.documentStatus === "SIGN_PENDING" ? false : true);
                 setDeliveryChannel(handleTaskDetails(props?.original?.taskDetails)?.deliveryChannels?.channelName);
+                setTaskDetails(handleTaskDetails(props?.original?.taskDetails));
               },
             },
           }}
