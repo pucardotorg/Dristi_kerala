@@ -26,3 +26,5 @@ const CustomCaseInfoDiv = ({ data }) => {
     </div>
   );
 };
+
+export default CustomCaseInfoDiv;
