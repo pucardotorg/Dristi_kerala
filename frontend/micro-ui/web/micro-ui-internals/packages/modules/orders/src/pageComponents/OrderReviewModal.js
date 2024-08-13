@@ -1,11 +1,47 @@
 import { CloseSvg } from "@egovernments/digit-ui-components";
+import Axios from "axios";
 import React, { useEffect, useMemo, useState } from "react";
+import { useQuery } from "react-query";
 import Modal from "../../../dristi/src/components/Modal";
+import { Urls } from "../hooks/services/Urls";
+
+const OrderPreviewOrderTypeMap = {
+  MANDATORY_SUBMISSIONS_RESPONSES: "mandatory-async-submissions-responses",
+  ASSIGNING_DATE_RESCHEDULED_HEARING: "new-hearing-date-after-rescheduling",
+  SCHEDULE_OF_HEARING_DATE: "schedule-hearing-date",
+};
+
 function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal, showActions = true }) {
   const [fileStoreId, setFileStoreID] = useState(null);
   const [fileName, setFileName] = useState();
   const tenantId = window?.Digit.ULBService.getCurrentTenantId();
   const DocViewerWrapper = Digit?.ComponentRegistryService?.getComponent("DocViewerWrapper");
+
+  const { data: orderPreviewPdf, isFetching: isLoading } = useQuery({
+    queryKey: ["orderPreviewPdf", tenantId, order?.id, order?.cnrNumber, OrderPreviewOrderTypeMap[order?.orderType]],
+    queryFn: async () => {
+      return Axios({
+        method: "POST",
+        url: Urls.orders.orderPreviewPdf,
+        params: {
+          tenantId: tenantId,
+          orderId: order?.id,
+          cnrNumber: order?.cnrNumber,
+          qrCode: false,
+          orderType: OrderPreviewOrderTypeMap[order?.orderType],
+        },
+        data: {
+          RequestInfo: {
+            authToken: Digit.UserService.getUser().access_token,
+            userInfo: Digit.UserService.getUser()?.info,
+            msgId: `${Date.now()}|${Digit.StoreData.getCurrentLanguage()}`,
+            apiId: "Rainmaker",
+          },
+        },
+        responseType: "blob",
+      }).then((res) => res.data);
+    },
+  });
 
   const Heading = (props) => {
     return <h1 className="heading-m">{props.label}</h1>;
@@ -60,20 +96,21 @@ function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal,
           maxWidth: "100%",
         }}
       >
-        {fileStoreId ? (
+        {orderPreviewPdf ? (
           <DocViewerWrapper
             docWidth={"calc(80vw* 62/ 100)"}
             docHeight={"60vh"}
-            fileStoreId={fileStoreId}
-            tenantId={tenantId}
-            displayFilename={fileName}
+            selectedDocs={[orderPreviewPdf]}
+            displayFilename={orderPreviewPdf?.name}
           />
+        ) : isLoading ? (
+          <h2>{t("LOADING")}</h2>
         ) : (
           <h2>{t("PREVIEW_DOC_NOT_AVAILABLE")}</h2>
         )}
       </div>
     );
-  }, [fileName, fileStoreId, t, tenantId]);
+  }, [orderPreviewPdf, isLoading, t]);
 
   return (
     <Modal
