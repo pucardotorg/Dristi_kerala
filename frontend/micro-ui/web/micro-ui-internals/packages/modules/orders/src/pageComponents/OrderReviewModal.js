@@ -9,6 +9,7 @@ const OrderPreviewOrderTypeMap = {
   MANDATORY_SUBMISSIONS_RESPONSES: "mandatory-async-submissions-responses",
   ASSIGNING_DATE_RESCHEDULED_HEARING: "new-hearing-date-after-rescheduling",
   SCHEDULE_OF_HEARING_DATE: "schedule-hearing-date",
+  SUMMONS: "summons-issue",
 };
 
 function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal, showActions = true }) {
@@ -41,6 +42,7 @@ function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal,
         responseType: "blob",
       }).then((res) => res.data);
     },
+    enabled: !!order?.id && !!order?.cnrNumber && !!OrderPreviewOrderTypeMap[order?.orderType],
   });
 
   const Heading = (props) => {
