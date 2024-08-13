@@ -74,7 +74,6 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
     caseId,
     caseId
   );
-  console.log(casePdf);
   const caseDetails = useMemo(
     () => ({
       ...caseData?.criteria?.[0]?.responseList?.[0],
@@ -169,6 +168,17 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
     mockSubmitModalInfo,
     scenario,
   });
+  const handleDownload = async () => {
+    const blob = new Blob([casePdf.data], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "case_pdf.pdf"); // Name of the downloaded file
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
   const onSubmitCase = async () => {
     try {
       if (billResponse?.Bill?.length === 0) {
@@ -319,7 +329,9 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
             label={t("CS_PRINT_CASE_FILE")}
             labelClassName={"secondary-label-selector"}
             style={{ minWidth: "30%" }}
-            onButtonClick={() => {}}
+            onButtonClick={() => {
+              handleDownload();
+            }}
           />
           <Button
             className={"tertiary-button-selector"}
