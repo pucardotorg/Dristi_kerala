@@ -394,7 +394,7 @@ const InsideHearingMainPage = () => {
               gap: "16px",
             }}
           >
-            <Button
+            {/* <Button
               label={"ATTENDANCE_CHIP"}
               style={{ boxShadow: "none", backgroundColor: "#ECF3FD", borderRadius: "4px", border: "none", padding: "10px" }}
               textStyles={{
@@ -419,7 +419,7 @@ const InsideHearingMainPage = () => {
               >
                 {`${attendanceCount}`}
               </h2>
-            </Button>
+            </Button> */}
             {/* {userHasRole("EMPLOYEE") && (
               <Button
                 label={t("MARK_ATTENDANCE")}
