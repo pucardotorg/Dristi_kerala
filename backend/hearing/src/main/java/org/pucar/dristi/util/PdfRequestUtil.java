@@ -7,6 +7,7 @@ import org.pucar.dristi.config.Configuration;
 import org.pucar.dristi.repository.ServiceRequestRepository;
 import org.pucar.dristi.web.models.WitnessPdfRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -35,7 +36,7 @@ public class PdfRequestUtil {
         this.objectMapper = objectMapper;
     }
 
-    public MultipartFile createPdfForWitness(WitnessPdfRequest request, String tenantId) {
+    public ByteArrayResource createPdfForWitness(WitnessPdfRequest request, String tenantId) {
         StringBuilder requestUrl = new StringBuilder();
         requestUrl.append(configuration.getGeneratePdfHost()).append(configuration.getGeneratePdfUrl()).append("?key=")
                 .append(configuration.getWitnessPdfKey()).append("&tenantId=").append(tenantId);
@@ -46,8 +47,8 @@ public class PdfRequestUtil {
 
         HttpEntity<WitnessPdfRequest> requestEntity = new HttpEntity<>(request, headers);
         Object response = serviceRequestRepository.fetchResult(requestUrl, requestEntity);
-        if (response instanceof MultipartFile) {
-            return (MultipartFile) response;
+        if (response instanceof ByteArrayResource) {
+            return (ByteArrayResource) response;
         } else {
             throw new CustomException(PDF_UTILITY_EXCEPTION, "Failed to get valid file from Pdf Service: " + response.getClass());
         }
