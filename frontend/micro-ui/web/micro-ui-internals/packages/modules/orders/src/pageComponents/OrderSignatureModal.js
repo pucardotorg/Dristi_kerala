@@ -20,14 +20,22 @@ const CloseBtn = (props) => {
   );
 };
 
-function OrderSignatureModal({ t, order, handleIssueOrder, handleGoBackSignatureModal, saveOnsubmitLabel, setSignedDocumentUploadID }) {
+function OrderSignatureModal({
+  t,
+  order,
+  handleIssueOrder,
+  handleGoBackSignatureModal,
+  saveOnsubmitLabel,
+  setSignedDocumentUploadID,
+  orderPdfFileStoreID,
+}) {
   const [isSigned, setIsSigned] = useState(false);
   const { handleEsign, checkSignStatus } = useESign();
   const fileStoreIdESign = getFilestoreId();
   const [formData, setFormData] = useState({}); // storing the file upload data
   const [openUploadSignatureModal, setOpenUploadSignatureModal] = useState(false);
   const UploadSignatureModal = window?.Digit?.ComponentRegistryService?.getComponent("UploadSignatureModal");
-  const [fileStoreId, setFileStoreId] = useState("c162c182-103f-463e-99b6-18654ed7a5b1"); // have to set the uploaded fileStoreID
+  const [fileStoreId, setFileStoreId] = useState(orderPdfFileStoreID || "c162c182-103f-463e-99b6-18654ed7a5b1"); // have to set the uploaded fileStoreID
   const [pageModule, setPageModule] = useState("en");
   const tenantId = window?.Digit.ULBService.getCurrentTenantId();
   const uri = `${window.location.origin}${Urls.FileFetchById}?tenantId=${tenantId}&fileStoreId=${fileStoreId}`;

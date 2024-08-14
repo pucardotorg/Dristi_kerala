@@ -13,13 +13,18 @@ const OrderPreviewOrderTypeMap = {
   INITIATING_RESCHEDULING_OF_HEARING_DATE: "accept-reschedule-request",
 };
 
-function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal, showActions = true }) {
+const onDocumentUpload = async (fileData, filename) => {
+  const fileUploadRes = await Digit.UploadServices.Filestorage("DRISTI", fileData, Digit.ULBService.getCurrentTenantId());
+  return { file: fileUploadRes?.data, fileType: fileData.type, filename };
+};
+
+function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal, showActions = true, setOrderPdfFileStoreID }) {
   const [fileStoreId, setFileStoreID] = useState(null);
   const [fileName, setFileName] = useState();
   const tenantId = window?.Digit.ULBService.getCurrentTenantId();
   const DocViewerWrapper = Digit?.ComponentRegistryService?.getComponent("DocViewerWrapper");
 
-  const { data: orderPreviewPdf, isFetching: isLoading } = useQuery({
+  const { data: { file: orderPreviewPdf, fileName: orderPreviewFileName } = {}, isFetching: isLoading } = useQuery({
     queryKey: ["orderPreviewPdf", tenantId, order?.id, order?.cnrNumber, OrderPreviewOrderTypeMap[order?.orderType]],
     queryFn: async () => {
       return Axios({
@@ -41,7 +46,7 @@ function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal,
           },
         },
         responseType: "blob",
-      }).then((res) => res.data);
+      }).then((res) => ({ file: res.data, fileName: res.headers["content-disposition"]?.split("filename=")[1] }));
     },
     enabled: !!order?.id && !!order?.cnrNumber && !!OrderPreviewOrderTypeMap[order?.orderType],
   });
@@ -59,11 +64,6 @@ function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal,
   };
 
   useEffect(() => {
-    const onDocumentUpload = async (fileData, filename) => {
-      const fileUploadRes = await Digit.UploadServices.Filestorage("DRISTI", fileData, tenantId);
-      return { file: fileUploadRes?.data, fileType: fileData.type, filename };
-    };
-
     if (order?.filesData) {
       const numberOfFiles = order?.filesData.length;
       let finalDocumentData = [];
@@ -100,12 +100,7 @@ function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal,
         }}
       >
         {orderPreviewPdf ? (
-          <DocViewerWrapper
-            docWidth={"calc(80vw* 62/ 100)"}
-            docHeight={"60vh"}
-            selectedDocs={[orderPreviewPdf]}
-            displayFilename={orderPreviewPdf?.name}
-          />
+          <DocViewerWrapper docWidth={"calc(80vw* 62/ 100)"} docHeight={"60vh"} selectedDocs={[orderPreviewPdf]} displayFilename={fileName} />
         ) : isLoading ? (
           <h2>{t("LOADING")}</h2>
         ) : (
@@ -113,7 +108,7 @@ function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal,
         )}
       </div>
     );
-  }, [orderPreviewPdf, isLoading, t]);
+  }, [orderPreviewPdf, fileName, isLoading, t]);
 
   return (
     <Modal
@@ -122,8 +117,16 @@ function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal,
       actionSaveLabel={showActions && t("ADD_SIGNATURE")}
       actionSaveOnSubmit={() => {
         if (showActions) {
-          setShowsignatureModal(true);
-          setShowReviewModal(false);
+          const pdfFile = new File([orderPreviewPdf], orderPreviewFileName, { type: "application/pdf" });
+          console.debug(pdfFile, orderPreviewFileName);
+          onDocumentUpload(pdfFile, pdfFile.name).then((document) => {
+            const fileStoreId = document.file?.files?.[0]?.fileStoreId;
+            if (fileStoreId) {
+              setOrderPdfFileStoreID(fileStoreId);
+              setShowsignatureModal(true);
+              setShowReviewModal(false);
+            }
+          });
         }
       }}
       className={"review-order-modal"}
