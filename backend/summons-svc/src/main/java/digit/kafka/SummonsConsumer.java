@@ -73,7 +73,10 @@ public class SummonsConsumer {
         try {
             SummonsRequest request = objectMapper.convertValue(record, SummonsRequest.class);
             log.info(request.toString());
-            if (request.getSummonsDelivery().getDeliveryStatus().equals(DeliveryStatus.DELIVERED)) {
+            if (request.getSummonsDelivery().getDeliveryStatus().equals(DeliveryStatus.DELIVERED)
+                || request.getSummonsDelivery().getDeliveryStatus().equals(DeliveryStatus.NOT_DELIVERED)
+                || request.getSummonsDelivery().getDeliveryStatus().equals(DeliveryStatus.EXECUTED)
+                    || request.getSummonsDelivery().getDeliveryStatus().equals(DeliveryStatus.NOT_EXECUTED) ) {
                 summonsService.updateTaskStatus(request);
             }
         } catch (final Exception e) {
@@ -86,7 +89,7 @@ public class SummonsConsumer {
     public void listenForSendSummons(final HashMap<String, Object> record, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
         try {
             TaskRequest taskRequest = objectMapper.convertValue(record, TaskRequest.class);
-            log.info(taskRequest.getTask().toString());
+            log.info("Received message for sending summons {}", taskRequest.getTask());
             summonsService.sendSummonsViaChannels(taskRequest);
         } catch (final Exception e) {
             log.error("Error while listening to value: {}: ", record, e);

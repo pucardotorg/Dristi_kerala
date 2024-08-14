@@ -6,6 +6,8 @@ export const applicationTypeConfig = [
         key: "orderType",
         type: "dropdown",
         label: "ORDER_TYPE",
+        schemaKeyPath: "orderType",
+        transformer: "mdmsDropdown",
         disable: false,
         populators: {
           name: "orderType",
@@ -97,41 +99,18 @@ export const configs = [
   },
   {
     body: [
-      // {
-      //   type: "component",
-      //   component: "SelectCustomTextArea",
-      //   key: "orderAdditionalNotes",
-      //   populators: {
-      //     inputs: [
-      //       {
-      //         textAreaSubHeader: "CS_ORDER_ADDITIONAL_NOTES",
-      //         type: "TextAreaComponent",
-      //         isOptional: true,
-      //       },
-      //     ],
-      //     validation: {
-      //       customValidationFn: {
-      //         moduleName: "dristiOrders",
-      //         masterName: "alphaNumericValidation",
-      //       },
-      //     },
-      //     mdmsConfig: {
-      //       moduleName: "Order",
-      //       masterName: "", // TO DO: ADD CONFIG IN MDMS
-      //       localePrefix: "",
-      //     },
-      //   },
-      // },
       {
         type: "component",
-        component: "SelectTranscriptTextArea",
+        component: "SelectCustomTextArea",
         key: "orderAdditionalNotes",
         populators: {
-          input: {
-            textAreaSubHeader: "CS_ORDER_ADDITIONAL_NOTES",
-            type: "TranscriptionTextAreaComponent",
-            isOptional: true,
-          },
+          inputs: [
+            {
+              textAreaSubHeader: "CS_ORDER_ADDITIONAL_NOTES",
+              type: "TextAreaComponent",
+              isOptional: true,
+            },
+          ],
           validation: {
             customValidationFn: {
               moduleName: "dristiOrders",
@@ -589,29 +568,6 @@ export const configsOrderMandatorySubmissions = [
   },
   {
     body: [
-      // {
-      //   type: "component",
-      //   component: "SelectCustomTextArea",
-      //   key: "additionalComments",
-      //   isMandatory: false,
-      //   populators: {
-      //     inputs: [
-      //       {
-      //         name: "text",
-      //         textAreaSubHeader: "ADDITIONAL_COMMENTS",
-      //         placeholder: "TYPE_HERE_PLACEHOLDER",
-      //         isOptional: true,
-      //         type: "TextAreaComponent",
-      //       },
-      //     ],
-      //     validation: {
-      //       customValidationFn: {
-      //         moduleName: "dristiOrders",
-      //         masterName: "alphaNumericValidation",
-      //       },
-      //     },
-      //   },
-      // },
       {
         type: "component",
         component: "SelectTranscriptTextArea",
@@ -637,78 +593,93 @@ export const configsOrderMandatorySubmissions = [
   {
     body: [
       {
-        label: "IS_RESPONSE_REQUIRED",
-        key: "isResponseRequired",
-        schemaKeyPath: "orderDetails.isResponseRequired",
         isMandatory: true,
-        type: "radio",
+        type: "component",
+        component: "SelectUserTypeComponent",
+        key: "responseInfo",
+        schemaKeyPath: {
+          isResponseRequired: { value: "orderDetails.isResponseRequired" },
+          respondingParty: { value: "orderDetails.partyDetails.partiesToRespond", transformer: "customDropdown" },
+          responseDeadline: { value: "orderDetails.dates.responseDeadlineDate", transformer: "date" },
+        },
+        withoutLabel: true,
         populators: {
-          name: "isResponseRequired",
-          optionsKey: "name",
-          title: "",
-          error: "CORE_REQUIRED_FIELD_ERROR",
-          required: true,
-          isMandatory: true,
-          options: [
+          inputs: [
             {
-              code: "Yes",
-              name: "ES_COMMON_YES",
+              label: "IS_RESPONSE_REQUIRED",
+              type: "radioButton",
+              name: "isResponseRequired",
+              optionsKey: "name",
+              error: "CORE_REQUIRED_FIELD_ERROR",
+              validation: {},
+              styles: {
+                marginBottom: 0,
+              },
+              clearFields: { respondingParty: [], responseDeadline: "" },
+              isMandatory: true,
+              disableFormValidation: false,
+              options: [
+                {
+                  code: true,
+                  name: "ES_COMMON_YES",
+                },
+                {
+                  code: false,
+                  name: "ES_COMMON_NO",
+                },
+              ],
             },
             {
-              code: "No",
-              name: "ES_COMMON_NO",
+              label: "RESPONDING_PARTY",
+              type: "dropdown",
+              name: "respondingParty",
+              optionsKey: "name",
+              error: "CORE_REQUIRED_FIELD_ERROR",
+              allowMultiSelect: true,
+              required: true,
+              isMandatory: true,
+              selectedText: "party(s)",
+              disableFormValidation: false,
+              isDependentOn: "isResponseRequired",
+              dependentKey: {
+                isResponseRequired: ["code"],
+              },
+              styles: {
+                marginBottom: 0,
+              },
+              options: [
+                {
+                  code: "PARTY_1",
+                  name: "PARTY_1",
+                },
+                {
+                  code: "PARTY_2",
+                  name: "PARTY_2",
+                },
+                {
+                  code: "PARTY_3",
+                  name: "PARTY_3",
+                },
+              ],
+            },
+            {
+              label: "RESPONSE_DEADLINE",
+              type: "date",
+              name: "responseDeadline",
+              labelChildren: "OutlinedInfoIcon",
+              tooltipValue: "ONLY_CURRENT_AND_FUTURE_DATES_ARE_ALLOWED",
+              isDependentOn: "isResponseRequired",
+              dependentKey: {
+                isResponseRequired: ["code"],
+              },
+              error: "CORE_REQUIRED_FIELD_ERROR",
+              validation: {
+                min: new Date().toISOString().split("T")[0],
+              },
+              isMandatory: true,
+              disableFormValidation: false,
             },
           ],
-        },
-      },
-      {
-        label: "RESPONDING_PARTY",
-        key: "respondingParty",
-        schemaKeyPath: "orderDetails.partyDetails.partiesToRespond",
-        transformer: "customDropdown",
-        type: "dropdown",
-        populators: {
-          name: "respondingParty",
-          allowMultiSelect: true,
-          optionsKey: "name",
-          error: "CORE_REQUIRED_FIELD_ERROR",
-          required: true,
-          isMandatory: true,
-          selectedText: "party(s)",
-          options: [
-            {
-              code: "PARTY_1",
-              name: "PARTY_1",
-            },
-            {
-              code: "PARTY_2",
-              name: "PARTY_2",
-            },
-            {
-              code: "PARTY_3",
-              name: "PARTY_3",
-            },
-          ],
-        },
-      },
-      {
-        label: "RESPONSE_DEADLINE",
-        isMandatory: false,
-        key: "responseDeadline",
-        schemaKeyPath: "orderDetails.dates.responseDeadlineDate",
-        transformer: "date",
-        type: "date",
-        labelChildren: "OutlinedInfoIcon",
-        tooltipValue: "ONLY_CURRENT_AND_FUTURE_DATES_ARE_ALLOWED",
-        populators: {
-          name: "responseDeadline",
-          error: "CORE_REQUIRED_FIELD_ERROR",
-          validation: {
-            customValidationFn: {
-              moduleName: "dristiOrders",
-              masterName: "minTodayDateValidation",
-            },
-          },
         },
       },
       {
@@ -3046,8 +3017,8 @@ export const configsCreateOrderWarrant = [
           error: "required ",
           options: [
             {
-              code: "Warrant_Type_1",
-              name: "Warrant_Type_1",
+              code: "Arrest",
+              name: "arrest",
             },
           ],
         },
@@ -3115,13 +3086,16 @@ export const configsCreateOrderWarrant = [
               label: "BAILABLE_AMOUNT",
               type: "text",
               name: "bailableAmount",
+              error: "CORE_REQUIRED_FIELD_ERROR",
               isDependentOn: "isBailable",
               dependentKey: {
                 isBailable: ["code"],
               },
               error: "CORE_REQUIRED_FIELD_ERROR",
               validation: {
-                isNumber: true,
+                isDecimal: true,
+                regex: /^\d+(\.\d{0,2})?$/,
+                errMsg: "CS_VALID_AMOUNT_DECIMAL",
               },
               isMandatory: true,
               disableFormValidation: false,
@@ -3354,7 +3328,7 @@ export const configsJudgement = [
         transformer: "date",
         disable: true,
         type: "date",
-        populators: { name: "dateOfJudgement" },
+        populators: { name: "dateOfJudgement", hideInForm: true },
       },
       {
         label: "NAME_OF_JUDGE",
@@ -3377,7 +3351,8 @@ export const configsJudgement = [
       {
         label: "DESCRIPTION_OF_ACCUSED",
         isMandatory: false,
-        key: "nameofRespondant",
+        disable: true,
+        key: "nameofRespondent",
         schemaKeyPath: "respondentDetails.name",
         type: "text",
         populators: {
@@ -3490,11 +3465,11 @@ export const configsJudgement = [
       {
         label: "NAME_RESPONDANT_ADVOCATE",
         isMandatory: false,
-        key: "nameofRespondantAdvocate",
+        key: "nameofRespondentAdvocate",
         schemaKeyPath: "respondentDetails.advocateName",
         disable: true,
         type: "text",
-        populators: { name: "nameofRespondantAdvocate" },
+        populators: { name: "nameofRespondentAdvocate" },
       },
       {
         label: "OFFENSE",
@@ -3559,28 +3534,6 @@ export const configsJudgement = [
   },
   {
     body: [
-      // {
-      //   type: "component",
-      //   component: "SelectCustomTextArea",
-      //   key: "sentence",
-      //   isMandatory: true,
-      //   populators: {
-      //     inputs: [
-      //       {
-      //         name: "text",
-      //         textAreaSubHeader: "SENTENCE",
-      //         placeholder: "TYPE_HERE_PLACEHOLDER",
-      //         type: "TextAreaComponent",
-      //       },
-      //     ],
-      //     validation: {
-      //       customValidationFn: {
-      //         moduleName: "dristiOrders",
-      //         masterName: "alphaNumericValidation",
-      //       },
-      //     },
-      //   },
-      // },
       {
         type: "component",
         component: "SelectTranscriptTextArea",

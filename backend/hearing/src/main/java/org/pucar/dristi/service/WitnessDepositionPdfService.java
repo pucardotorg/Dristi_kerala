@@ -1,9 +1,11 @@
 package org.pucar.dristi.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.common.contract.request.RequestInfo;
+import org.egov.common.models.individual.Gender;
 import org.egov.common.models.individual.Individual;
 import org.egov.tracer.model.CustomException;
 import org.pucar.dristi.repository.HearingRepository;
@@ -13,7 +15,6 @@ import org.pucar.dristi.web.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -29,12 +30,15 @@ public class WitnessDepositionPdfService {
     private final CaseUtil caseUtil;
     private final PdfRequestUtil pdfRequestUtil;
 
+    private final ObjectMapper mapper;
+
     @Autowired
-    public WitnessDepositionPdfService(HearingRepository hearingRepository, IndividualService individualService, CaseUtil caseUtil, PdfRequestUtil pdfRequestUtil) {
+    public WitnessDepositionPdfService(HearingRepository hearingRepository, IndividualService individualService, CaseUtil caseUtil, PdfRequestUtil pdfRequestUtil, ObjectMapper mapper) {
         this.hearingRepository = hearingRepository;
         this.individualService = individualService;
         this.caseUtil = caseUtil;
         this.pdfRequestUtil = pdfRequestUtil;
+        this.mapper = mapper;
     }
 
     public ByteArrayResource getWitnessDepositionPdf(HearingSearchRequest searchRequest) {
@@ -99,27 +103,29 @@ public class WitnessDepositionPdfService {
             String witnessUuid = witnessDepositionNode.path("uuid").asText();
             Individual individual = individualMap.get(witnessUuid);
 
+            WitnessDeposition witnessDeposition;
             if (individual != null) {
-                WitnessDeposition witnessDeposition = buildWitness(individual, caseDetails, hearing, caseYear, courtCaseNumber, witnessDepositionNode);
-                witnessDepositions.add(witnessDeposition);
+                witnessDeposition = buildWitnessWithIndividual(individual, caseDetails, hearing, caseYear, courtCaseNumber, witnessDepositionNode);
             } else {
-                log.error("Individual not found for UUID: {}", witnessUuid);
+                witnessDeposition = buildWitnessWithNoIndividual(caseDetails, hearing, caseYear, courtCaseNumber, witnessDepositionNode);
+                //                log.error("Individual not found for UUID: {}", witnessUuid);
             }
+            witnessDepositions.add(witnessDeposition);
         }
 
         return witnessDepositions;
     }
 
     private JsonNode extractAdditionalDetails(Hearing hearing) {
-        return (ObjectNode) hearing.getAdditionalDetails();
+        return mapper.convertValue(hearing.getAdditionalDetails(), ObjectNode.class);
     }
 
     private String getFilingNumber(JsonNode caseDetails) {
         return caseDetails.has("filingNumber") ? caseDetails.get("filingNumber").asText() : "";
     }
 
-    private WitnessDeposition buildWitness(Individual individual, JsonNode caseDetails, Hearing hearing,
-                                           String caseYear, String courtCaseNumber, JsonNode witnessDepositionNode) {
+    private WitnessDeposition buildWitnessWithIndividual(Individual individual, JsonNode caseDetails, Hearing hearing,
+                                                         String caseYear, String courtCaseNumber, JsonNode witnessDepositionNode) {
         return WitnessDeposition.builder()
                 .hearingId(hearing.getHearingId())
                 .caseName(caseDetails.get("caseTitle").asText())
@@ -134,8 +140,48 @@ public class WitnessDepositionPdfService {
                 .age(individual.getDateOfBirth() != null ? calculateAge(individual.getDateOfBirth()) : null)
                 .gender(individual.getGender() != null ? individual.getGender() : null)
                 .hearingDate(formatDateFromMillis(hearing.getEndTime()))
+                .village(individual.getAddress().get(0).getCity())
+                .taluk(individual.getAddress().get(0).getAddressLine1())
                 .build();
     }
+    private WitnessDeposition buildWitnessWithNoIndividual(JsonNode caseDetails, Hearing hearing,
+                                                           String caseYear, String courtCaseNumber, JsonNode witnessDepositionNode) {
+
+
+        String firstName = safeGetText(witnessDepositionNode, "firstName", "");
+        String lastName = safeGetText(witnessDepositionNode, "lastName", "");
+        String mobileNumber = safeGetText(
+                witnessDepositionNode.path("phonenumbers").has(0) ? witnessDepositionNode.path("phonenumbers").get(0) : null,
+                "mobileNumber", ""
+        );
+        String deposition = safeGetText(witnessDepositionNode, "deposition", "");
+
+        JsonNode addressDetailsNode = witnessDepositionNode.path("addressDetails");
+        String locality = (addressDetailsNode.isArray() && !addressDetailsNode.isEmpty()) ?
+                safeGetText(addressDetailsNode.get(0), "locality", "") : "";
+        String city = (addressDetailsNode.isArray() && !addressDetailsNode.isEmpty()) ?
+                safeGetText(addressDetailsNode.get(0), "city", "") : "";
+
+        return WitnessDeposition.builder()
+                .hearingId(hearing.getHearingId())
+                .caseName(safeGetText(caseDetails, "caseTitle", ""))
+                .courtId(safeGetText(caseDetails, "courtId", ""))
+                .filingNumber(safeGetText(caseDetails, "filingNumber", ""))
+                .caseYear(caseYear)
+                .caseNumber(courtCaseNumber)
+                .name(firstName + " " + lastName)
+                .mobileNumber(mobileNumber)
+                .deposition(deposition)
+                .hearingDate(formatDateFromMillis(hearing.getEndTime()))
+                .taluk(locality)
+                .village(city)
+                .build();
+    }
+
+    String safeGetText(JsonNode node, String path, String defaultValue) {
+        return (node != null && node.hasNonNull(path)) ? node.path(path).asText(defaultValue) : defaultValue;
+    }
+
 
     private Integer calculateAge(Date dateOfBirth) {
         if (dateOfBirth == null) {

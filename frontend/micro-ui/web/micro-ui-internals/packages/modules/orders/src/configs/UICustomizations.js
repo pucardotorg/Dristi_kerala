@@ -1,6 +1,5 @@
 import get from "lodash/get";
 import set from "lodash/set";
-
 //create functions here based on module name set in mdms(eg->SearchProjectConfig)
 //how to call these -> Digit?.Customizations?.[masterName]?.[moduleName]
 // these functions will act as middlewares
@@ -35,7 +34,6 @@ export const UICustomizations = {
       pattern: /^[a-zA-Z0-9 ]+$/i,
     };
   },
-
   OrderFormSchemaUtils: {
     transformers: {
       mdmsDropdown: {

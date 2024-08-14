@@ -106,7 +106,7 @@ const SummaryModal = ({
     // await refetch();
     if (latestText && latestText?.HearingList?.[0]?.transcript?.[0]) {
       const hearingData = latestText?.HearingList?.[0];
-      setTranscript(hearingData.transcript[0] || "");
+      // setTranscript(hearingData.transcript[0] || "");
     }
   }, [latestText, setTranscript]);
 
@@ -223,7 +223,7 @@ const SummaryModal = ({
           onCancel();
         }}
         formId="modal-action"
-        isDisabled={!transcript || disableTextArea}
+        isDisabled={!transcript}
       >
         <div style={{ height: "308px", padding: "5px 24px 16px 24px", width: "100%" }}>
           <div style={{ height: "80px", backgroundColor: "#ECF3FD", borderRadius: "4px" }}>
@@ -242,6 +242,7 @@ const SummaryModal = ({
                 style={{ padding: "10px", width: "100%", minHeight: "100%", fontWeight: 400, fontSize: "16px", color: "#3D3C3C" }}
                 value={transcript}
                 onChange={(e) => setTranscript(e.target.value)}
+                disabled={disableTextArea}
               />
             </div>
           </CardText>

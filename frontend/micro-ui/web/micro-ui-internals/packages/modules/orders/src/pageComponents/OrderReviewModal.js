@@ -23,6 +23,7 @@ function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal,
   const [fileName, setFileName] = useState();
   const tenantId = window?.Digit.ULBService.getCurrentTenantId();
   const DocViewerWrapper = Digit?.ComponentRegistryService?.getComponent("DocViewerWrapper");
+  const filestoreId = "c4fef888-6d43-404f-8d37-63cae7651619";
 
   const { data: { file: orderPreviewPdf, fileName: orderPreviewFileName } = {}, isFetching: isLoading } = useQuery({
     queryKey: ["orderPreviewPdf", tenantId, order?.id, order?.cnrNumber, OrderPreviewOrderTypeMap[order?.orderType]],
