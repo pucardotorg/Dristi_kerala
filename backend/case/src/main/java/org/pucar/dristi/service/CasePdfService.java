@@ -1,6 +1,7 @@
 package org.pucar.dristi.service;
 
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.common.contract.models.Document;
 import org.egov.common.contract.request.RequestInfo;
@@ -35,12 +36,15 @@ public class CasePdfService {
 
     private final FileStoreUtil fileStoreUtil;
 
+    private final ObjectMapper mapper;
+
     @Autowired
-    public CasePdfService(Configuration config, CasePdfUtil casePdfUtil, CaseRepository caseRepository, FileStoreUtil fileStoreUtil) {
+    public CasePdfService(Configuration config, CasePdfUtil casePdfUtil, CaseRepository caseRepository, FileStoreUtil fileStoreUtil, ObjectMapper mapper) {
         this.config = config;
         this.casePdfUtil = casePdfUtil;
         this.caseRepository = caseRepository;
         this.fileStoreUtil = fileStoreUtil;
+        this.mapper = mapper;
     }
 
     public CourtCase generatePdf(CaseSearchRequest body) {
@@ -48,11 +52,12 @@ public class CasePdfService {
             caseRepository.getApplications(body.getCriteria(), body.getRequestInfo());
             CourtCase courtCase = body.getCriteria().get(0).getResponseList().get(0);
             if (!CollectionUtils.isEmpty(courtCase.getDocuments())) {
-                for (Document existingDocument : courtCase.getDocuments()) {
-                    AdditionalFields additionalFields = document.getAdditionalDetails();
-                    if (additionalFields != null && additionalFields.getFields() != null) {
-                        for (Field field : additionalFields.getFields()) {
-                            if ("FILE_CATEGORY".equals(field.getKey()) && "CASE_GENERATED_DOCUMENT".equals(field.getValue())) {
+                for (Document document : courtCase.getDocuments()) {
+                    JsonNode additionalDetailsNode = mapper.convertValue(document.getAdditionalDetails(), JsonNode.class);
+                    if (additionalDetailsNode != null && additionalDetailsNode.has("fields")) {
+                        for (JsonNode fieldNode : additionalDetailsNode.get("fields")) {
+                            if ("FILE_CATEGORY".equals(fieldNode.get("key").asText())
+                                    && "CASE_GENERATED_DOCUMENT".equals(fieldNode.get("value").asText())) {
                                 log.info("Document with FILE_CATEGORY 'CASE_GENERATED_DOCUMENT' already exists, bypassing PDF generation.");
                                 return courtCase;
                             }
