@@ -4,6 +4,8 @@ package org.pucar.dristi.service;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.common.contract.models.Document;
 import org.egov.common.contract.request.RequestInfo;
+import org.egov.common.models.individual.AdditionalFields;
+import org.egov.common.models.individual.Field;
 import org.egov.tracer.model.CustomException;
 import org.pucar.dristi.config.Configuration;
 import org.pucar.dristi.repository.CaseRepository;
@@ -45,6 +47,19 @@ public class CasePdfService {
         try {
             caseRepository.getApplications(body.getCriteria(), body.getRequestInfo());
             CourtCase courtCase = body.getCriteria().get(0).getResponseList().get(0);
+            if (!CollectionUtils.isEmpty(courtCase.getDocuments())) {
+                for (Document existingDocument : courtCase.getDocuments()) {
+                    AdditionalFields additionalFields = document.getAdditionalDetails();
+                    if (additionalFields != null && additionalFields.getFields() != null) {
+                        for (Field field : additionalFields.getFields()) {
+                            if ("FILE_CATEGORY".equals(field.getKey()) && "CASE_GENERATED_DOCUMENT".equals(field.getValue())) {
+                                log.info("Document with FILE_CATEGORY 'CASE_GENERATED_DOCUMENT' already exists, bypassing PDF generation.");
+                                return courtCase;
+                            }
+                        }
+                    }
+                }
+            }
             RequestInfo requestInfo = body.getRequestInfo();
             CaseRequest caseRequest = CaseRequest.builder().requestInfo(requestInfo).cases(courtCase).build();
             StringBuilder uri = new StringBuilder(config.getDristiCasePdfHost()).append(config.getDristiCasePdfPath());
