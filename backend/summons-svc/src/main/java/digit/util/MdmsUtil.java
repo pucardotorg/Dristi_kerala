@@ -21,14 +21,18 @@ import static digit.config.ServiceConstants.ERROR_WHILE_FETCHING_FROM_MDMS;
 @Component
 public class MdmsUtil {
 
-    @Autowired
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
+
+    private final ObjectMapper mapper;
+
+    private final Configuration configs;
 
     @Autowired
-    private ObjectMapper mapper;
-
-    @Autowired
-    private Configuration configs;
+    public MdmsUtil(RestTemplate restTemplate, ObjectMapper mapper, Configuration configs) {
+        this.restTemplate = restTemplate;
+        this.mapper = mapper;
+        this.configs = configs;
+    }
 
 
     public Map<String, Map<String, JSONArray>> fetchMdmsData(RequestInfo requestInfo, String tenantId, String moduleName,
@@ -37,7 +41,6 @@ public class MdmsUtil {
         uri.append(configs.getMdmsHost()).append(configs.getMdmsEndPoint());
         MdmsCriteriaReq mdmsCriteriaReq = getMdmsRequest(requestInfo, tenantId, moduleName, masterNameList);
         Object response = new HashMap<>();
-        Integer rate = 0;
         MdmsResponse mdmsResponse = new MdmsResponse();
         try {
             response = restTemplate.postForObject(uri.toString(), mdmsCriteriaReq, Map.class);

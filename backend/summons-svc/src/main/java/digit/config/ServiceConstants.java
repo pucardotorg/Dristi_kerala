@@ -7,6 +7,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class ServiceConstants {
 
+    private ServiceConstants() {
+    }
+
     public static final String EXTERNAL_SERVICE_EXCEPTION = "External Service threw an Exception: ";
     public static final String SEARCHER_SERVICE_EXCEPTION = "Exception while fetching from searcher: ";
 
@@ -51,5 +54,9 @@ public class ServiceConstants {
     public static final String WARRANT = "WARRANT";
     public static final String ISSUESUMMON = "ISSUESUMMON";
 
+    public static final String CONSUMER_ERROR = "Error while listening to value: {}: ";
 
+    public static final String FILES = "files";
+
+    public static final String TASK_SERVICE_ERROR = "Error getting response from Task Service";
 }

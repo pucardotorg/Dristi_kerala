@@ -4,7 +4,7 @@ public enum ChannelName {
 
     POLICE("Police"), POST("Post"), SMS("Sms"), EMAIL("Email");
 
-    String channelName;
+    final String channelName;
 
     ChannelName(String channelName) {
         this.channelName = channelName;

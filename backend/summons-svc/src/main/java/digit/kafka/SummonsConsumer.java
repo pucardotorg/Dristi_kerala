@@ -16,7 +16,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 import static digit.config.ServiceConstants.*;
 
-import java.util.HashMap;
+import java.util.Map;
 
 @Component
 @Slf4j
@@ -38,9 +38,9 @@ public class SummonsConsumer {
 
     @KafkaListener(topics = {"${kafka.topic.save.task.application}"})
     @Async
-    public void listenForGenerateSummonsDocument(final HashMap<String, Object> record, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
+    public void listenForGenerateSummonsDocument(final Map<String, Object> recordMap, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
         try {
-            TaskRequest taskRequest = objectMapper.convertValue(record, TaskRequest.class);
+            TaskRequest taskRequest = objectMapper.convertValue(recordMap, TaskRequest.class);
             String taskType = taskRequest.getTask().getTaskType();
             String status = taskRequest.getTask().getStatus();
 
@@ -63,15 +63,15 @@ public class SummonsConsumer {
                 }
             }
         } catch (final Exception e) {
-            log.error("Error while listening to value: {}: ", record, e);
+            log.error(CONSUMER_ERROR, recordMap, e);
         }
     }
 
     @KafkaListener(topics = {"${kafka.topic.update.summons}"})
     @Async
-    public void listenForUpdateSummons(final HashMap<String, Object> record, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
+    public void listenForUpdateSummons(final Map<String, Object> recordMap, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
         try {
-            SummonsRequest request = objectMapper.convertValue(record, SummonsRequest.class);
+            SummonsRequest request = objectMapper.convertValue(recordMap, SummonsRequest.class);
             log.info(request.toString());
             if (request.getSummonsDelivery().getDeliveryStatus().equals(DeliveryStatus.DELIVERED)
                 || request.getSummonsDelivery().getDeliveryStatus().equals(DeliveryStatus.NOT_DELIVERED)
@@ -80,19 +80,19 @@ public class SummonsConsumer {
                 summonsService.updateTaskStatus(request);
             }
         } catch (final Exception e) {
-            log.error("Error while listening to value: {}: ", record, e);
+            log.error(CONSUMER_ERROR, recordMap, e);
         }
     }
 
     @KafkaListener(topics = {"${kafka.topic.issue.summons.application}"})
     @Async
-    public void listenForSendSummons(final HashMap<String, Object> record, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
+    public void listenForSendSummons(final Map<String, Object> recordMap, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
         try {
-            TaskRequest taskRequest = objectMapper.convertValue(record, TaskRequest.class);
+            TaskRequest taskRequest = objectMapper.convertValue(recordMap, TaskRequest.class);
             log.info("Received message for sending summons {}", taskRequest.getTask());
             summonsService.sendSummonsViaChannels(taskRequest);
         } catch (final Exception e) {
-            log.error("Error while listening to value: {}: ", record, e);
+            log.error(CONSUMER_ERROR, recordMap, e);
         }
     }
 }

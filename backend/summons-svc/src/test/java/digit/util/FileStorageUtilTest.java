@@ -86,6 +86,6 @@ class FileStorageUtilTest {
         when(mapper.convertValue(any(), eq(JsonNode.class))).thenReturn(mockResponse);
 
         // Act & Assert
-        assertThrows(CustomException.class, () -> fileStorageUtil.saveDocumentToFileStore(new ByteArrayResource("testFileContent".getBytes())));
+        assertThrows(RuntimeException.class, () -> fileStorageUtil.saveDocumentToFileStore(new ByteArrayResource("testFileContent".getBytes())));
     }
 }

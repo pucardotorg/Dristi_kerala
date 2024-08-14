@@ -31,7 +31,7 @@ public class SummonsRepository {
     public List<SummonsDelivery> getSummons(SummonsDeliverySearchCriteria searchCriteria) {
         List<String> preparedStmtList = new ArrayList<>();
         String query = queryBuilder.getSummonsQuery(searchCriteria, preparedStmtList);
-        log.debug("Final query: " + query);
-        return jdbcTemplate.query(query, preparedStmtList.toArray(), rowMapper);
+        log.debug("Final query: {}", query);
+        return jdbcTemplate.query(query, rowMapper, preparedStmtList.toArray());
     }
 }

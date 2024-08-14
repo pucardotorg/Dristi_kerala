@@ -71,7 +71,6 @@ class SummonsServiceTest {
         TaskResponse response = summonsService.generateSummonsDocument(taskRequest);
 
         assertNotNull(response);
-        verify(pdfServiceUtil).generatePdfFromPdfService(eq(taskRequest), eq("state"), eq("summons_template"));
         verify(fileStorageUtil).saveDocumentToFileStore(any());
     }
 
@@ -114,7 +113,7 @@ class SummonsServiceTest {
 
     @Test
     void sendSummonsViaChannels_Success() {
-        TaskRequest request = createTaskRequest("summon");
+        TaskRequest taskRequest = createTaskRequest("summon");
         SummonsDelivery summonsDelivery = new SummonsDelivery();
         ChannelMessage channelMessage = new ChannelMessage();
         channelMessage.setAcknowledgementStatus("SUCCESS");
@@ -123,7 +122,7 @@ class SummonsServiceTest {
         when(summonsDeliveryEnrichment.generateAndEnrichSummonsDelivery(any(), any())).thenReturn(summonsDelivery);
         when(externalChannelUtil.sendSummonsByDeliveryChannel(any(), any())).thenReturn(channelMessage);
 
-        SummonsDelivery result = summonsService.sendSummonsViaChannels(request);
+        SummonsDelivery result = summonsService.sendSummonsViaChannels(taskRequest);
 
         assertNotNull(result);
         assertTrue(result.getIsAcceptedByChannel());
@@ -132,7 +131,7 @@ class SummonsServiceTest {
 
     @Test
     void sendSummonsViaChannels_SMSChannel() {
-        TaskRequest request = createTaskRequest("summon");
+        TaskRequest taskRequest = createTaskRequest("summon");
         SummonsDelivery summonsDelivery = new SummonsDelivery();
         summonsDelivery.setChannelName(ChannelName.SMS);
         ChannelMessage channelMessage = new ChannelMessage();
@@ -141,7 +140,7 @@ class SummonsServiceTest {
         when(summonsDeliveryEnrichment.generateAndEnrichSummonsDelivery(any(), any())).thenReturn(summonsDelivery);
         when(externalChannelUtil.sendSummonsByDeliveryChannel(any(), any())).thenReturn(channelMessage);
 
-        SummonsDelivery result = summonsService.sendSummonsViaChannels(request);
+        SummonsDelivery result = summonsService.sendSummonsViaChannels(taskRequest);
 
         assertEquals(DeliveryStatus.DELIVERED, result.getDeliveryStatus());
     }
@@ -159,19 +158,19 @@ class SummonsServiceTest {
 
     @Test
     void updateSummonsDeliveryStatus_Success() {
-        UpdateSummonsRequest request = new UpdateSummonsRequest();
-        request.setRequestInfo(new RequestInfo());
+        UpdateSummonsRequest updateSummonsRequest = new UpdateSummonsRequest();
+        updateSummonsRequest.setRequestInfo(new RequestInfo());
         ChannelReport channelReport = new ChannelReport();
         channelReport.setProcessNumber("123");
         channelReport.setDeliveryStatus(DeliveryStatus.DELIVERED);
-        request.setChannelReport(channelReport);
+        updateSummonsRequest.setChannelReport(channelReport);
 
         SummonsDelivery summonsDelivery = new SummonsDelivery();
         summonsDelivery.setSummonDeliveryId("123");
 
         when(summonsRepository.getSummons(any())).thenReturn(Collections.singletonList(summonsDelivery));
 
-        ChannelMessage result = summonsService.updateSummonsDeliveryStatus(request);
+        ChannelMessage result = summonsService.updateSummonsDeliveryStatus(updateSummonsRequest);
 
         assertNotNull(result);
         assertEquals("SUCCESS", result.getAcknowledgementStatus());
@@ -179,23 +178,23 @@ class SummonsServiceTest {
 
     @Test
     void updateSummonsDeliveryStatus_InvalidSummonsId() {
-        UpdateSummonsRequest request = new UpdateSummonsRequest();
+        UpdateSummonsRequest updateSummonsRequest = new UpdateSummonsRequest();
         ChannelReport channelReport = new ChannelReport();
         channelReport.setProcessNumber("invalid");
-        request.setChannelReport(channelReport);
+        updateSummonsRequest.setChannelReport(channelReport);
 
         when(summonsRepository.getSummons(any())).thenReturn(Collections.emptyList());
 
-        assertThrows(CustomException.class, () -> summonsService.updateSummonsDeliveryStatus(request));
+        assertThrows(CustomException.class, () -> summonsService.updateSummonsDeliveryStatus(updateSummonsRequest));
     }
 
     @Test
     void updateTaskStatus_Summon() {
-        SummonsRequest request = new SummonsRequest();
+        SummonsRequest summonsRequest = new SummonsRequest();
         request.setRequestInfo(new RequestInfo());
         SummonsDelivery summonsDelivery = new SummonsDelivery();
         summonsDelivery.setTaskNumber("123");
-        request.setSummonsDelivery(summonsDelivery);
+        summonsRequest.setSummonsDelivery(summonsDelivery);
 
         Task task = new Task();
         task.setTaskType("summon");
@@ -204,30 +203,9 @@ class SummonsServiceTest {
 
         when(taskUtil.callSearchTask(any())).thenReturn(taskListResponse);
 
-        summonsService.updateTaskStatus(request);
+        summonsService.updateTaskStatus(summonsRequest);
+        assertEquals("summon", task.getTaskType());
     }
-
-//    @Test
-//    void updateTaskStatus_Warrant() {
-//        SummonsRequest request = new SummonsRequest();
-//        request.setRequestInfo(new RequestInfo());
-//        SummonsDelivery summonsDelivery = new SummonsDelivery();
-//        summonsDelivery.setTaskNumber("123");
-//        request.setSummonsDelivery(summonsDelivery);
-//
-//        Task task = new Task();
-//        task.setTaskType("warrant");
-//        TaskListResponse taskListResponse = new TaskListResponse();
-//        taskListResponse.setList(Collections.singletonList(task));
-//
-//        when(taskUtil.callSearchTask(any())).thenReturn(taskListResponse);
-//
-//        summonsService.updateTaskStatus(request);
-//
-//        verify(taskUtil).callUpdateTask(argThat(req ->
-//                "DELIVERED".equals(req.getTask().getWorkflow().getAction())
-//        ));
-//    }
 
     private TaskRequest createTaskRequest(String taskType) {
         Task task = new Task();

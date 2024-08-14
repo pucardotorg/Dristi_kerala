@@ -66,9 +66,9 @@ class DemandServiceTest {
     private Address address;
 
     @Test
-    public void fetchPaymentDetailsAndGenerateDemandAndBillTest() {
+    void fetchPaymentDetailsAndGenerateDemandAndBillTest() {
         // Arrange
-        List<Calculation> calculations = Collections.singletonList(mock(Calculation.class));
+        List<Calculation> calculationsList = Collections.singletonList(mock(Calculation.class));
         BillResponse billResponse = mock(BillResponse.class);
 
         when(taskRequest.getTask()).thenReturn(task);
@@ -81,7 +81,7 @@ class DemandServiceTest {
         when(task.getTaskNumber()).thenReturn("TN001");
         when(repository.fetchResult(any(), any())).thenReturn(new Object());
         when(mapper.convertValue(any(), eq(CalculationResponse.class))).thenReturn(calculationResponse);
-        when(calculationResponse.getCalculation()).thenReturn(calculations);
+        when(calculationResponse.getCalculation()).thenReturn(calculationsList);
         when(repository.fetchResult(any(), any())).thenReturn(new Object());
         when(mapper.convertValue(any(), eq(DemandResponse.class))).thenReturn(demandResponse);
         when(demandResponse.getDemands()).thenReturn(demands);
@@ -133,11 +133,8 @@ class DemandServiceTest {
     @Test
     void testGenerateDemands() {
         // Arrange
-        RequestInfo requestInfo = mock(RequestInfo.class);
         Calculation calculation = mock(Calculation.class);
-        List<Calculation> calculations = Collections.singletonList(calculation);
-        DemandResponse demandResponse = mock(DemandResponse.class);
-        List<Demand> demands = Collections.singletonList(mock(Demand.class));
+        List<Calculation> calculationsList = Collections.singletonList(calculation);
 
         when(calculation.getTenantId()).thenReturn("tenant1");
 
@@ -154,7 +151,7 @@ class DemandServiceTest {
         when(demandResponse.getDemands()).thenReturn(demands);
 
         // Act
-        List<Demand> result = demandService.generateDemands(requestInfo, calculations,task);
+        List<Demand> result = demandService.generateDemands(requestInfo, calculationsList,task);
 
         // Assert
         assertNotNull(result);
@@ -166,8 +163,6 @@ class DemandServiceTest {
     @Test
     void testGetBill() {
         // Arrange
-        RequestInfo requestInfo = mock(RequestInfo.class);
-        Task task = mock(Task.class);
         BillResponse billResponse = mock(BillResponse.class);
 
         when(task.getTenantId()).thenReturn("tenant1");

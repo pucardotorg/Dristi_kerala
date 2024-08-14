@@ -90,7 +90,7 @@ public class Configuration {
     private String eSummonsHost;
 
     @Value("${egov.esummons.request.endpoint}")
-    private String ESummonsRequestEndPoint;
+    private String eSummonsRequestEndPoint;
 
     //Billing Service
 

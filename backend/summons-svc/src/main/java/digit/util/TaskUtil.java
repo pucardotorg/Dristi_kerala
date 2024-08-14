@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import static digit.config.ServiceConstants.TASK_SERVICE_ERROR;
+
 @Component
 @Slf4j
 public class TaskUtil {
@@ -42,8 +44,8 @@ public class TaskUtil {
 
             return responseEntity.getBody();
         } catch (Exception e) {
-            log.error("Error getting response from Task Service", e);
-            throw new CustomException("TASK_UPDATE_ERROR", "Error getting response from task Service");
+            log.error(TASK_SERVICE_ERROR, e);
+            throw new CustomException("TASK_UPDATE_ERROR", TASK_SERVICE_ERROR);
         }
     }
 
@@ -62,8 +64,8 @@ public class TaskUtil {
 
             return responseEntity.getBody();
         } catch (Exception e) {
-            log.error("Error getting response from Task Service", e);
-            throw new CustomException("TASK_SEARCH_ERROR", "Error getting response from task Service");
+            log.error(TASK_SERVICE_ERROR, e);
+            throw new CustomException("TASK_SEARCH_ERROR", TASK_SERVICE_ERROR);
         }
     }
 
@@ -82,8 +84,8 @@ public class TaskUtil {
 
             return responseEntity.getBody();
         } catch (Exception e) {
-            log.error("Error getting response from Task Service", e);
-            throw new CustomException("TASK_UPLOAD_DOCUMENT_ERROR", "Error getting response from task Service");
+            log.error(TASK_SERVICE_ERROR, e);
+            throw new CustomException("TASK_UPLOAD_DOCUMENT_ERROR", TASK_SERVICE_ERROR);
         }
     }
 }

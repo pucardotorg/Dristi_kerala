@@ -20,6 +20,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import static digit.config.ServiceConstants.TASK_SERVICE_ERROR;
+
 class TaskUtilTest {
 
     @Mock
@@ -69,7 +71,7 @@ class TaskUtilTest {
         CustomException exception = assertThrows(CustomException.class, () -> taskUtil.callUpdateTask(taskRequest));
 
         assertEquals("TASK_UPDATE_ERROR", exception.getCode());
-        assertEquals("Error getting response from task Service", exception.getMessage());
+        assertEquals(TASK_SERVICE_ERROR, exception.getMessage());
     }
 
     @Test
@@ -100,6 +102,6 @@ class TaskUtilTest {
         CustomException exception = assertThrows(CustomException.class, () -> taskUtil.callSearchTask(searchRequest));
 
         assertEquals("TASK_SEARCH_ERROR", exception.getCode());
-        assertEquals("Error getting response from task Service", exception.getMessage());
+        assertEquals(TASK_SERVICE_ERROR, exception.getMessage());
     }
 }

@@ -1,14 +1,13 @@
 package digit.util;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.contract.response.ResponseInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class ResponseInfoFactoryTest {
+import static org.junit.jupiter.api.Assertions.*;
+
+class ResponseInfoFactoryTest {
 
     private ResponseInfoFactory responseInfoFactory;
 
@@ -18,7 +17,7 @@ public class ResponseInfoFactoryTest {
     }
 
     @Test
-    public void testCreateResponseInfoFromRequestInfo_Success() {
+    void testCreateResponseInfoFromRequestInfo_Success() {
         // Arrange
         RequestInfo requestInfo = new RequestInfo();
         requestInfo.setApiId("apiId");
@@ -40,7 +39,7 @@ public class ResponseInfoFactoryTest {
     }
 
     @Test
-    public void testCreateResponseInfoFromRequestInfo_Failure() {
+    void testCreateResponseInfoFromRequestInfo_Failure() {
         // Arrange
         RequestInfo requestInfo = new RequestInfo();
         requestInfo.setApiId("apiId");
@@ -62,7 +61,7 @@ public class ResponseInfoFactoryTest {
     }
 
     @Test
-    public void testCreateResponseInfoFromRequestInfo_NullRequestInfo() {
+    void testCreateResponseInfoFromRequestInfo_NullRequestInfo() {
         // Act
         ResponseInfo responseInfo = responseInfoFactory.createResponseInfoFromRequestInfo(null, true);
 
@@ -77,7 +76,7 @@ public class ResponseInfoFactoryTest {
     }
 
     @Test
-    public void testCreateResponseInfoFromRequestInfo_PartialRequestInfo() {
+    void testCreateResponseInfoFromRequestInfo_PartialRequestInfo() {
         // Arrange
         RequestInfo requestInfo = new RequestInfo();
         requestInfo.setApiId("apiId");
@@ -88,7 +87,7 @@ public class ResponseInfoFactoryTest {
         // Assert
         assertNotNull(responseInfo);
         assertEquals("apiId", responseInfo.getApiId());
-        assertEquals(null, responseInfo.getTs());
+        assertNull(responseInfo.getTs());
         assertEquals("uief87324", responseInfo.getResMsgId());
         assertEquals("successful", responseInfo.getStatus());
     }
