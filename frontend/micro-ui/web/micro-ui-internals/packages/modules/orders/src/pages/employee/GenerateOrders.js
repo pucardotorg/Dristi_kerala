@@ -854,7 +854,12 @@ const GenerateOrders = () => {
           : null;
 
       localStorage.removeItem("fileStoreId");
-      const orderSchema = Digit.Customizations.dristiOrders.OrderFormSchemaUtils.formToSchema(order.additionalDetails.formdata, modifiedFormConfig);
+      let orderSchema = {};
+      try {
+        orderSchema = Digit.Customizations.dristiOrders.OrderFormSchemaUtils.formToSchema(order.additionalDetails.formdata, modifiedFormConfig);
+      } catch (error) {
+        console.log(error);
+      }
       return await ordersService.updateOrder(
         {
           order: {
@@ -873,7 +878,12 @@ const GenerateOrders = () => {
 
   const createOrder = async (order) => {
     try {
-      const orderSchema = Digit.Customizations.dristiOrders.OrderFormSchemaUtils.formToSchema(order.additionalDetails.formdata, modifiedFormConfig);
+      let orderSchema = {};
+      try {
+        orderSchema = Digit.Customizations.dristiOrders.OrderFormSchemaUtils.formToSchema(order.additionalDetails.formdata, modifiedFormConfig);
+      } catch (error) {
+        console.log(error);
+      }
       // const formOrder = await Digit.Customizations.dristiOrders.OrderFormSchemaUtils.schemaToForm(orderDetails, modifiedFormConfig);
       return await ordersService.createOrder(
         {
