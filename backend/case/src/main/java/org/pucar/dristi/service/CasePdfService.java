@@ -5,10 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.common.contract.models.Document;
 import org.egov.common.contract.request.RequestInfo;
-import org.egov.common.models.individual.AdditionalFields;
-import org.egov.common.models.individual.Field;
 import org.egov.tracer.model.CustomException;
 import org.pucar.dristi.config.Configuration;
+import org.pucar.dristi.kafka.Producer;
 import org.pucar.dristi.repository.CaseRepository;
 import org.pucar.dristi.util.CasePdfUtil;
 import org.pucar.dristi.util.FileStoreUtil;
@@ -38,13 +37,16 @@ public class CasePdfService {
 
     private final ObjectMapper mapper;
 
+    private Producer producer;
+
     @Autowired
-    public CasePdfService(Configuration config, CasePdfUtil casePdfUtil, CaseRepository caseRepository, FileStoreUtil fileStoreUtil, ObjectMapper mapper) {
+    public CasePdfService(Configuration config, CasePdfUtil casePdfUtil, CaseRepository caseRepository, FileStoreUtil fileStoreUtil, ObjectMapper mapper, Producer producer) {
         this.config = config;
         this.casePdfUtil = casePdfUtil;
         this.caseRepository = caseRepository;
         this.fileStoreUtil = fileStoreUtil;
         this.mapper = mapper;
+        this.producer = producer;
     }
 
     public CourtCase generatePdf(CaseSearchRequest body) {
@@ -75,6 +77,8 @@ public class CasePdfService {
             } else {
                 courtCase.getDocuments().add(document);
             }
+            producer.push(config.getCaseUpdateTopic(), caseRequest);
+
             return courtCase;
         } catch (Exception e) {
             log.error("Error generating PDF for case, {}", e.getMessage());
