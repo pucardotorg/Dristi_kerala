@@ -76,6 +76,14 @@ export const DRISTIService = {
       data,
       params,
     }),
+  generateCasePdf: (data, params) =>
+    Request({
+      url: Urls.dristi.casePfGeneration,
+      useCache: false,
+      userService: false,
+      data,
+      params,
+    }),
   updateEvidence: (data, params) =>
     Request({
       url: Urls.dristi.evidenceUpdate,

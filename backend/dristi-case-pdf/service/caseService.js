@@ -81,9 +81,9 @@ exports.getRespondentsDetails = async (cases) => {
     return cases.additionalDetails.respondentDetails.formdata.map((formData) => {
         const data = formData.data;
 
-        const firstName = data.firstName || '';
-        const middleName = data.middleName || '';
-        const lastName = data.lastName || '';
+        const firstName = data.respondentFirstName || '';
+        const middleName = data.respondentMiddleName || '';
+        const lastName = data.respondentLastName || '';
         const addresses = data.addressDetails.map((addressDetail) => {
             return {
                 locality: addressDetail.addressDetails.locality,
@@ -122,9 +122,9 @@ exports.getWitnessDetails = async (cases) => {
         const middleName = data.middleName || '';
         const lastName = data.lastName || '';
 
-        const additionalDetails = JSON.stringify({
-            text: data.witnessAdditionalDetails && data.witnessAdditionalDetails.text || ''
-        });
+        const additionalDetails = data && data.witnessAdditionalDetails && typeof data.witnessAdditionalDetails === 'object'
+          ? data.witnessAdditionalDetails.text || ''
+          : '';
 
         return {
             name: `${firstName} ${middleName} ${lastName}`,
@@ -155,9 +155,9 @@ exports.getChequeDetails = (cases) => {
     const chequeDetailsList = cases.caseDetails.chequeDetails.formdata.map(dataItem => {
         const chequeDetailsData = dataItem.data || {};
 
-        const bouncedChequeDocument = chequeDetailsData.depositChequeFileUpload && chequeDetailsData.depositChequeFileUpload.document.find(doc => doc.fileName === 'CS_BOUNCED_CHEQUE');
-        const depositChequeDocument = chequeDetailsData.vakalatnamaFileUpload && chequeDetailsData.vakalatnamaFileUpload.document.find(doc => doc.fileName === 'CS_PROOF_DEPOSIT_CHEQUE');
-        const returnMemoDocument = chequeDetailsData.vakalatnamaFileUpload && chequeDetailsData.vakalatnamaFileUpload.document.find(doc => doc.fileName === 'CS_CHEQUE_RETURN_MEMO');
+        const bouncedChequeDocument = chequeDetailsData.bouncedChequeFileUpload && chequeDetailsData.bouncedChequeFileUpload.document.find(doc => doc.fileName === 'CS_BOUNCED_CHEQUE');
+        const depositChequeDocument = chequeDetailsData.depositChequeFileUpload && chequeDetailsData.depositChequeFileUpload.document.find(doc => doc.fileName === 'CS_PROOF_DEPOSIT_CHEQUE');
+        const returnMemoDocument = chequeDetailsData.returnMemoFileUpload && chequeDetailsData.returnMemoFileUpload.document.find(doc => doc.fileName === 'CS_CHEQUE_RETURN_MEMO');
 
         return {
             signatoryName: chequeDetailsData.chequeSignatoryName || null,

@@ -68,7 +68,7 @@ const InsideHearingMainPage = () => {
 
   const { data: hearingLink } = useGetHearingLink();
   const hearingVcLink = hearingLink?.[0];
-
+  const refetchTime = disableTextArea ? 10 * SECOND : "";
   const reqBody = {
     hearing: { tenantId },
     criteria: {
@@ -80,8 +80,8 @@ const InsideHearingMainPage = () => {
     reqBody,
     { applicationNumber: "", cnrNumber: "", hearingId },
     "dristi",
-    disableTextArea,
-    10 * SECOND
+    true,
+    refetchTime
   );
 
   const { mutateAsync: _updateTranscriptRequest } = Digit.Hooks.useCustomAPIMutationHook({
@@ -375,6 +375,7 @@ const InsideHearingMainPage = () => {
             transcriptText={transcriptText}
             setAdjournHearing={setAdjournHearing}
             disableTextArea={disableTextArea}
+            setTranscriptText={setTranscriptText}
           />
         )}
       </div>
@@ -392,7 +393,7 @@ const InsideHearingMainPage = () => {
               gap: "16px",
             }}
           >
-            <Button
+            {/* <Button
               label={"ATTENDANCE_CHIP"}
               style={{ boxShadow: "none", backgroundColor: "#ECF3FD", borderRadius: "4px", border: "none", padding: "10px" }}
               textStyles={{
@@ -417,8 +418,8 @@ const InsideHearingMainPage = () => {
               >
                 {`${attendanceCount}`}
               </h2>
-            </Button>
-            {userHasRole("EMPLOYEE") && (
+            </Button> */}
+            {/* {userHasRole("EMPLOYEE") && (
               <Button
                 label={t("MARK_ATTENDANCE")}
                 variation={"teritiary"}
@@ -433,7 +434,7 @@ const InsideHearingMainPage = () => {
                   color: "#007E7E",
                 }}
               />
-            )}
+            )} */}
           </div>
           {userHasRole("EMPLOYEE") ? (
             <div
@@ -475,7 +476,7 @@ const InsideHearingMainPage = () => {
               />
             </div>
           ) : (
-            <Button label={t("EXIT_HEARING")} variation={"primary"} onClick={handleExitHearing} />
+            <Button label={t("EXIT_HEARING")} variation={"primary"} onButtonClick={handleExitHearing} />
           )}
         </div>
       </ActionBar>
@@ -517,6 +518,7 @@ const InsideHearingMainPage = () => {
           hearing={hearing}
           transcriptText={transcriptText}
           disableTextArea={disableTextArea}
+          setTranscriptText={setTranscriptText}
         />
       )}
     </div>

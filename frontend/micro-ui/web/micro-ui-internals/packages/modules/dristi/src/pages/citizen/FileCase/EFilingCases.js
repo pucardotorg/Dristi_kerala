@@ -30,6 +30,7 @@ import {
   chequeDateValidation,
   chequeDetailFileValidation,
   complainantValidation,
+  debtLiabilityValidation,
   delayApplicationValidation,
   demandNoticeFileValidation,
   getAllAssignees,
@@ -45,6 +46,7 @@ import _, { isEqual, isMatch } from "lodash";
 import CorrectionsSubmitModal from "../../../components/CorrectionsSubmitModal";
 import { Urls } from "../../../hooks";
 import useGetStatuteSection from "../../../hooks/dristi/useGetStatuteSection";
+import useCasePdfGeneration from "../../../hooks/dristi/useCasePdfGeneration";
 const OutlinedInfoIcon = () => (
   <svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ position: "absolute", right: -22, top: 0 }}>
     <g clip-path="url(#clip0_7603_50401)">
@@ -161,6 +163,28 @@ function EFilingCases({ path }) {
   const [prevSelected, setPrevSelected] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const homepagePath = "/digit-ui/citizen/dristi/home";
+
+  const { data: casePdf, isPdfLoading, refetch } = useCasePdfGeneration(
+    {
+      criteria: [
+        {
+          caseId: caseId,
+        },
+      ],
+      tenantId,
+    },
+    {},
+    "dristi",
+    caseId,
+    false
+  );
+
+  useEffect(() => {
+    if (casePdf) {
+      localStorage.setItem("fileStoreId", casePdf?.cases?.[0]?.documents?.[0]?.fileStore);
+      // Add any additional logic that should occur when casePdf is available
+    }
+  }, [casePdf]);
 
   const [{ showSuccessToast, successMsg }, setSuccessToast] = useState({
     showSuccessToast: false,
@@ -897,6 +921,8 @@ function EFilingCases({ path }) {
                           isDisabled: input?.shouldBeEnabled ? false : true,
                         };
                       }
+
+                      // 225 Inquiry Affidavit Validation in respondent details
                       if (selected === "respondentDetails") {
                         if (
                           Array.isArray(data?.addressDetails) &&
@@ -913,8 +939,8 @@ function EFilingCases({ path }) {
                               body?.key === "inquiryAffidavitFileUpload"
                           )
                         ) {
-                          delete input.isOptional;
-                          body.isMandatory = true;
+                          // delete input.isOptional;
+                          body.isMandatory = false;
                           return {
                             ...input,
                             hideDocument: false,
@@ -924,7 +950,7 @@ function EFilingCases({ path }) {
                           return {
                             ...input,
                             isOptional: "CS_IS_OPTIONAL",
-                            hideDocument: true,
+                            hideDocument: false,
                           };
                         } else {
                           return {
@@ -1120,6 +1146,11 @@ function EFilingCases({ path }) {
   //   setConfirmDeleteModal(true);
   //   setFormdata(newArray);
   // };
+
+  const handleSkip = () => {
+    setShowConfirmOptionalModal(false);
+  };
+
   const onFormValueChange = (setValue, formData, formState, reset, setError, clearErrors, trigger, getValues, index, currentDisplayIndex) => {
     if (formData.advocateBarRegNumberWithName?.[0] && !formData.advocateBarRegNumberWithName[0].modified) {
       setValue("advocateBarRegNumberWithName", [
@@ -1371,6 +1402,23 @@ function EFilingCases({ path }) {
       formdata
         .filter((data) => data.isenabled)
         .some((data) =>
+          debtLiabilityValidation({
+            formData: data?.data,
+            t,
+            caseDetails,
+            selected,
+            setShowErrorToast,
+            toast,
+            setFormErrors: setFormErrors.current,
+          })
+        )
+    ) {
+      return;
+    }
+    if (
+      formdata
+        .filter((data) => data.isenabled)
+        .some((data) =>
           delayApplicationValidation({
             formData: data?.data,
             t,
@@ -1425,6 +1473,9 @@ function EFilingCases({ path }) {
       return setOpenConfirmCorrectionModal(true);
     }
 
+    if (selected === "reviewCaseFile") {
+      refetch();
+    }
     if (selected === "addSignature" && isDraftInProgress) {
       if (courtRooms?.length === 1) {
         onSubmitCase({ court: courtRooms[0] });
@@ -1982,7 +2033,7 @@ function EFilingCases({ path }) {
               headerBarMain={<Heading label={t("TIPS_FOR_STRONGER_CASE")} />}
               headerBarEnd={<CloseBtn onClick={() => setShowConfirmOptionalModal(false)} />}
               actionCancelLabel={t("SKIP_AND_CONTINUE")}
-              actionCancelOnSubmit={() => setShowConfirmOptionalModal(false)}
+              actionCancelOnSubmit={handleSkip}
               actionSaveLabel={t("FILL_NOW")}
               children={optionalFieldsRemainingText(optionalFieldsLeftTotalCount)}
               actionSaveOnSubmit={() => takeUserToRemainingOptionalFieldsPage()}
