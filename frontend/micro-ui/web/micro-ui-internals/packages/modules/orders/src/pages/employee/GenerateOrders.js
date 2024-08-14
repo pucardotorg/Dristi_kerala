@@ -120,6 +120,7 @@ const GenerateOrders = () => {
   const [signedDoucumentUploadedID, setSignedDocumentUploadID] = useState("");
   const [newHearingNumber, setNewHearingNumber] = useState(null);
   const [createdSummon, setCreatedSummon] = useState(null);
+  const [orderPdfFileStoreID, setOrderPdfFileStoreID] = useState(null);
   const history = useHistory();
   const todayDate = new Date().getTime();
   const roles = Digit.UserService.getUser()?.info?.roles;
@@ -618,7 +619,7 @@ const GenerateOrders = () => {
     }
     if (orderType === "SUMMONS") {
       if (hearingDetails?.startTime) {
-        updatedFormdata.date = formatDate(new Date(hearingDetails?.startTime));
+        updatedFormdata.dateForHearing = formatDate(new Date(hearingDetails?.startTime));
       }
       if (currentOrder?.additionalDetails?.selectedParty && currentOrder?.additionalDetails?.selectedParty?.uuid) {
         updatedFormdata.SummonsOrder = {
@@ -1717,6 +1718,7 @@ const GenerateOrders = () => {
           order={currentOrder}
           setShowReviewModal={setShowReviewModal}
           setShowsignatureModal={setShowsignatureModal}
+          setOrderPdfFileStoreID={setOrderPdfFileStoreID}
           showActions={canESign}
         />
       )}
@@ -1727,6 +1729,7 @@ const GenerateOrders = () => {
           handleIssueOrder={handleIssueOrder}
           handleGoBackSignatureModal={handleGoBackSignatureModal}
           setSignedDocumentUploadID={setSignedDocumentUploadID}
+          orderPdfFileStoreID={orderPdfFileStoreID}
           saveOnsubmitLabel={"ISSUE_ORDER"}
         />
       )}

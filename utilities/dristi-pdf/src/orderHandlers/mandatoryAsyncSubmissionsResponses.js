@@ -116,8 +116,6 @@ async function mandatoryAsyncSubmissionsResponses(req, res, qrCode) {
             "Data": [
                 {
                     "courtName": mdmsCourtRoom.name,
-                    "place": "BOUNDARY_NAME", // FIXME: mdmsCourtEstablishment.boundaryName,
-                    "state": "ROOT_BOUNDARY_NAME", //FIXME: mdmsCourtEstablishment.rootBoundaryName,
                     "caseNumber": courtCase.cnrNumber,
                     "year": year,
                     "caseName": courtCase.caseTitle,
@@ -131,10 +129,12 @@ async function mandatoryAsyncSubmissionsResponses(req, res, qrCode) {
                     "Month": "Month from UI",
                     "Year": "Year from UI",
                     "judgeSignature": "Judge Signature",
-                    "judgeName": "JUDGE_NAME", // FIXME: employee.user.name,
                     "designation": "Judge designation",
                     "courtSeal": "Court Seal",
-                    "qrCodeUrl": base64Url
+                    "qrCodeUrl": base64Url,
+                    "place": "Kollam", // FIXME: mdmsCourtEstablishment.boundaryName,
+                    "state": "Kerala", //FIXME: mdmsCourtEstablishment.rootBoundaryName,
+                    "judgeName": "John Watt", // FIXME: employee.user.name,
                 }
             ]
         };

@@ -23,7 +23,6 @@ async function scheduleHearingDate(req, res, qrCode) {
     const orderId = req.query.orderId;
     const tenantId = req.query.tenantId;
     const requestInfo = req.body.RequestInfo;
-    const orderDate = req.query.date;
     const entityId = req.query.entityId;
     const code = req.query.code;
 
@@ -31,7 +30,6 @@ async function scheduleHearingDate(req, res, qrCode) {
     if (!cnrNumber) missingFields.push("cnrNumber");
     if (!orderId) missingFields.push("orderId");
     if (!tenantId) missingFields.push("tenantId");
-    if (!orderDate) missingFields.push("date")
     if (requestInfo === undefined) missingFields.push("requestInfo");
     if (qrCode === 'true' && (!entityId || !code)) missingFields.push("entityId and code");
 
@@ -102,26 +100,6 @@ async function scheduleHearingDate(req, res, qrCode) {
             renderError(res, "Order not found", 404);
         }
 
-        // Search for application details
-        const resApplication = await handleApiCall(
-            () => search_application(tenantId, order.applicationNumber[0], requestInfo),
-            "Failed to query application service"
-        );
-        const application = resApplication?.data?.applicationList[0];
-        if (!application) {
-            renderError(res, "Application not found", 404);
-        }
-
-        // Search for individual details
-        const resIndividual = await handleApiCall(
-            () => search_individual_uuid(tenantId, application.onBehalfOf[0], requestInfo),
-            "Failed to query individual service using id"
-        );
-        const individual = resIndividual?.data?.Individual[0];
-        if (!individual) {
-            renderError(res, "Individual not found", 404);
-        }
-
         // Handle QR code if enabled
         let base64Url = "";
         if (qrCode === 'true') {
@@ -160,19 +138,19 @@ async function scheduleHearingDate(req, res, qrCode) {
             "Data": [
                 {
                     "courtName": mdmsCourtRoom.name,
-                    "place": "BOUNDARY_NAME", // FIXME: mdmsCourtEstablishment.boundaryName,
-                    "state": "ROOT_BOUNDARY_NAME", //FIXME: mdmsCourtEstablishment.rootBoundaryName,
                     "caseNumber": courtCase.cnrNumber,
                     "year": year,
                     "caseName": courtCase.caseTitle,
                     "date": stringDate,
-                    "dateOfNextHearing": orderDate,
-                    "partyNames": `${individual.name.givenName} ${individual.name.familyName}`,
+                    "dateOfNextHearing": new Date(order.orderDetails.hearingDate).toLocaleDateString("en-IN"),
+                    "partyNames": order.orderDetails.partyName.join(", "),
                     "additionalComments": order.comments,
                     "judgeSignature": "Judges Signature",
-                    "judgeName": "JUDGE_NAME", // FIXME: employee.user.name,
                     "courtSeal": "Court Seal",
-                    "qrCodeUrl": base64Url
+                    "qrCodeUrl": base64Url,
+                    "place": "Kollam", // FIXME: mdmsCourtEstablishment.boundaryName,
+                    "state": "Kerala", //FIXME: mdmsCourtEstablishment.rootBoundaryName,
+                    "judgeName": "John Watt", // FIXME: employee.user.name,
                 }
             ]
         };
