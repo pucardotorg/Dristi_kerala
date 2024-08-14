@@ -1512,12 +1512,10 @@ const GenerateOrders = () => {
       const promiseList = summonsArray?.map((data) =>
         createOrder(
           {
-            order: {
-              ...orderbody,
-              additionalDetails: {
-                ...orderbody?.additionalDetails,
-                selectedParty: data,
-              },
+            ...orderbody,
+            additionalDetails: {
+              ...orderbody?.additionalDetails,
+              selectedParty: data,
             },
           },
           { tenantId }
@@ -1692,13 +1690,13 @@ const GenerateOrders = () => {
   };
 
   const handleReviewOrderClick = () => {
-    if (orderType === "SCHEDULE_OF_HEARING_DATE" && isHearingAlreadyScheduled) {
-      setShowErrorToast({
-        label: t("HEARING_IS_ALREADY_SCHEDULED_FOR_THIS_CASE"),
-        error: true,
-      });
-      return;
-    }
+    // if (orderType === "SCHEDULE_OF_HEARING_DATE" && isHearingAlreadyScheduled) {
+    //   setShowErrorToast({
+    //     label: t("HEARING_IS_ALREADY_SCHEDULED_FOR_THIS_CASE"),
+    //     error: true,
+    //   });
+    //   return;
+    // }
     if (orderType && ["MANDATORY_SUBMISSIONS_RESPONSES"].includes(orderType)) {
       if (!currentFormData?.responseInfo?.responseDeadline && currentFormData?.responseInfo?.isResponseRequired?.code === true) {
         setFormErrors.current("responseDeadline", { message: t("PROPOSED_DATE_CAN_NOT_BE_BEFORE_SUBMISSION_DEADLINE") });

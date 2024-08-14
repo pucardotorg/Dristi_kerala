@@ -120,14 +120,18 @@ function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal,
         if (showActions) {
           const pdfFile = new File([orderPreviewPdf], orderPreviewFileName, { type: "application/pdf" });
           console.debug(pdfFile, orderPreviewFileName);
-          onDocumentUpload(pdfFile, pdfFile.name).then((document) => {
-            const fileStoreId = document.file?.files?.[0]?.fileStoreId;
-            if (fileStoreId) {
-              setOrderPdfFileStoreID(fileStoreId);
+          onDocumentUpload(pdfFile, pdfFile.name)
+            .then((document) => {
+              const fileStoreId = document.file?.files?.[0]?.fileStoreId;
+              if (fileStoreId) {
+                setOrderPdfFileStoreID(fileStoreId);
+              }
+            })
+            .catch((e) => {})
+            .finally(() => {
               setShowsignatureModal(true);
               setShowReviewModal(false);
-            }
-          });
+            });
         }
       }}
       className={"review-order-modal"}
