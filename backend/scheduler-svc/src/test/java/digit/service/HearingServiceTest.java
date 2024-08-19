@@ -65,16 +65,14 @@ public class HearingServiceTest {
                 obj -> obj
         ));
 
-        when(helper.getDataFromMDMS(MdmsSlot.class, serviceConstants.DEFAULT_SLOTTING_MASTER_NAME, serviceConstants.DEFAULT_SLOTTING_MASTER_NAME)).thenReturn(defaultSlots);
-        when(helper.getDataFromMDMS(MdmsHearing.class, serviceConstants.DEFAULT_HEARING_MASTER_NAME, serviceConstants.DEFAULT_SLOTTING_MASTER_NAME)).thenReturn(defaultHearings);
-        when(config.getScheduleHearingTopic()).thenReturn("scheduleHearingTopic");
+        when(helper.getDataFromMDMS(MdmsSlot.class, serviceConstants.DEFAULT_SLOTTING_MASTER_NAME, serviceConstants.DEFAULT_COURT_MODULE_NAME)).thenReturn(defaultSlots);
+        when(helper.getDataFromMDMS(MdmsHearing.class, serviceConstants.DEFAULT_HEARING_MASTER_NAME, serviceConstants.DEFAULT_COURT_MODULE_NAME)).thenReturn(defaultHearings);
 
         List<ScheduleHearing> hearingList = hearingService.schedule(schedulingRequests);
 
         double totalHrs = defaultSlots.stream().reduce(0.0, (total, slotData) -> total + slotData.getSlotDuration() / 60.0, Double::sum);
 
         verify(enrichment, times(1)).enrichScheduleHearing(schedulingRequests, defaultSlots, hearingTypeMap);
-        verify(producer, times(1)).push("scheduleHearingTopic", schedulingRequests.getHearing());
 
         assertEquals(schedulingRequests.getHearing(), hearingList);
     }

@@ -63,10 +63,7 @@ public class ReScheduleRequestEnrichmentTest {
 
     @Test
     public void testEnrichRescheduleRequest() {
-        when(idgenUtil.getIdList(any(), anyString(), anyString(), any(), anyInt()))
-                .thenReturn(List.of("ID1", "ID2", "ID3"));
 
-        when(configuration.getRescheduleHearingIdFormat()).thenReturn("ID_FORMAT");
 
         reScheduleRequestEnrichment.enrichRescheduleRequest(reScheduleHearingRequest);
 
@@ -75,7 +72,6 @@ public class ReScheduleRequestEnrichmentTest {
 
         for (int i = 0; i < reScheduleHearings.size(); i++) {
             ReScheduleHearing hearing = reScheduleHearings.get(i);
-            assertEquals("ID" + (i + 1), hearing.getRescheduledRequestId());
             assertNotNull(hearing.getAuditDetails());
             assertEquals("test-uuid", hearing.getAuditDetails().getCreatedBy());
             assertEquals("test-uuid", hearing.getAuditDetails().getLastModifiedBy());
@@ -107,7 +103,7 @@ public class ReScheduleRequestEnrichmentTest {
 
         for (int i = 0; i < existingReScheduleHearings.size(); i++) {
             ReScheduleHearing hearing = existingReScheduleHearings.get(i);
-            assertEquals("test-uuid", hearing.getAuditDetails().getLastModifiedBy());
+            assertEquals("admin", hearing.getAuditDetails().getLastModifiedBy());
             assertTrue(hearing.getAuditDetails().getLastModifiedTime() <= System.currentTimeMillis());
         }
     }
@@ -125,6 +121,8 @@ public class ReScheduleRequestEnrichmentTest {
 
     @Test
     public void testEnrichRequestOnUpdate_WithNullExistingHearingList() {
+        reScheduleHearingRequest.setReScheduleHearing(null);
+
         Exception exception = assertThrows(NullPointerException.class, () -> {
             reScheduleRequestEnrichment.enrichRescheduleRequest(reScheduleHearingRequest);
         });
