@@ -170,4 +170,27 @@ public class Configuration {
 
     @Value("${drishti.judge.pending.due.days}")
     private Long judgePendingSla;
+
+    // Email Notification topic
+    @Value("${egov.email.notification.topic}")
+    private String emailNotificationTopic;
+
+    //Sms Notification topic
+    @Value("${egov.sms.notification.template.id}")
+    private String smsNotificationTemplateId;
+
+
+    //Individual Service
+    @Value("${egov.individual.host}")
+    private String individualHost;
+
+    @Value("${egov.individual.search.endpoint}")
+    private String individualSearchEndpoint;
+
+    //Localization
+    @Value("${egov.localization.host}")
+    private String localizationHost;
+
+    @Value("${egov.localization.search.endpoint}")
+    private String localizationSearchEndpoint;
 }
