@@ -44,4 +44,5 @@ public class ServiceConstants {
     public static final String PENDING_TASK_NAME = "Create Order for rescheduling the hearing";
     public static final String PENDING_TASK_STATUS = "RESCHEDULE_HEARING";
     public static final String NOTIFICATION_ENG_LOCALE_CODE = "en_IN";
+    public static final String NOTIFICATION_TEMPLATE_CODE="OPT_OUT";
 }

@@ -26,7 +26,7 @@ public class IndividualService {
         this.config = config;
     }
 
-    public Boolean searchIndividual(RequestInfo requestInfo , String individualId, Map<String, String> individualUserUUID ){
+    public String getEmailId(RequestInfo requestInfo , String individualId){
         try {
             IndividualSearchRequest individualSearchRequest = new IndividualSearchRequest();
             individualSearchRequest.setRequestInfo(requestInfo);
@@ -36,26 +36,7 @@ public class IndividualService {
             individualSearchRequest.setIndividual(individualSearch);
             StringBuilder uri = new StringBuilder(config.getIndividualHost()).append(config.getIndividualSearchEndpoint());
             uri.append("?limit=1000").append("&offset=0").append("&tenantId=").append(requestInfo.getUserInfo().getTenantId()).append("&includeDeleted=true");
-            return individualUtils.individualCall(individualSearchRequest, uri, individualUserUUID);
-        } catch (CustomException e){
-            throw e;
-        } catch (Exception e){
-            log.error("Error in search individual service");
-            throw new CustomException("INDIVIDUAL_SERVICE_EXCEPTION","Error in search individual service"+e.getMessage());
-        }
-    }
-
-    public String getEmailId(RequestInfo requestInfo , String individualId, Map<String, String> individualUserUUID ){
-        try {
-            IndividualSearchRequest individualSearchRequest = new IndividualSearchRequest();
-            individualSearchRequest.setRequestInfo(requestInfo);
-            IndividualSearch individualSearch = new IndividualSearch();
-            log.info("Individual Id :: {}", individualId);
-            individualSearch.setIndividualId(individualId);
-            individualSearchRequest.setIndividual(individualSearch);
-            StringBuilder uri = new StringBuilder(config.getIndividualHost()).append(config.getIndividualSearchEndpoint());
-            uri.append("?limit=1000").append("&offset=0").append("&tenantId=").append(requestInfo.getUserInfo().getTenantId()).append("&includeDeleted=true");
-            return individualUtils.getEmailByIndividualId(individualSearchRequest, uri, individualUserUUID);
+            return individualUtils.getEmailByIndividualId(individualSearchRequest, uri);
         }
         catch (Exception e){
             log.error("Error in search individual service :: {}", e.toString());

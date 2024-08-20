@@ -50,10 +50,12 @@ public class ReScheduleHearingService {
     private final ServiceConstants constants;
     private final DateUtil dateUtil;
     private final ReScheduleRequestValidator validator;
+    private final IndividualService individualService;
+    private final EmailNotificationService notificationService;
 
 
     @Autowired
-    public ReScheduleHearingService(Configuration config, ReScheduleRequestRepository repository, ReScheduleRequestValidator validator, ReScheduleRequestEnrichment enrichment, Producer producer, HearingService hearingService, CalendarService calendarService, ServiceConstants serviceConstants, MasterDataUtil helper, CaseUtil caseUtil, HearingUtil hearingUtil, ServiceConstants constants, DateUtil dateUtil) {
+    public ReScheduleHearingService(Configuration config, ReScheduleRequestRepository repository, ReScheduleRequestValidator validator, ReScheduleRequestEnrichment enrichment, Producer producer, HearingService hearingService, CalendarService calendarService, ServiceConstants serviceConstants, MasterDataUtil helper, CaseUtil caseUtil, HearingUtil hearingUtil, ServiceConstants constants, DateUtil dateUtil, IndividualService individualService, EmailNotificationService notificationService) {
 
 
         this.config = config;
@@ -69,6 +71,8 @@ public class ReScheduleHearingService {
         this.hearingUtil = hearingUtil;
         this.dateUtil = dateUtil;
         this.validator = validator;
+        this.individualService = individualService;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -94,6 +98,17 @@ public class ReScheduleHearingService {
                 JsonNode cases = caseUtil.getCases(searchCaseRequest);
                 JsonNode litigants = caseUtil.getLitigants(cases);
                 Set<String> litigantIds = caseUtil.getIndividualIds(litigants);
+
+                //get Email ids
+                Set<String> emailIds = new HashSet<>();
+                for(String id: litigantIds) {
+                    String email = individualService.getEmailId(reScheduleHearingsRequest.getRequestInfo(), id);
+                    emailIds.add(email);
+                }
+                if(!emailIds.isEmpty()){
+                    notificationService.sendEmailNotification(reScheduleHearingsRequest, emailIds);
+                }
+
                 JsonNode representatives = caseUtil.getRepresentatives(cases);
                 Set<String> representativeIds = caseUtil.getIdsFromJsonNodeArray(representatives);
                 int noOfAttendees = representativeIds.size();
