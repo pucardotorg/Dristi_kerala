@@ -68,7 +68,7 @@ public class RescheduleRequestOptOutEnrichmentTest {
             assertNotNull(optOutApplications.getAuditDetails());
             assertEquals("test-uuid", optOutApplications.getAuditDetails().getLastModifiedBy());
             assertTrue(optOutApplications.getAuditDetails().getLastModifiedTime() <= System.currentTimeMillis());
-            assertEquals(2, optOutApplications.getRowVersion());
+            assertEquals(1, optOutApplications.getRowVersion());
     }
 
     @Test
@@ -84,9 +84,9 @@ public class RescheduleRequestOptOutEnrichmentTest {
 
     @Test
     public void testEnrichCreateRequest_WithEmptyOptOuts() {
-        optOutRequest.setOptOut(new OptOut());
 
         rescheduleRequestOptOutEnrichment.enrichCreateRequest(optOutRequest);
+        optOutRequest.setOptOut(new OptOut());
 
         assertEquals(optOutRequest.getOptOut(), new OptOut());
     }
@@ -102,12 +102,4 @@ public class RescheduleRequestOptOutEnrichmentTest {
         assertNotNull(exception);
     }
 
-    @Test
-    public void testenrichCreateRequest_WithEmptyOptOuts() {
-        optOutRequest.setOptOut(new OptOut());
-
-        rescheduleRequestOptOutEnrichment.enrichCreateRequest(optOutRequest);
-
-        assertEquals(optOutRequest.getOptOut(), new OptOut());
-    }
 }

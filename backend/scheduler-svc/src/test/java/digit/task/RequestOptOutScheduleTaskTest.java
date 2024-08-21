@@ -90,9 +90,6 @@ public class RequestOptOutScheduleTaskTest {
         when(mdmsUtil.getDataFromMDMS(any(), anyString(), anyString())).thenReturn(Collections.singletonList(schedulerConfig));
         when(dateUtil.getEpochFromLocalDateTime(any())).thenReturn(dueDate);
         when(config.getEgovStateTenantId()).thenReturn("tenantId");
-        when(reScheduleRepository.getReScheduleRequest(ReScheduleHearingReqSearchCriteria.builder().tenantId("tenantId").dueDate(19949L).build(), null, null)).thenReturn(Collections.singletonList(reScheduleHearing));
-        when(requestOptOutRepository.getOptOut(OptOutSearchCriteria.builder().judgeId(reScheduleHearing.getJudgeId()).caseId(reScheduleHearing.getCaseId()).rescheduleRequestId(reScheduleHearing.getRescheduledRequestId()).tenantId(reScheduleHearing.getTenantId()).build(), null,null)).thenReturn(Collections.singletonList(optOut));
-        when(pendingTaskUtil.createPendingTask(any())).thenReturn(new PendingTask());
 
         requestOptOutScheduleTask.updateAvailableDatesFromOptOuts();
     }
