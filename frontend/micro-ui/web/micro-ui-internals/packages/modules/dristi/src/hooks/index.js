@@ -10,14 +10,12 @@ import useGetOrders from "./dristi/useGetOrders";
 import useGetSubmissions from "./dristi/useGetSubmissions";
 import useInboxCustomHook from "./dristi/useInboxCustomHook";
 import useSearchCaseService from "./dristi/useSearchCaseService";
-import usePaymentCalculator from "./dristi/usePaymentCalculator";
 import { useToast } from "../components/Toast/useToast.js";
 import useCreateHearings from "./dristi/useCreateHearings.js";
-import useEvidenceDetails from "./dristi/useEvidenceDetails.js";
-import useBillSearch from "./dristi/useBillSearch";
-import useCreateDemand from "./dristi/useCreateDemand";
 import useApplicationDetails from "./dristi/useApplicationDetails.js";
 import useEvidenceDetails from "./dristi/useEvidenceDetails.js";
+import { useGetPendingTask } from "./dristi/useGetPendingTask.js";
+import useGetStatuteSection from "./dristi/useGetStatuteSection.js";
 
 export const Urls = {
   Authenticate: "/user/oauth/token",
@@ -41,18 +39,13 @@ export const Urls = {
     ordersCreate: "/order/v1/create",
     submissionsSearch: "/application/v1/search",
     submissionsUpdate: "/application/v1/update",
+    addSubmissionComment: "/application/v1/addcomment",
+    addEvidenceComment: "/evidence/v1/addcomment",
     pendingTask: "/analytics/pending_task/v1/create",
-      //Solutions
-      billFileStoreId: "/etreasury/payment/v1/_getPaymentReceipt",
-      eSign: "/e-sign-svc/v1/_esign",
-      paymentCalculator: "/payment-calculator/v1/case/fees/_calculate",
-      fetchBill: "/billing-service/bill/v2/_fetchbill",
-      searchBill: "/billing-service/bill/v2/_search",
-      eTreasury: "/etreasury/payment/v1/_processChallan",
-      demandCreate: "/billing-service/demand/_create",
+    getPendingTaskFields: "/inbox/v2/_getFields",
   },
   case: {
-    addWitness: "/case/case/v1/add/witness",
+    addWitness: "/case/v1/add/witness",
   },
   FileFetchById: "/filestore/v1/files/id",
 };
@@ -65,8 +58,6 @@ const dristi = {
   useGetIndividualUser,
   useInboxCustomHook,
   useSearchCaseService,
-  useGetHearings,
-  usePaymentCalculator,
   useCreateHearings,
   useGetEvidence,
   useGetOrders,
@@ -74,8 +65,8 @@ const dristi = {
   useApplicationDetails,
   useEvidenceDetails,
   useToast,
-  useBillSearch,
-  useCreateDemand,
+  useGetPendingTask,
+  useGetStatuteSection,
 };
 
 const Hooks = {

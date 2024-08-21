@@ -17,6 +17,7 @@ export const userTypeOptions = [
       "SUBMISSION_CREATOR",
       "SUBMISSION_RESPONDER",
       "SUBMISSION_DELETE",
+      "TASK_VIEWER",
     ],
     subText: "LITIGANT_SUB_TEXT",
   },
@@ -40,6 +41,7 @@ export const userTypeOptions = [
       "SUBMISSION_CREATOR",
       "SUBMISSION_RESPONDER",
       "SUBMISSION_DELETE",
+      "TASK_VIEWER",
     ],
     apiDetails: {
       serviceName: "/advocate/advocate/v1/_create",
@@ -68,6 +70,7 @@ export const userTypeOptions = [
       "SUBMISSION_CREATOR",
       "SUBMISSION_RESPONDER",
       "SUBMISSION_DELETE",
+      "TASK_VIEWER",
     ],
     apiDetails: {
       serviceName: "/advocate/clerk/v1/_create",
@@ -130,7 +133,7 @@ export const newConfig = [
             },
             title: "",
             patternType: "Name",
-            minLength: 1,
+            minLength: 2,
           },
         },
       },
@@ -280,13 +283,13 @@ export const newConfig = [
         isMandatory: true,
         populators: {
           name: "firstName",
-          error: "FIRST_LAST_NAME_MANDATORY_MESSAGE_ONE_CHAR",
+          error: "FIRST_LAST_NAME_MANDATORY_MESSAGE",
           validation: {
             pattern: {
               message: "CORE_COMMON_APPLICANT_NAME_INVALID",
               value: /^[^{0-9}^\$\"<>?\\\\~!@#$%^()+={}\[\]*,/_:;“”‘’]{1,50}$/i,
             },
-            minLength: 1,
+            minLength: 2,
             title: "",
             patternType: "Name",
           },
@@ -313,13 +316,13 @@ export const newConfig = [
         isMandatory: true,
         populators: {
           name: "lastName",
-          error: "FIRST_LAST_NAME_MANDATORY_MESSAGE_ONE_CHAR",
+          error: "FIRST_LAST_NAME_MANDATORY_MESSAGE",
           validation: {
             pattern: {
               message: "CORE_COMMON_APPLICANT_NAME_INVALID",
               value: /^[^{0-9}^\$\"<>?\\\\~!@#$%^()+={}\[\]*,/_:;“”‘’]{1,50}$/i,
             },
-            minLength: 1,
+            minLength: 2,
             title: "",
             patternType: "Name",
           },

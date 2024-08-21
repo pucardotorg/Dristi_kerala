@@ -8,10 +8,15 @@ import { overrideHooks, updateCustomConfigs } from "./utils";
 import { OrderWorkflowAction, OrderWorkflowState } from "./utils/orderWorkflow";
 import { ordersService } from "./hooks/services";
 import OrderReviewModal from "./pageComponents/OrderReviewModal";
+import AddSubmissionDocument from "./components/AddSubmissionDocument";
+import CustomInfo from "./components/CustomInfo";
+import SummonsOrderComponent from "./components/SummonsOrderComponent";
+import ReIssueSummonsModal from "./components/ReIssueSummonsModal";
+import PaymentForSummonModal from "./pages/employee/PaymentForSummonModal";
 
 export const OrdersModule = ({ stateCode, userType, tenants }) => {
   const { path } = useRouteMatch();
-  const moduleCode = ["orders", "common", "workflow"];
+  const moduleCode = ["orders", "hearings", "common", "workflow"];
   const language = Digit.StoreData.getCurrentLanguage();
   const { isLoading } = Digit.Services.useStore({
     stateCode,
@@ -33,6 +38,11 @@ const componentsToRegister = {
   OrderWorkflowStateEnum: OrderWorkflowState,
   OrdersService: ordersService,
   OrderReviewModal,
+  AddSubmissionDocument,
+  CustomInfo,
+  SummonsOrderComponent,
+  ReIssueSummonsModal,
+  PaymentForSummonModal,
 };
 
 export const initOrdersComponents = () => {

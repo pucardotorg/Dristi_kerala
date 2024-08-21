@@ -54,6 +54,7 @@ export const userTypeOptions = [
       "SUBMISSION_CREATOR",
       "SUBMISSION_RESPONDER",
       "SUBMISSION_DELETE",
+      "TASK_VIEWER",
     ],
     subText: "LITIGANT_SUB_TEXT",
   },
@@ -77,6 +78,7 @@ export const userTypeOptions = [
       "SUBMISSION_CREATOR",
       "SUBMISSION_RESPONDER",
       "SUBMISSION_DELETE",
+      "TASK_VIEWER",
     ],
     apiDetails: {
       serviceName: "/advocate/advocate/v1/_create",
@@ -105,6 +107,7 @@ export const userTypeOptions = [
       "SUBMISSION_CREATOR",
       "SUBMISSION_RESPONDER",
       "SUBMISSION_DELETE",
+      "TASK_VIEWER",
     ],
     apiDetails: {
       serviceName: "/advocate/clerk/v1/_create",
@@ -118,32 +121,7 @@ export const userTypeOptions = [
 
 export const rolesToConfigMapping = [
   {
-    roles: [
-      "CASE_CREATOR",
-      "CASE_EDITOR",
-      "CASE_VIEWER",
-      "DEPOSITION_CREATOR",
-      "DEPOSITION_VIEWER",
-      "APPLICATION_CREATOR",
-      "APPLICATION_VIEWER",
-      "HEARING_VIEWER",
-      "ORDER_VIEWER",
-      "SUBMISSION_CREATOR",
-      "SUBMISSION_RESPONDER",
-      "SUBMISSION_DELETE",
-    ],
-    config: TabLitigantSearchConfig,
-    isLitigant: true,
-    showJoinFileOption: true,
-    onRowClickRoute: {
-      dependentUrl: "/dristi/home/file-case/case",
-      urlDependentOn: "status",
-      urlDependentValue: ["DRAFT_IN_PROGRESS", "CASE_RE_ASSIGNED"],
-      params: [{ key: "caseId", value: "id" }],
-    },
-  },
-  {
-    roles: ["CASE_APPROVER"],
+    roles: ["CASE_VIEWER", "JUDGE_ROLE"],
     config: TabJudgeSearchConfig,
     isJudge: true,
     onRowClickRoute: {
@@ -157,7 +135,7 @@ export const rolesToConfigMapping = [
     },
   },
   {
-    roles: ["HEARING_CREATOR"],
+    roles: ["CASE_VIEWER", "HEARING_CREATOR"],
     config: TabJudgeSearchConfig,
     isCourtOfficer: true,
     onRowClickRoute: {
@@ -171,7 +149,7 @@ export const rolesToConfigMapping = [
     },
   },
   {
-    roles: ["CASE_REVIEWER"],
+    roles: ["CASE_VIEWER", "CASE_REVIEWER"],
     config: TabFSOSearchConfig,
     isFSO: true,
     onRowClickRoute: {
@@ -182,7 +160,7 @@ export const rolesToConfigMapping = [
     },
   },
   {
-    roles: ["BENCHCLERK_ROLE"],
+    roles: ["CASE_VIEWER", "BENCHCLERK_ROLE"],
     config: TabBenchSearchConfig,
     isCourtOfficer: true,
     onRowClickRoute: {
@@ -196,7 +174,7 @@ export const rolesToConfigMapping = [
     },
   },
   {
-    roles: ["HEARING_CREATOR"],
+    roles: ["CASE_VIEWER", "COURT_ADMIN"],
     config: TabCourtRoomSearchConfig,
     isCourtOfficer: true,
     onRowClickRoute: {
@@ -209,18 +187,44 @@ export const rolesToConfigMapping = [
       ],
     },
   },
+  {
+    roles: ["CASE_VIEWER", "COURT_ROOM_MANAGER"],
+    config: TabCourtRoomSearchConfig,
+    isCourtOfficer: true,
+    onRowClickRoute: {
+      dependentUrl: "/dristi/admission",
+      urlDependentOn: "status",
+      urlDependentValue: "PENDING_ADMISSION",
+      params: [
+        { key: "filingNumber", value: "filingNumber" },
+        { key: "caseId", value: "id" },
+      ],
+    },
+  },
+  {
+    roles: ["CASE_VIEWER"],
+    config: TabLitigantSearchConfig,
+    isLitigant: true,
+    showJoinFileOption: true,
+    onRowClickRoute: {
+      dependentUrl: "/dristi/home/file-case/case",
+      urlDependentOn: "status",
+      urlDependentValue: ["DRAFT_IN_PROGRESS", "CASE_RE_ASSIGNED"],
+      params: [{ key: "caseId", value: "id" }],
+    },
+  },
 ];
 
 export const caseTypes = [{ name: "NIA S138", code: "NIA S138" }];
 
 export const taskTypes = [
-  { code: "case", name: "Case" },
-  { code: "hearing", name: "Hearing" },
-  { code: "order-managelifecycle", name: "Order" },
-  { code: "order-judgement", name: "Order of Judgement" },
-  { code: "async-voluntary-submission-managelifecycle", name: "Voluntary Submission" },
-  { code: "async-submission-with-response-managelifecycle", name: "Submission With Response" },
-  { code: "async-order-submission-managelifecycle", name: "Submission Without Response" },
+  { code: "case-default", name: "Case" },
+  { code: "hearing-default", name: "Hearing" },
+  { code: "order-default", name: "Order" },
+  { code: "application-voluntary-submission", name: "Voluntary Submission" },
+  { code: "application-order-submission-feedback", name: "Order Submission Feedback" },
+  { code: "application-order-submission-default", name: "Order Submission" },
+  { code: "artifact-default", name: "Evidence" },
 ];
 export const pendingTaskCaseActions = {
   PAYMENT_PENDING: {
@@ -327,14 +331,43 @@ export const pendingTaskOrderActions = {
   },
   DRAFT_IN_PROGRESS: {
     actorName: ["JUDGE"],
-    actionName: "Schedule admission hearing",
-    additionalDetailsKeys: ["orderType"],
+    actionName: "Draft in Progress for Order",
     redirectDetails: {
       url: "/orders/generate-orders",
       params: [
         { key: "filingNumber", value: "filingNumber" },
         { key: "orderNumber", value: "referenceId" },
       ],
+    },
+  },
+
+  SUMMON_WARRANT_STATUS: {
+    actorName: ["JUDGE"],
+    actionName: "Show Summon-Warrant Status",
+    redirectDetails: {
+      url: "/home/home-pending-task/summons-warrants-modal",
+      params: [
+        { key: "filingNumber", value: "filingNumber" },
+        { key: "hearingId", value: "referenceId" },
+      ],
+    },
+  },
+  PAYMENT_PENDING_POST: {
+    actorName: ["JUDGE"],
+    actionName: "Show Summon-Warrant Status",
+    redirectDetails: {
+      url: "/home/home-pending-task/post-payment-modal",
+      params: [
+        { key: "filingNumber", value: "filingNumber" },
+        { key: "orderNumber", value: "referenceId" },
+      ],
+    },
+  },
+  PAYMENT_PENDING_FOR_WARRANT: {
+    actorName: ["JUDGE"],
+    actionName: "Show Warrant Payment Status",
+    redirectDetails: {
+      url: "/home/home-pending-task/e-filing-payment-breakdown",
     },
   },
 };
@@ -464,12 +497,14 @@ export const pendingTaskSubmissionWithoutResponseActions = {
   },
 };
 
+export const pendingTaskForArtifactActions = {};
+
 export const selectTaskType = {
-  case: pendingTaskCaseActions,
-  hearing: pendingTaskHearingActions,
-  "order-managelifecycle": pendingTaskOrderActions,
-  "order-judgement": pendingTaskOrderOfJudgementActions,
-  "async-voluntary-submission-managelifecycle": pendingTaskVoluntarySubmissionActions,
-  "async-submission-with-response-managelifecycle": pendingTaskSubmissionWithResponseActions,
-  "async-order-submission-managelifecycle": pendingTaskSubmissionWithoutResponseActions,
+  "case-default": pendingTaskCaseActions,
+  "hearing-default": pendingTaskHearingActions,
+  "order-default": pendingTaskOrderActions,
+  "application-voluntary-submission": pendingTaskVoluntarySubmissionActions,
+  "application-order-submission-feedback": pendingTaskSubmissionWithResponseActions,
+  "application-order-submission-default": pendingTaskSubmissionWithoutResponseActions,
+  "artifact-default": pendingTaskForArtifactActions,
 };

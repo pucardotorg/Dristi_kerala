@@ -463,6 +463,18 @@ const JoinCaseHome = ({ refreshInbox }) => {
     setUserUUID(individualData?.Individual?.[0]?.userUuid);
   };
 
+  const getUserForAdvocateUUID = async (barRegistrationNumber) => {
+    const advocateDetail = await window?.Digit.DRISTIService.searchAdvocateClerk("/advocate/advocate/v1/_search", {
+      criteria: [
+        {
+          barRegistrationNumber: barRegistrationNumber,
+        },
+      ],
+      tenantId,
+    });
+    setUserUUID(advocateDetail?.advocates?.[0]?.responseList?.[0]?.auditDetails?.createdBy);
+  };
+
   useEffect(() => {
     if (step === 0 && !caseNumber) {
       setErrors({
@@ -492,7 +504,7 @@ const JoinCaseHome = ({ refreshInbox }) => {
     } else if (step === 2) {
       if (userType === "Litigant" && representingYourself !== "Yes") {
         if (advocateDetailForm?.advocateBarRegNumberWithName?.[0]?.barRegistrationNumber && advocateDetailForm?.vakalatnamaFileUpload) {
-          getUserUUID(advocateDetailForm?.data?.individualId);
+          getUserForAdvocateUUID(advocateDetailForm?.advocateBarRegNumberWithName?.[0]?.barRegistrationNumber);
           setIsDisabled(false);
         } else {
           setIsDisabled(true);
@@ -1638,6 +1650,42 @@ const JoinCaseHome = ({ refreshInbox }) => {
               }
             }) || []
           );
+          const documentList = [...nocDocument, ...courOrderDocument, ...vakalatnamaDocument];
+          await Promise.all(
+            documentList
+              ?.filter((data) => data)
+              ?.map(async (data) => {
+                await DRISTIService.createEvidence({
+                  artifact: {
+                    artifactType: "DOCUMENTARY",
+                    sourceType: "COMPLAINANT",
+                    sourceID: individualId,
+                    caseId: caseDetails?.id,
+                    filingNumber: caseDetails?.filingNumber,
+                    tenantId,
+                    comments: [],
+                    file: {
+                      documentType: data?.fileType || data?.documentType,
+                      fileStore: data?.fileStore,
+                      fileName: data?.fileName,
+                      documentName: data?.documentName,
+                    },
+                    workflow: {
+                      action: "TYPE DEPOSITION",
+                      documents: [
+                        {
+                          documentType: data?.documentType,
+                          fileName: data?.fileName,
+                          documentName: data?.documentName,
+                          fileStoreId: data?.fileStore,
+                        },
+                      ],
+                    },
+                  },
+                });
+              })
+          );
+
           const [res, err] = await submitJoinCase({
             additionalDetails: {
               ...caseDetails?.additionalDetails,
@@ -1723,6 +1771,54 @@ const JoinCaseHome = ({ refreshInbox }) => {
             });
           }
         } else {
+          const vakalatnamaDocument = await Promise.all(
+            adovacteVakalatnama?.adcVakalatnamaFileUpload?.document?.map(async (document) => {
+              if (document) {
+                const uploadedData = await onDocumentUpload(document, document.name, tenantId);
+                return {
+                  documentType: uploadedData.fileType || document?.documentType,
+                  fileStore: uploadedData.file?.files?.[0]?.fileStoreId || document?.fileStore,
+                  documentName: uploadedData.filename || document?.documentName,
+                  fileName: `Vakalatnama (${name?.givenName}${name?.otherNames ? " " + name?.otherNames + " " : " "}${name?.familyName})`,
+                  individualId,
+                };
+              }
+            }) || []
+          );
+          await Promise.all(
+            vakalatnamaDocument
+              ?.filter((data) => data)
+              ?.map(async (data) => {
+                await DRISTIService.createEvidence({
+                  artifact: {
+                    artifactType: "DOCUMENTARY",
+                    sourceType: "COMPLAINANT",
+                    sourceID: individualId,
+                    caseId: caseDetails?.id,
+                    filingNumber: caseDetails?.filingNumber,
+                    tenantId,
+                    comments: [],
+                    file: {
+                      documentType: data?.fileType || data?.documentType,
+                      fileStore: data?.fileStore,
+                      fileName: data?.fileName,
+                      documentName: data?.documentName,
+                    },
+                    workflow: {
+                      action: "TYPE DEPOSITION",
+                      documents: [
+                        {
+                          documentType: data?.documentType,
+                          fileName: data?.fileName,
+                          documentName: data?.documentName,
+                          fileStoreId: data?.fileStore,
+                        },
+                      ],
+                    },
+                  },
+                });
+              })
+          );
           const [res, err] = await submitJoinCase({
             additionalDetails: {
               ...caseDetails?.additionalDetails,
@@ -1794,6 +1890,9 @@ const JoinCaseHome = ({ refreshInbox }) => {
               additionalDetails: {
                 advocateName: advocateDetailForm?.additionalDetails?.username,
                 uuid: userInfo?.uuid,
+                document: {
+                  vakalatnamaFileUpload: vakalatnamaDocument?.length > 0 && vakalatnamaDocument,
+                },
               },
             },
           });
@@ -1898,6 +1997,40 @@ const JoinCaseHome = ({ refreshInbox }) => {
                 };
               }
             }) || []
+          );
+          await Promise.all(
+            newDocument
+              ?.filter((data) => data)
+              ?.map(async (data) => {
+                await DRISTIService.createEvidence({
+                  artifact: {
+                    artifactType: "DOCUMENTARY",
+                    sourceType: "COMPLAINANT",
+                    sourceID: individualId,
+                    caseId: caseDetails?.id,
+                    filingNumber: caseDetails?.filingNumber,
+                    tenantId,
+                    comments: [],
+                    file: {
+                      documentType: data?.fileType || data?.documentType,
+                      fileStore: data?.fileStore,
+                      fileName: data?.fileName,
+                      documentName: data?.documentName,
+                    },
+                    workflow: {
+                      action: "TYPE DEPOSITION",
+                      documents: [
+                        {
+                          documentType: data?.documentType,
+                          fileName: data?.fileName,
+                          documentName: data?.documentName,
+                          fileStoreId: data?.fileStore,
+                        },
+                      ],
+                    },
+                  },
+                });
+              })
           );
           const [res, err] = await submitJoinCase(
             {
@@ -2031,6 +2164,9 @@ const JoinCaseHome = ({ refreshInbox }) => {
                   additionalDetails: {
                     advocateName: advocateDetailForm?.advocateBarRegNumberWithName?.[0]?.advocateName,
                     uuid: userUUID,
+                    document: {
+                      vakalatnamaFileUpload: newDocument?.length > 0 && newDocument,
+                    },
                   },
                 },
               }),

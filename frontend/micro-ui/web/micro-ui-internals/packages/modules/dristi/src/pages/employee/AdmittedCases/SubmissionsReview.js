@@ -39,7 +39,7 @@ const SubmissionReview = ({ caseData, setUpdateCounter, openSubmissionsViewModal
         auditDetails: application?.auditDetails,
       },
       applicationContent: null,
-      comments: application?.comment ? JSON.parse(application?.comment) : [],
+      comments: application?.comment ? application?.comment : [],
       applicationList: application,
     };
     const docObj = application?.documents?.map((doc) => {
@@ -61,7 +61,7 @@ const SubmissionReview = ({ caseData, setUpdateCounter, openSubmissionsViewModal
           documentUid: doc.documentUid,
           additionalDetails: doc.additionalDetails,
         },
-        comments: application?.comment ? JSON.parse(application?.comment) : [],
+        comments: application?.comment ? application?.comment : [],
         applicationList: application,
       };
     }) || [defaultObj];
@@ -111,7 +111,7 @@ const SubmissionReview = ({ caseData, setUpdateCounter, openSubmissionsViewModal
         tenantId,
         moduleName: "Pending Tasks Service",
         moduleSearchCriteria: {
-          entityType: "async-submission-with-response-managelifecycle",
+          entityType: "application-order-submission-feedback",
           filingNumber: filingNumber,
           isCompleted: false,
           assignedTo: userInfo?.uuid,
@@ -130,7 +130,7 @@ const SubmissionReview = ({ caseData, setUpdateCounter, openSubmissionsViewModal
         tenantId,
         moduleName: "Pending Tasks Service",
         moduleSearchCriteria: {
-          entityType: "async-order-submission-managelifecycle",
+          entityType: "application-order-submission-default",
           filingNumber: filingNumber,
           isCompleted: false,
           assignedTo: userInfo?.uuid,
@@ -237,7 +237,7 @@ const SubmissionReview = ({ caseData, setUpdateCounter, openSubmissionsViewModal
                     color: "#101828",
                   }}
                 >
-                  {t(app?.applicationType)}
+                  {t(app?.applicationType || app?.name)}
                 </div>
                 <CustomArrowOut />
               </div>
@@ -259,8 +259,8 @@ const SubmissionReview = ({ caseData, setUpdateCounter, openSubmissionsViewModal
                     marginLeft: "2px",
                   }}
                 >
-                  {app?.auditDetails?.createdTime
-                    ? new Date(app?.auditDetails?.createdTime).toLocaleDateString("en-in", {
+                  {app?.stateSla
+                    ? new Date(app?.stateSla).toLocaleDateString("en-in", {
                         year: "numeric",
                         month: "long",
                         day: "numeric",

@@ -259,9 +259,7 @@ export const checkNameValidation = ({ formData, setValue, selected, reset, index
             let updatedValue = value
               .replace(/[^a-zA-Z\s]/g, "")
               .trimStart()
-              .replace(/ +/g, " ")
-              .toLowerCase()
-              .replace(/\b\w/g, (char) => char.toUpperCase());
+              .replace(/ +/g, " ");
             if (updatedValue !== oldValue) {
               const element = document.querySelector(`[name="${key}"]`);
               const start = element?.selectionStart;
@@ -291,9 +289,7 @@ export const checkNameValidation = ({ formData, setValue, selected, reset, index
             let updatedValue = value
               .replace(/[^a-zA-Z\s]/g, "")
               .trimStart()
-              .replace(/ +/g, " ")
-              .toLowerCase()
-              .replace(/\b\w/g, (char) => char.toUpperCase());
+              .replace(/ +/g, " ");
             if (updatedValue !== oldValue) {
               const element = document.querySelector(`[name="${key}"]`);
               const start = element?.selectionStart;
@@ -492,9 +488,7 @@ export const checkOnlyCharInCheque = ({ formData, setValue, selected }) => {
               let updatedValue = value
                 .replace(/[^a-zA-Z\s]/g, "")
                 .trimStart()
-                .replace(/ +/g, " ")
-                .toLowerCase()
-                .replace(/\b\w/g, (char) => char.toUpperCase());
+                .replace(/ +/g, " ");
               if (updatedValue !== oldValue) {
                 const element = document.querySelector(`[name="${key}"]`);
                 const start = element?.selectionStart;
@@ -514,9 +508,7 @@ export const checkOnlyCharInCheque = ({ formData, setValue, selected }) => {
               let updatedValue = value
                 .replace(/[^a-zA-Z0-9 ]/g, "")
                 .trimStart()
-                .replace(/ +/g, " ")
-                .toLowerCase()
-                .replace(/\b\w/g, (char) => char.toUpperCase());
+                .replace(/ +/g, " ");
               if (updatedValue !== oldValue) {
                 const element = document.querySelector(`[name="${key}"]`);
                 const start = element?.selectionStart;
@@ -585,9 +577,7 @@ export const respondentValidation = ({
         ) &&
         !Object.keys(formData?.inquiryAffidavitFileUpload?.document || {}).length
       ) {
-        setFormErrors("inquiryAffidavitFileUpload", { type: "required", msg: "" });
-        setShowErrorToast(true);
-        return true;
+        return false;
       }
     }
 
@@ -659,6 +649,11 @@ export const chequeDetailFileValidation = ({ formData, selected, setShowErrorToa
         setShowErrorToast(true);
         return true;
       }
+    }
+    if (formData?.chequeAmount === "0") {
+      setFormErrors("chequeAmount", { message: "Amount cannot be zero" });
+      setShowErrorToast(true);
+      return true;
     }
   } else {
     return false;
@@ -803,6 +798,18 @@ export const delayApplicationValidation = ({ t, formData, selected, setShowError
   }
 };
 
+export const debtLiabilityValidation = ({ t, formData, selected, setShowErrorToast, setErrorMsg, toast, setFormErrors }) => {
+  if (selected === "debtLiabilityDetails") {
+    if (formData?.totalAmount === "0") {
+      setFormErrors("totalAmount", { message: "Amount cannot be zero" });
+      setShowErrorToast(true);
+      return true;
+    }
+  } else {
+    return false;
+  }
+};
+
 export const prayerAndSwornValidation = ({ t, formData, selected, setShowErrorToast, setErrorMsg, toast, setFormErrors, clearFormDataErrors }) => {
   if (selected === "prayerSwornStatement") {
     let hasError = false;
@@ -892,6 +899,7 @@ export const createIndividualUser = async ({ data, documentData, tenantId }) => 
             "SUBMISSION_CREATOR",
             "SUBMISSION_RESPONDER",
             "SUBMISSION_DELETE",
+            "TASK_VIEWER",
           ]?.map((role) => ({
             code: role,
             name: role,
@@ -911,7 +919,7 @@ export const createIndividualUser = async ({ data, documentData, tenantId }) => 
           latitude: data?.addressDetails?.coordinates?.latitude,
           longitude: data?.addressDetails?.coordinates?.longitude,
           city: data?.addressDetails?.city,
-          pincode: data?.addressDetails?.pincode,
+          pincode: data?.addressDetails?.pincode || data?.["addressDetails-select"]?.pincode,
           addressLine1: data?.addressDetails?.state,
           addressLine2: data?.addressDetails?.district,
           street: data?.addressDetails?.locality,
@@ -1693,7 +1701,7 @@ export const updateCaseDetails = async ({
                     async (data) => {
                       const evidenceData = await DRISTIService.createEvidence({
                         artifact: {
-                          artifactType: "DOCUMENTARY",
+                          artifactType: "OTHER",
                           sourceType: "COMPLAINANT",
                           caseId: caseDetails?.id,
                           sourceID: individualId,

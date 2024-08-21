@@ -54,6 +54,7 @@ export const userTypeOptions = [
       "SUBMISSION_CREATOR",
       "SUBMISSION_RESPONDER",
       "SUBMISSION_DELETE",
+      "TASK_VIEWER",
     ],
     subText: "LITIGANT_SUB_TEXT",
   },
@@ -77,6 +78,7 @@ export const userTypeOptions = [
       "SUBMISSION_CREATOR",
       "SUBMISSION_RESPONDER",
       "SUBMISSION_DELETE",
+      "TASK_VIEWER",
     ],
     apiDetails: {
       serviceName: "/advocate/advocate/v1/_create",
@@ -105,6 +107,7 @@ export const userTypeOptions = [
       "SUBMISSION_CREATOR",
       "SUBMISSION_RESPONDER",
       "SUBMISSION_DELETE",
+      "TASK_VIEWER",
     ],
     apiDetails: {
       serviceName: "/advocate/clerk/v1/_create",
@@ -373,8 +376,8 @@ export const TabJudgeSearchConfig = {
           tenantId: "pg",
           criteria: [
             {
-              stage: ["Post-Trial"],
-              status: ["PENDING_ADMISSION", "ADMISSION_HEARING_SCHEDULED", "CASE_ADMITTED"],
+              stage: ["Pre-Trial"],
+              status: ["PENDING_ADMISSION", "ADMISSION_HEARING_SCHEDULED"],
             },
           ],
         },
@@ -513,8 +516,7 @@ export const TabJudgeSearchConfig = {
           tenantId: "pg",
           criteria: [
             {
-              stage: ["Post-Trial"],
-              status: ["PENDING_ADMISSION", "ADMISSION_HEARING_SCHEDULED", "CASE_ADMITTED"],
+              outcome: outcomesOptions,
             },
           ],
         },
