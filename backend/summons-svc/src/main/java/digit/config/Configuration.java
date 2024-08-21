@@ -148,4 +148,7 @@ public class Configuration {
 
     @Value("${egov.epost.request.endpoint}")
     private String ePostRequestEndPoint;
+
+    @Value("${egov.mdms.payment.business.service.name}")
+    private String paymentBusinessServiceNmae;
 }
