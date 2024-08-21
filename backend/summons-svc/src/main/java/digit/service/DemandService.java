@@ -71,6 +71,7 @@ public class DemandService {
         List<Demand> demands = new ArrayList<>();
         Boolean isTest = true;
         List<DemandDetail> demandDetailList = new ArrayList<>();
+        Map<String, Map<String, JSONArray>> mdmsData = mdmsUtil.fetchMdmsData(requestInfo,config.getEgovStateTenantId(),config.getPaymentBusinessServiceNmae(),createMasterDetails());
         for (Calculation calculation : calculations) {
             if (isTest) {
                 DemandDetail demandDetail = DemandDetail.builder()
@@ -79,8 +80,7 @@ public class DemandService {
                         .taxAmount(BigDecimal.valueOf(4))
                         .taxHeadMasterCode(config.getTaskTaxHeadMasterCode()).build();
             } else {
-                Map<String, Map<String, JSONArray>> response = mdmsUtil.fetchMdmsData(requestInfo,config.getEgovStateTenantId(),config.getPaymentBusinessServiceNmae(),createMasterDetails());
-                Map<String,String> masterCodes = getTaxHeadMasterCodes(response,config.getTaskBusinessService());
+                Map<String,String> masterCodes = getTaxHeadMasterCodes(mdmsData,config.getTaskBusinessService());
                 for (BreakDown breakDown : calculation.getBreakDown()) {
                     DemandDetail detail = DemandDetail.builder()
                             .tenantId(calculation.getTenantId())
@@ -89,7 +89,7 @@ public class DemandService {
                     demandDetailList.add(detail);
                 }
             }
-//TODO- should create separate demand details based on break down
+
             Demand demand = Demand.builder()
                     .tenantId(calculation.getTenantId())
                     .consumerCode(task.getTaskNumber())
@@ -109,8 +109,8 @@ public class DemandService {
     }
 
     private Map<String, String> getTaxHeadMasterCodes(Map<String, Map<String, JSONArray>> mdmsData, String taskBusinessService) {
-        if (mdmsData != null && mdmsData.containsKey("payment") && mdmsData.get(config.getPaymentBusinessServiceNmae()).containsKey(MASTERCODE)) {
-            JSONArray masterCode = mdmsData.get(config.getPaymentBusinessServiceNmae()).get(MASTERCODE);
+        if (mdmsData != null && mdmsData.containsKey("payment") && mdmsData.get(config.getPaymentBusinessServiceNmae()).containsKey(PAYMENTMASTERCODE)) {
+            JSONArray masterCode = mdmsData.get(config.getPaymentBusinessServiceNmae()).get(PAYMENTMASTERCODE);
             Map<String, String> result = new HashMap<>();
             for (Object masterCodeObj : masterCode) {
                 Map<String, String> subType = (Map<String, String>) masterCodeObj;
@@ -125,7 +125,7 @@ public class DemandService {
 
     private List<String> createMasterDetails() {
         List<String> masterList = new ArrayList<>();
-        masterList.add(MASTERCODE);
+        masterList.add(PAYMENTMASTERCODE);
         return masterList;
     }
 

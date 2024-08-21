@@ -51,7 +51,7 @@ public class ServiceConstants {
     public static final String WARRANT = "WARRANT";
     public static final String ISSUESUMMON = "ISSUESUMMON";
 
-    public static final String MASTERCODE = "PaymentMasterCode";
+    public static final String PAYMENTMASTERCODE = "PaymentMasterCode";
 
 
 }
