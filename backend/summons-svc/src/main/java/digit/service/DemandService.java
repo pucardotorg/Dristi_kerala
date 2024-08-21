@@ -69,11 +69,10 @@ public class DemandService {
 
     public List<Demand> generateDemands(RequestInfo requestInfo, List<Calculation> calculations, Task task) {
         List<Demand> demands = new ArrayList<>();
-        Boolean isTest = true;
         List<DemandDetail> demandDetailList = new ArrayList<>();
         Map<String, Map<String, JSONArray>> mdmsData = mdmsUtil.fetchMdmsData(requestInfo,config.getEgovStateTenantId(),config.getPaymentBusinessServiceNmae(),createMasterDetails());
         for (Calculation calculation : calculations) {
-            if (isTest) {
+            if (config.isTest()) {
                 DemandDetail demandDetail = DemandDetail.builder()
                         .tenantId(calculation.getTenantId())
 //.taxAmount(BigDecimal.valueOf(calculation.getTotalAmount()))

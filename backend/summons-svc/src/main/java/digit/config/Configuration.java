@@ -151,4 +151,7 @@ public class Configuration {
 
     @Value("${egov.mdms.payment.business.service.name}")
     private String paymentBusinessServiceNmae;
+
+    @Value("${egov.is.test}")
+    private boolean isTest;
 }
