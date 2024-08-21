@@ -100,7 +100,7 @@ class CalendarServiceTest {
         List<AvailabilityDTO> availableDates = Collections.singletonList(new AvailabilityDTO(LocalDate.now().toString(), 1.0));
         when(hearingService.getAvailableDateForHearing(any())).thenReturn(availableDates);
         when(dateUtil.getEPochFromLocalDate(LocalDate.now())).thenReturn(LocalDate.now().toEpochDay());
-        when(dateUtil.getEPochFromLocalDate(LocalDate.of(2025, 2, 15))).thenReturn(LocalDate.of(2025, 2, 15).toEpochDay());
+        when(dateUtil.getEPochFromLocalDate(LocalDate.now().plusDays(30*6))).thenReturn(LocalDate.of(2025, 2, 15).toEpochDay());
         when(dateUtil.getLocalDateFromEpoch(anyLong())).thenReturn(LocalDate.now());
         List<AvailabilityDTO> result = calendarService.getJudgeAvailability(request);
 
