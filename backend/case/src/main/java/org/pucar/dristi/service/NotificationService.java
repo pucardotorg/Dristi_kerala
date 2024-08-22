@@ -11,6 +11,7 @@ import org.pucar.dristi.config.Configuration;
 import org.pucar.dristi.kafka.Producer;
 import org.pucar.dristi.repository.ServiceRequestRepository;
 import org.pucar.dristi.web.models.CaseRequest;
+import org.pucar.dristi.web.models.CourtCase;
 import org.pucar.dristi.web.models.SMSRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,9 +40,12 @@ public class NotificationService {
         this.individualService = individualService;
     }
 
-    public void sendNotification(CaseRequest request, String statusBefore) {
-        String action = request.getCases().getWorkflow().getAction();
-        String message = getMessageBasedOnAction(request, action, statusBefore);
+    public void sendNotification(RequestInfo requestInfo, CourtCase courtCase, String status) {
+        CaseRequest request = CaseRequest.builder()
+                .requestInfo(requestInfo)
+                .cases(courtCase)
+                .build();
+        String message = getMessage(request, status);
         if (StringUtils.isEmpty(message)) {
             log.info("SMS content has not been configured for this case");
             return;
