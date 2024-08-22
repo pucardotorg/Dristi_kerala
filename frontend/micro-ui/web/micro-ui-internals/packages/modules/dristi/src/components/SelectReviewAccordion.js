@@ -51,7 +51,7 @@ function SelectReviewAccordion({ t, config, onSelect, formData = {}, errors, for
   const tenantId = window?.Digit.ULBService.getCurrentTenantId();
   const [formDataLoad, setFormDataLoad] = useState(true);
   const userInfo = JSON.parse(window.localStorage.getItem("user-info"));
-  const userInfoType = useMemo(() => (userInfo?.type === "CITIZEN" ? "citizen" : "employee"), [userInfo]);
+  const isCitizen = useMemo(() => (userInfo?.type === "CITIZEN" ? true : false), [userInfo]);
 
   const { isLoading, data: caseData } = useSearchCaseService(
     {
@@ -81,7 +81,7 @@ function SelectReviewAccordion({ t, config, onSelect, formData = {}, errors, for
       tenantId: tenantId,
     },
     {},
-    Boolean(caseDetails?.filingNumber) && Boolean(userInfoType !== "citizen")
+    Boolean(caseDetails?.filingNumber) && !isCitizen
   );
 
   const { ocrDataList, groupedByDocumentType } = useMemo(() => {
