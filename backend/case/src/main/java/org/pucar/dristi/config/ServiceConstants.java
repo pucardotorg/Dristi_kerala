@@ -120,7 +120,9 @@ public class ServiceConstants {
 	public static final String ADMISSION_HEARING_SCHEDULED = "ADMISSION_HEARING_SCHEDULED";
 	public static final String CASE_ADMITTED = "CASE_ADMITTED";
 	public static final String HEARING_REJECTED = "HEARING_REJECTED";
-
+	public static final String ESIGN_PENDING = "ESIGN_PENDING";
+	public static final String ADVOCATE_ESIGN_PENDING = "ADVOCATE_ESIGN_PENDING";
+	public static final String PAYMENT_PENDING = "PAYMENT_PENDING";
 	public static final String HIGH_COURT_LOCALIZATION_CODE = "HIGH_COURT_KERALA";
 	public static final String NOTIFICATION_ENG_LOCALE_CODE = "en_IN";
 	public static final String NOTIFICATION_MODULE_CODE = "notification";

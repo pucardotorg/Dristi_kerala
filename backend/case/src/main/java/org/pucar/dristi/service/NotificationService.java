@@ -40,12 +40,11 @@ public class NotificationService {
         this.individualService = individualService;
     }
 
-    public void sendNotification(RequestInfo requestInfo, CourtCase courtCase, String status) {
-        String message = getMessage(requestInfo,courtCase, status);
+    public void sendNotification(RequestInfo requestInfo, CourtCase courtCase, String notificationStatus) {
+        String message = getMessage(requestInfo,courtCase, notificationStatus);
         if (StringUtils.isEmpty(message)) {
             log.info("SMS content has not been configured for this case");
             return;
-
         }
         pushNotification(requestInfo,courtCase, message);
     }

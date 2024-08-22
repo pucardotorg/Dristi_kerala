@@ -3,6 +3,7 @@ package org.pucar.dristi.scheduling;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.common.contract.request.RequestInfo;
 import org.pucar.dristi.config.Configuration;
+import org.pucar.dristi.config.ServiceConstants;
 import org.pucar.dristi.repository.CaseRepository;
 import org.pucar.dristi.service.NotificationService;
 import org.pucar.dristi.util.RequestInfoGenerator;
@@ -50,18 +51,61 @@ public class TaskScheduler {
     @Scheduled(cron = "${config.case.esign.pending}", zone = "Asia/Kolkata")
     public void sendNotificationToESignPending() {
         log.info("Starting Cron Job For Sending Notification To ESign Pending");
-        CaseCriteria criteria = CaseCriteria.builder()
-                .status(Collections.singletonList("DRAFT_IN_PROGRESS")).build();
-        log.info("Completed Cron Job For Sending Notification To ESign Pending");
-    }
+        RequestInfo requestInfo = requestInfoGenerator.generateSystemRequestInfo();
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        List<Future<Boolean>> futures = new ArrayList<>();
 
-    @Async
-    @Scheduled(cron = "${config.case.vaklatnama.esign.pending}", zone = "Asia/Kolkata")
-    public void sendNotificationToVakalatnamaESignPending() {
-        log.info("Starting Cron Job For Sending Notification To Vakalatnama ESign Pending");
-        CaseCriteria criteria = CaseCriteria.builder()
-                .status(Collections.singletonList("DRAFT_IN_PROGRESS")).build();
-        log.info("Completed Cron Job For Sending Notification To Vakalatnama ESign Pending");
+        try {
+            int offset = 0;
+            int limit = 100;
+            List<CourtCase> courtCases;
+
+            do {
+                Pagination pagination = Pagination.builder().limit((double) limit).offSet((double) offset).build();
+                CaseCriteria criteria = CaseCriteria.builder()
+                        .status(Collections.singletonList("DRAFT_IN_PROGRESS"))
+                        .filingToDate(LocalDate.now().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli())
+                        .filingFromDate(LocalDate.now().minusDays(Integer.getInteger(config.getUserNotificationPeriod())).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli())
+                        .pagination(pagination)
+                        .build();
+
+                List<CaseCriteria> criteriaList = caseRepository.getApplications(Collections.singletonList(criteria), requestInfo);
+                courtCases = criteriaList.get(0).getResponseList();
+                log.info("Fetched {} cases for processing with offset {}", courtCases.size(), offset);
+
+                for (CourtCase courtCase : courtCases) {
+                    Future<Boolean> future = executorService.submit(() -> {
+                        try {
+                            notificationService.sendNotification(requestInfo, courtCase, ServiceConstants.ESIGN_PENDING);
+                            return true;
+                        } catch (Exception e) {
+                            log.error("Error processing case: {}", courtCase.getId(), e);
+                            return false;
+                        }
+                    });
+                    futures.add(future);
+                }
+                // Increase the offset for the next batch
+                offset += limit;
+
+            } while (courtCases.size() == limit);
+
+            for (Future<Boolean> future : futures) {
+                try {
+                    if (!future.get()) {
+                        log.warn("Failed to Send notifications in some cases");
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    log.error("Error waiting for task completion", e);
+                }
+            }
+
+            log.info("Completed Cron Job For Sending Notification To ESign Pending");
+        } catch (Exception e) {
+            log.error("Error occurred during Cron Job For Sending Notification To ESign Pending", e);
+        } finally {
+            executorService.shutdown();
+        }
     }
 
     @Async
@@ -93,7 +137,7 @@ public class TaskScheduler {
                 for (CourtCase courtCase : courtCases) {
                     Future<Boolean> future = executorService.submit(() -> {
                         try {
-
+                            notificationService.sendNotification(requestInfo, courtCase, ServiceConstants.PAYMENT_PENDING);
                             return true;
                         } catch (Exception e) {
                             log.error("Error processing case: {}", courtCase.getId(), e);
