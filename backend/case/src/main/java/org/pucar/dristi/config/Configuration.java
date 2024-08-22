@@ -200,4 +200,20 @@ public class Configuration {
     private String localizationSearchEndpoint;
 
 
+    //Dristi Case Pdf Service
+    @Value("${egov.dristi.case.pdf.host}")
+    private String dristiCasePdfHost;
+
+    @Value("${egov.dristi.case.pdf.path}")
+    private String dristiCasePdfPath;
+
+    // Default User
+    @Value("${egov.default.user.username}")
+    private String defaultUserUserName;
+
+    @Value("${egov.default.user.password}")
+    private String defaultUserPassword;
+
+    @Value("${egov.user.notification.period}")
+    private String userNotificationPeriod;
 }
