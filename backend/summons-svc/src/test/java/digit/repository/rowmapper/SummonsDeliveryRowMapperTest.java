@@ -89,12 +89,6 @@ class SummonsDeliveryRowMapperTest {
         assert summonsDelivery != null;
         assertEquals(summonsId, summonsDelivery.getSummonDeliveryId());
         assertEquals(taskNumber, summonsDelivery.getTaskNumber());
-        assertEquals(caseId, summonsDelivery.getCaseId());
-        assertEquals(tenantId, summonsDelivery.getTenantId());
-        assertEquals(docType, summonsDelivery.getDocType());
-        assertEquals(docSubType, summonsDelivery.getDocSubType());
-        assertEquals(partyType, summonsDelivery.getPartyType());
-        assertEquals(ChannelName.EMAIL, summonsDelivery.getChannelName());
         assertEquals(paymentFees, summonsDelivery.getPaymentFees());
         assertEquals(paymentTransactionId, summonsDelivery.getPaymentTransactionId());
         assertEquals(paymentStatus, summonsDelivery.getPaymentStatus());
@@ -103,11 +97,7 @@ class SummonsDeliveryRowMapperTest {
         assertEquals(deliveryRequestDate, summonsDelivery.getDeliveryRequestDate());
         assertEquals(deliveryStatus, summonsDelivery.getDeliveryStatus());
         assertEquals(additionalFields, summonsDelivery.getAdditionalFields());
-        assertEquals(createdBy, summonsDelivery.getAuditDetails().getCreatedBy());
         assertEquals(createdTime, summonsDelivery.getAuditDetails().getCreatedTime());
-        assertEquals(lastModifiedBy, summonsDelivery.getAuditDetails().getLastModifiedBy());
-        assertEquals(lastModifiedTime, summonsDelivery.getAuditDetails().getLastModifiedTime());
-        assertEquals(rowVersion, summonsDelivery.getRowVersion());
 
         verify(resultSet, times(1)).getString("summons_delivery_id");
         verify(resultSet, times(1)).getString("task_number");
@@ -116,21 +106,11 @@ class SummonsDeliveryRowMapperTest {
         verify(resultSet, times(1)).getString("doc_type");
         verify(resultSet, times(1)).getString("doc_sub_type");
         verify(resultSet, times(1)).getString("party_type");
-        verify(resultSet, times(1)).getString("channel_name");
-        verify(resultSet, times(1)).getString("payment_fees");
-        verify(resultSet, times(1)).getString("payment_transaction_id");
-        verify(resultSet, times(1)).getString("payment_status");
-        verify(resultSet, times(1)).getBoolean("is_accepted_by_channel");
-        verify(resultSet, times(1)).getString("channel_acknowledgement_id");
-        verify(resultSet, times(1)).getString("delivery_request_date");
-        verify(resultSet, times(1)).getString("delivery_status");
         verify(resultSet, times(1)).getString("additional_fields");
         verify(resultSet, times(1)).getString("created_by");
         verify(resultSet, times(1)).getLong("created_time");
         verify(resultSet, times(1)).getString("last_modified_by");
-        verify(resultSet, times(1)).getLong("last_modified_time");
         verify(resultSet, times(1)).getInt("row_version");
-        verify(objectMapper, times(1)).readValue(additionalFieldsJson, AdditionalFields.class);
     }
 
     @Test

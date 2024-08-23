@@ -11,17 +11,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class SummonsReposiotoryTest {
+class SummonsReposiotoryTest {
 
     @InjectMocks
     private SummonsRepository summonsRepository;
@@ -39,15 +36,15 @@ public class SummonsReposiotoryTest {
     private SummonsDeliveryRowMapper rowMapper;
 
     @Test
-    public void testGetSummons() {
+    void testGetSummons() {
         // Arrange
         when(queryBuilder.getSummonsQuery(searchCriteria, new ArrayList<>())).thenReturn("SELECT * FROM summons");
-        when(jdbcTemplate.query("SELECT * FROM summons", new ArrayList<>().toArray(), rowMapper)).thenReturn(new ArrayList<>());
+        when(jdbcTemplate.query("SELECT * FROM summons", rowMapper, new ArrayList<>().toArray())).thenReturn(new ArrayList<>());
         // Act
         List<SummonsDelivery> result = summonsRepository.getSummons(searchCriteria);
 
         // Assert
 
         Assertions.assertNotNull(result);
-        }
+    }
 }

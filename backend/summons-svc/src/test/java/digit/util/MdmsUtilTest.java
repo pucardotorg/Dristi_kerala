@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import net.minidev.json.JSONArray;
 
-public class MdmsUtilTest {
+class MdmsUtilTest {
 
     @Mock
     private RestTemplate restTemplate;
@@ -48,7 +48,7 @@ public class MdmsUtilTest {
     }
 
     @Test
-    public void testFetchMdmsData_Success() {
+    void testFetchMdmsData_Success() {
         // Arrange
         RequestInfo requestInfo = new RequestInfo();
         String tenantId = "tenantId";
@@ -75,7 +75,7 @@ public class MdmsUtilTest {
     }
 
     @Test
-    public void testFetchMdmsData_Exception() {
+    void testFetchMdmsData_Exception() {
         // Arrange
         RequestInfo requestInfo = new RequestInfo();
         String tenantId = "tenantId";
@@ -94,7 +94,7 @@ public class MdmsUtilTest {
     }
 
     @Test
-    public void testGetMdmsRequest() throws Exception {
+    void testGetMdmsRequest() throws Exception {
         // Arrange
         RequestInfo requestInfo = new RequestInfo();
         String tenantId = "tenantId";

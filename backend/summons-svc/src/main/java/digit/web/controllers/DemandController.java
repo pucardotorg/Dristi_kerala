@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -28,13 +29,13 @@ public class DemandController {
         this.demandService = demandService;
     }
 
-    @RequestMapping(value = "demand/v1/_generateDemandAndBill", method = RequestMethod.POST)
+    @PostMapping("demand/v1/_generateDemandAndBill")
     public ResponseEntity<BillResponse> generateDemandAndBillForTask(@Parameter(in = ParameterIn.DEFAULT, description = "Details for generating a demand.", required = true, schema = @Schema()) @Valid @RequestBody TaskRequest request) {
         BillResponse billResponse = demandService.fetchPaymentDetailsAndGenerateDemandAndBill(request);
         return new ResponseEntity<>(billResponse, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "demand/v1/_generateBill", method = RequestMethod.POST)
+    @PostMapping("demand/v1/_generateBill")
     public ResponseEntity<BillResponse> generateBillForTask(@Parameter(in = ParameterIn.DEFAULT, description = "Details for generating a demand.", required = true, schema = @Schema()) @Valid @RequestBody TaskRequest request) {
         BillResponse billResponse = demandService.getBill(request.getRequestInfo(), request.getTask());
         return new ResponseEntity<>(billResponse, HttpStatus.OK);

@@ -2,8 +2,10 @@ package digit.util;
 
 import digit.channel.ChannelFactory;
 import digit.channel.ExternalChannel;
+import digit.web.models.ChannelMessage;
 import digit.web.models.SummonsDelivery;
 import digit.web.models.TaskRequest;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,7 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class ExternalChannelUtilTest {
+class ExternalChannelUtilTest {
 
     @InjectMocks
     private ExternalChannelUtil externalChannelUtil;
@@ -32,12 +34,14 @@ public class ExternalChannelUtilTest {
     private ExternalChannel externalChannel;
 
     @Test
-    public void sendSummonsByDeliveryChannel() {
+    void sendSummonsByDeliveryChannel() {
         // Arrange
         when(channelFactory.getDeliveryChannel(any())).thenReturn(externalChannel);
+        when(externalChannel.sendSummons(any())).thenReturn(new ChannelMessage());
         // Act
-        externalChannelUtil.sendSummonsByDeliveryChannel(request, summonsDelivery);
+        ChannelMessage channelMessage = externalChannelUtil.sendSummonsByDeliveryChannel(request, summonsDelivery);
 
         // Assert
+        Assertions.assertNotNull(channelMessage);
     }
 }
