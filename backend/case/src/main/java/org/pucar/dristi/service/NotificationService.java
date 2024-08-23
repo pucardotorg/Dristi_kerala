@@ -54,7 +54,7 @@ public class NotificationService {
 
             pushNotification(courtCase, message, individuals);
         } catch (Exception e){
-            log.error("Error in Sending Message To Notification Service: {} " , e.getMessage());;
+            log.error("Error in Sending Message To Notification Service: " , e);
         }
 
     }
