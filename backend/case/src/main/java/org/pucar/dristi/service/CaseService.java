@@ -125,9 +125,7 @@ public class CaseService {
                 if(notificationStatus != null) {
                     notificationService.sendNotification(caseRequest.getRequestInfo(), caseRequest.getCases(), notificationStatus);
                 }
-                else {
-                    log.info("Notification status is null");
-                }
+
             }
 
             producer.push(config.getCaseUpdateTopic(), caseRequest);
