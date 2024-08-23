@@ -41,11 +41,15 @@ public class NotificationService {
 
     public void sendNotification(RequestInfo requestInfo, CourtCase courtCase, String notificationStatus) {
         try {
+            List<Individual> individuals = individualService.getIndividuals(requestInfo, Collections.singletonList(courtCase.getAuditdetails().getCreatedBy()));
             String message = getMessage(requestInfo,courtCase, notificationStatus);
             if (StringUtils.isEmpty(message)) {
                 log.info("SMS content has not been configured for this case");
                 return;
-
+            }
+            if (individuals == null) {
+                log.info("No individual found with UUID: {}", courtCase.getAuditdetails().getCreatedBy());
+                return;
             }
             pushNotification(requestInfo,courtCase, message);
         } catch (Exception e){
