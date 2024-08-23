@@ -174,7 +174,7 @@ function CaseFileAdmission({ t, path }) {
       shortCaseInfo: [
         {
           key: "CASE_NUMBER",
-          value: caseDetails?.caseNumber,
+          value: caseDetails?.filingNumber,
         },
         {
           key: "COURT_NAME",
