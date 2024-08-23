@@ -42,15 +42,16 @@ public class NotificationService {
     public void sendNotification(RequestInfo requestInfo, CourtCase courtCase, String notificationStatus) {
         try {
             List<Individual> individuals = individualService.getIndividuals(requestInfo, Collections.singletonList(courtCase.getAuditdetails().getCreatedBy()));
+            if (individuals == null) {
+                log.info("No individual found with UUID: {}", courtCase.getAuditdetails().getCreatedBy());
+                return;
+            }
             String message = getMessage(requestInfo,courtCase, notificationStatus);
             if (StringUtils.isEmpty(message)) {
                 log.info("SMS content has not been configured for this case");
                 return;
             }
-            if (individuals == null) {
-                log.info("No individual found with UUID: {}", courtCase.getAuditdetails().getCreatedBy());
-                return;
-            }
+
             pushNotification(courtCase, message, individuals);
         } catch (Exception e){
             log.error(String.valueOf(e));
@@ -85,7 +86,6 @@ public class NotificationService {
 
     private Map<String, String> getDetailsForSMS(CourtCase courtCase, List<Individual> individuals) {
         Map<String, String> smsDetails = new HashMap<>();
-        try {
             smsDetails.put("caseId", courtCase.getCaseNumber());
             smsDetails.put("efilingNumber", courtCase.getFilingNumber());
             smsDetails.put("cnr", courtCase.getCnrNumber());
@@ -94,10 +94,7 @@ public class NotificationService {
             smsDetails.put("tenantId", courtCase.getTenantId().split("\\.")[0]);
             smsDetails.put("mobileNumber", individuals.get(0).getMobileNumber());
             return smsDetails;
-        } catch (Exception e){
-            log.error(String.valueOf(e));
-        }
-        return smsDetails;
+
     }
 
 
