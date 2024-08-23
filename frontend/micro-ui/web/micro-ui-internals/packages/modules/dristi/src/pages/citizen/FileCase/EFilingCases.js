@@ -164,7 +164,7 @@ function EFilingCases({ path }) {
   const [errorMsg, setErrorMsg] = useState("");
   const homepagePath = "/digit-ui/citizen/dristi/home";
 
-  const { data: casePdf, isPdfLoading, refetch } = useCasePdfGeneration(
+  const { data: casePdf, isPdfLoading, refetch: refetchCasePDfGeneration } = useCasePdfGeneration(
     {
       criteria: [
         {
@@ -1474,7 +1474,7 @@ function EFilingCases({ path }) {
     }
 
     if (selected === "reviewCaseFile") {
-      refetch();
+      await refetchCasePDfGeneration();
     }
     if (selected === "addSignature" && isDraftInProgress) {
       if (courtRooms?.length === 1) {
@@ -1645,7 +1645,7 @@ function EFilingCases({ path }) {
       DRISTIService.customApiService(Urls.dristi.pendingTask, {
         pendingTask: {
           name: "Pending Payment",
-          entityType: "case",
+          entityType: "case-default",
           referenceId: `MANUAL_${caseDetails?.filingNumber}`,
           status: "PAYMENT_PENDING",
           assignedTo: [...assignees?.map((uuid) => ({ uuid }))],
