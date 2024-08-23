@@ -54,14 +54,14 @@ public class NotificationService {
 
             pushNotification(courtCase, message, individuals);
         } catch (Exception e){
-            log.error(String.valueOf(e));
+            log.error(e.getMessage());
         }
 
     }
 
     private void pushNotification(CourtCase courtCase, String message, List<Individual> individuals) {
 
-        try {  //get individual name, id, mobileNumber
+           //get individual name, id, mobileNumber
             log.info("get case e filing number, id, cnr");
             Map<String, String> smsDetails = getDetailsForSMS(courtCase, individuals);
 
@@ -78,10 +78,7 @@ public class NotificationService {
                     .message(message).build();
             log.info("push message");
             producer.push(config.getSmsNotificationTopic(), smsRequest);
-        }
-        catch (Exception e){
-            log.error("exception occurs while sending notification");
-        }
+
     }
 
     private Map<String, String> getDetailsForSMS(CourtCase courtCase, List<Individual> individuals) {
