@@ -10,6 +10,7 @@ import CustomStepperSuccess from "../../components/CustomStepperSuccess";
 import UpdateDeliveryStatusComponent from "../../components/UpdateDeliveryStatusComponent";
 import { formatDate } from "../../utils";
 import { taskService } from "../../hooks/services";
+import { Urls } from "../../hooks/services/Urls";
 
 const defaultSearchValues = {
   eprocess: "",
@@ -54,6 +55,16 @@ const ReviewSummonsNoticeAndWarrant = () => {
 
   const handleOpen = (props) => {
     //change status to signed or unsigned
+  };
+
+  const handleDownload = () => {
+    const fileStoreId = rowData?.documents?.filter((data) => data?.documentType === "SIGNED")?.[0]?.fileStore;
+    const url = `${window.location.origin}${Urls.FileFetchById}?tenantId=${tenantId}&fileStoreId=${fileStoreId}`;
+    const link = document.createElement("a");
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const { data: fetchedTasksData, refetch } = Digit.Hooks.hearings.useGetTaskList(
@@ -337,11 +348,13 @@ const ReviewSummonsNoticeAndWarrant = () => {
       handleClose: () => setShowActionModal(false),
       heading: { label: "Print & Send Documents" },
       actionSaveLabel: "Update Status",
+      actionCancelLabel: "View Document",
       isStepperModal: false,
       modalBody: (
         <UpdateDeliveryStatusComponent infos={infos} links={links} t={t} handleSubmitButtonDisable={handleSubmitButtonDisable} rowData={rowData} />
       ),
       actionSaveOnSubmit: handleUpdateStatus,
+      actionCancelOnSubmit: handleDownload,
       isDisabled: isDisabled,
     };
   }, [infos, isDisabled, links, t]);
