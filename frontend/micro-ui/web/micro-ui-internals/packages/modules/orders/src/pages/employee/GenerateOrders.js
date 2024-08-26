@@ -263,7 +263,7 @@ const GenerateOrders = () => {
     },
     { tenantId },
     filingNumber,
-    Boolean(filingNumber && cnrNumber)
+    Boolean(filingNumber)
   );
   const { data: publishedOrdersData, isLoading: isPublishedOrdersLoading } = useSearchOrdersService(
     {
