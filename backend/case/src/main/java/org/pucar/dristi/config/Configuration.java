@@ -209,7 +209,7 @@ public class Configuration {
     @Value("${egov.user.notification.period}")
     private String userNotificationPeriod;
 
-    @Value("${egov.oauth.url}")
+    @Value("${user.oauth.url}")
     private String url;
 
 }
