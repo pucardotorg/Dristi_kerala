@@ -210,6 +210,6 @@ public class Configuration {
     private String userNotificationPeriod;
 
     @Value("${user.oauth.url}")
-    private String url;
+    private String userOauthUrl;
 
 }

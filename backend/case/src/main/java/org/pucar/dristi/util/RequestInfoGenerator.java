@@ -70,7 +70,7 @@ public class RequestInfoGenerator {
             HttpEntity<String> requestEntity = new HttpEntity<>(formBody.toString(), headers);
 
             ResponseEntity<String> responseEntity = restTemplate.exchange(
-                    configs.getUrl(),
+                    configs.getUserOauthUrl(),
                     HttpMethod.POST,
                     requestEntity,
                     String.class
