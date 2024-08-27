@@ -334,27 +334,12 @@ function ScheduleNextHearing({
       setIsSubmitDisabled(true);
       HomeService.customApiService(Urls.orderCreate, reqBody, { tenantId })
         .then(async (res) => {
-          // await HomeService.customApiService(Urls.pendingTask, {
-          //   pendingTask: {
-          //     name: "Schedule Hearing",
-          //     entityType: "case",
-          //     referenceId: `MANUAL_${caseDetails?.filingNumber}`,
-          //     status: "SCHEDULE_HEARING",
-          //     assignedTo: [],
-          //     assignedRole: ["JUDGE_ROLE"],
-          //     cnrNumber: null,
-          //     filingNumber: caseDetails?.filingNumber,
-          //     isCompleted: true,
-          //     additionalDetails: {},
-          //     tenantId,
-          //   },
-          // });
           await HomeService.customApiService(Urls.pendingTask, {
             pendingTask: {
-              name: "Completed",
+              name: "Create Order for rescheduling the hearing",
               entityType: "order-managelifecycle",
               referenceId: hearingId,
-              status: "DRAFT_IN_PROGRESS",
+              status: "RESCHEDULE_HEARING",
               assignedTo: [],
               assignedRole: [],
               cnrNumber: cnrNumber,
