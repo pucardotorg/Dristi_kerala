@@ -29,11 +29,13 @@ import java.util.UUID;
 @Builder
 public class Application {
     @JsonProperty("id")
+
     @Valid
     private UUID id = null;
 
     @JsonProperty("tenantId")
     @NotNull
+
     private String tenantId = null;
 
     @JsonProperty("caseId")
@@ -41,20 +43,24 @@ public class Application {
     private String caseId = null;
 
     @JsonProperty("filingNumber")
+
     private String filingNumber = null;
 
     @JsonProperty("cnrNumber")
+
     private String cnrNumber = null;
 
     @JsonProperty("referenceId")
+
     @Valid
     private UUID referenceId = null;
 
     @JsonProperty("createdDate")
     @NotNull
-    private String createdDate = null;
+    private Long createdDate = null;
 
     @JsonProperty("createdBy")
+
     @Valid
     private UUID createdBy = null;
 
@@ -68,14 +74,17 @@ public class Application {
     private String applicationType = null;
 
     @JsonProperty("applicationNumber")
+
     @Size(min = 24, max = 48)
     private String applicationNumber = null;
 
     @JsonProperty("issuedBy")
+
     private IssuedBy issuedBy = null;
 
     @JsonProperty("status")
     @NotNull
+
     private String status = null;
 
     @JsonProperty("comment")
@@ -83,9 +92,11 @@ public class Application {
 
     @JsonProperty("isActive")
     @NotNull
+
     private Boolean isActive = null;
 
     @JsonProperty("statuteSection")
+
     @Valid
     private StatuteSection statuteSection = null;
 
@@ -94,13 +105,16 @@ public class Application {
     private List<Document> documents = null;
 
     @JsonProperty("additionalDetails")
+
     private Object additionalDetails = null;
 
     @JsonProperty("auditDetails")
+
     @Valid
     private AuditDetails auditDetails = null;
 
     @JsonProperty("workflow")
+
     @Valid
     private Workflow workflow = null;
 
@@ -125,16 +139,12 @@ public class Application {
     }
 
     public boolean isResponseRequired() {
-
         if (additionalDetails instanceof Map) {
             Map<String, Object> detailsMap = (Map<String, Object>) additionalDetails;
             if (detailsMap.containsKey("isResponseRequired")) {
                 return (boolean) detailsMap.get("isResponseRequired");
             }
         }
-
         return false;
     }
-
-
 }

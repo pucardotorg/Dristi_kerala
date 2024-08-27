@@ -1,6 +1,5 @@
 package org.egov.transformer.models;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -13,7 +12,6 @@ import org.egov.common.contract.models.Document;
 import org.egov.common.contract.models.Workflow;
 import org.springframework.validation.annotation.Validated;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -54,18 +52,15 @@ public class Task {
     @JsonProperty("createdDate")
     @NotNull
     @Valid
-    @JsonFormat(pattern = "dd-MM-yyyy")
-    private LocalDate createdDate = null;
+    private Long createdDate = null;
 
     @JsonProperty("dateCloseBy")
     @Valid
-    @JsonFormat(pattern = "dd-MM-yyyy")
-    private LocalDate dateCloseBy = null;
+    private Long dateCloseBy = null;
 
     @JsonProperty("dateClosed")
     @Valid
-    @JsonFormat(pattern = "dd-MM-yyyy")
-    private LocalDate dateClosed = null;
+    private Long dateClosed = null;
 
     @JsonProperty("taskDescription")
     private String taskDescription = null;
