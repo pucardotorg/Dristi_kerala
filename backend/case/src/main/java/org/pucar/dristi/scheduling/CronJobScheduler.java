@@ -78,10 +78,14 @@ public class CronJobScheduler {
                 for (CourtCase courtCase : courtCases) {
                     Future<Boolean> future = executorService.submit(() -> {
                         try {
-                            notificationService.sendNotification(requestInfo, courtCase, ServiceConstants.ESIGN_PENDING, courtCase.getAuditdetails().getCreatedBy());
+                            if(config.getIsSMSEnabled()) {
+                                notificationService.sendNotification(requestInfo, courtCase, ServiceConstants.ESIGN_PENDING, courtCase.getAuditdetails().getCreatedBy());
+                            }
                             if (!CollectionUtils.isEmpty(courtCase.getRepresentatives())) {
                                 for (AdvocateMapping mapping : courtCase.getRepresentatives()) {
-                                    notificationService.sendNotification(requestInfo, courtCase, ServiceConstants.ADVOCATE_ESIGN_PENDING,mapping.getAuditDetails().getCreatedBy());
+                                    if(config.getIsSMSEnabled()) {
+                                        notificationService.sendNotification(requestInfo, courtCase, ServiceConstants.ADVOCATE_ESIGN_PENDING, mapping.getAuditDetails().getCreatedBy());
+                                    }
                                 }
                             }
                             return true;
@@ -144,7 +148,9 @@ public class CronJobScheduler {
                 for (CourtCase courtCase : courtCases) {
                     Future<Boolean> future = executorService.submit(() -> {
                         try {
-                            notificationService.sendNotification(requestInfo, courtCase, ServiceConstants.PAYMENT_PENDING,courtCase.getAuditdetails().getCreatedBy());
+                            if(config.getIsSMSEnabled()) {
+                                notificationService.sendNotification(requestInfo, courtCase, ServiceConstants.PAYMENT_PENDING, courtCase.getAuditdetails().getCreatedBy());
+                            }
                             return true;
                         } catch (Exception e) {
                             log.error("Error processing case: {}", courtCase.getId(), e);
