@@ -186,6 +186,15 @@ public class Configuration {
     @Value("${egov.sms.notification.template.id}")
     private String smsNotificationTemplateId;
 
+    @Value("${egov.sms.notification.payment.pending.template.id}")
+    private String smsNotificationPaymentPendingTemplateId;
+
+    @Value("${egov.sms.notification.esign.pending.template.id}")
+    private String smsNotificationEsignPendingTemplateId;
+
+    @Value("${egov.sms.notification.advocate.esign.pending.template.id}")
+    private String smsNotificationAdvocateEsignPendingTemplateId;
+
     @Value("${notification.sms.enabled}")
     private Boolean isSMSEnabled;
 
@@ -199,5 +208,17 @@ public class Configuration {
     @Value("${egov.localization.search.endpoint}")
     private String localizationSearchEndpoint;
 
+    // Default User
+    @Value("${egov.default.user.username}")
+    private String defaultUserUserName;
+
+    @Value("${egov.default.user.password}")
+    private String defaultUserPassword;
+
+    @Value("${egov.user.notification.period}")
+    private String userNotificationPeriod;
+
+    @Value("${user.oauth.url}")
+    private String userOauthUrl;
 
 }
