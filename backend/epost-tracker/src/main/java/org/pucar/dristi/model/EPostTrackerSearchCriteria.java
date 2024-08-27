@@ -1,7 +1,6 @@
 package org.pucar.dristi.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,9 +32,8 @@ public class EPostTrackerSearchCriteria {
     private String bookingDate;
 
     @JsonProperty("receivedDate")
-    private  String receivedDate;
+    private String receivedDate;
 
     @JsonProperty("pagination")
-    @Valid
     private Pagination pagination = null;
 }

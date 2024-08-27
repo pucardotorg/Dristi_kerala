@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import digit.models.coremodels.AuditDetails;
 import digit.web.models.ReScheduleHearing;
-import digit.web.models.enums.Status;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
@@ -13,8 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.util.List;
+import java.util.Collections;
 
 
 @Component
@@ -36,11 +34,14 @@ public class ReScheduleHearingRowMapper implements RowMapper<ReScheduleHearing> 
                     .caseId(resultSet.getString("case_id"))
                     .requesterId(resultSet.getString("requester_id"))
                     .reason(resultSet.getString("reason"))
-                    .status(resultSet.getString("status")==null?null: Status.valueOf(resultSet.getString("status")))
-                    .actionComment(resultSet.getString("action_comment"))
+                    .status(resultSet.getString("status"))
                     .suggestedDates(resultSet.getString("suggested_days") == null ? null : objectMapper.readValue(resultSet.getString("suggested_days"), new TypeReference<>() {
                     }))
                     .availableDates(resultSet.getString("available_days") == null ? null : objectMapper.readValue(resultSet.getString("available_days"), new TypeReference<>() {
+                    }))
+                    .litigants(resultSet.getString("litigants") == null ? null : objectMapper.readValue(resultSet.getString("litigants"), new TypeReference<>() {
+                    }))
+                    .representatives(resultSet.getString("representatives") == null ? null : objectMapper.readValue(resultSet.getString("representatives"), new TypeReference<>() {
                     }))
                     .auditDetails(AuditDetails.builder()
                             .createdBy(resultSet.getString("created_by"))

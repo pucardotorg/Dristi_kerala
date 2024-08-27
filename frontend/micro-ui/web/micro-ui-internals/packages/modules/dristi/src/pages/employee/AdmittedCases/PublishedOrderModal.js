@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Modal from "../../../components/Modal";
 import { Button, SubmitBar } from "@egovernments/digit-ui-react-components";
 
-function PublishedOrderModal({ setShowReviewModal, t, order, handleDownload, handleRequestLabel, handleSubmitDocument, showSubmissionButtons }) {
+function PublishedOrderModal({ t, order, handleDownload, handleRequestLabel, handleSubmitDocument, showSubmissionButtons, handleOrdersTab }) {
   const [fileStoreId, setFileStoreID] = useState(null);
   const [fileName, setFileName] = useState();
   const tenantId = window?.Digit.ULBService.getCurrentTenantId();
@@ -80,7 +80,7 @@ function PublishedOrderModal({ setShowReviewModal, t, order, handleDownload, han
   return (
     <Modal
       headerBarMain={<Heading label={t("VIEW_ORDER_HEADING")} />}
-      headerBarEnd={<CloseBtn onClick={() => setShowReviewModal(false)} />}
+      headerBarEnd={<CloseBtn onClick={handleOrdersTab} />}
       actionCancelLabel={null}
       actionCancelOnSubmit={() => {}}
       actionSaveLabel={null}
@@ -95,14 +95,14 @@ function PublishedOrderModal({ setShowReviewModal, t, order, handleDownload, han
         </div>
         {showSubmissionButtons && (
           <div style={{ display: "flex", width: "50%", gap: "20px", justifyContent: "end" }}>
-            <Button
+            {/* <Button
               variation="secondary"
               onButtonClick={() => {
                 handleRequestLabel(order.orderNumber);
               }}
               className="primary-label-btn"
               label={t("EXTENSION_REQUEST_LABEL")}
-            ></Button>
+            ></Button> */}
             <SubmitBar
               variation="primary"
               onSubmit={() => {

@@ -22,6 +22,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static digit.config.ServiceConstants.SUMMON;
+import static digit.config.ServiceConstants.WARRANT;
+
 @Service
 @Slf4j
 public class SummonsService {
@@ -68,7 +71,7 @@ public class SummonsService {
         Document document = createDocument(fileStoreId);
         taskRequest.getTask().addDocumentsItem(document);
 
-        return taskUtil.callUpdateTask(taskRequest);
+        return taskUtil.callUploadDocumentTask(taskRequest);
     }
 
     public SummonsDelivery sendSummonsViaChannels(TaskRequest request) {
@@ -79,15 +82,15 @@ public class SummonsService {
         if (channelMessage.getAcknowledgementStatus().equalsIgnoreCase("success")) {
             summonsDelivery.setIsAcceptedByChannel(Boolean.TRUE);
             if (summonsDelivery.getChannelName() == ChannelName.SMS || summonsDelivery.getChannelName() == ChannelName.EMAIL) {
-                summonsDelivery.setDeliveryStatus("SUMMONS_DELIVERED");
+                summonsDelivery.setDeliveryStatus(DeliveryStatus.DELIVERED);
             } else {
-                summonsDelivery.setDeliveryStatus("SUMMONS_IN_PROGRESS");
+                summonsDelivery.setDeliveryStatus(DeliveryStatus.NOT_UPDATED);
             }
             summonsDelivery.setChannelAcknowledgementId(channelMessage.getAcknowledgeUniqueNumber());
         }
         SummonsRequest summonsRequest = createSummonsRequest(request.getRequestInfo(), summonsDelivery);
 
-        producer.push("insert-summons", summonsRequest);
+        producer.push(config.getInsertSummonsTopic(), summonsRequest);
         return summonsDelivery;
     }
 
@@ -101,7 +104,7 @@ public class SummonsService {
         enrichAndUpdateSummonsDelivery(summonsDelivery, request);
 
         SummonsRequest summonsRequest = createSummonsRequest(request.getRequestInfo(), summonsDelivery);
-        producer.push("update-summons", summonsRequest);
+        producer.push(config.getUpdateSummonsTopic(), summonsRequest);
 
         return createChannelMessage(summonsDelivery);
     }
@@ -119,30 +122,37 @@ public class SummonsService {
                 .requestInfo(request.getRequestInfo()).criteria(taskCriteria).build();
         TaskListResponse taskListResponse = taskUtil.callSearchTask(searchRequest);
         Task task = taskListResponse.getList().get(0);
-        if (task.getTaskType().equalsIgnoreCase("summon")) {
-            Workflow workflow = Workflow.builder().action("SERVE").build();
-            task.setWorkflow(workflow);
-        } else if (task.getTaskType().equalsIgnoreCase("warrant")) {
-            Workflow workflow = Workflow.builder().action("DELIVERED").build();
-            task.setWorkflow(workflow);
+        Workflow workflow = null;
+        if (task.getTaskType().equalsIgnoreCase(SUMMON)) {
+            if (request.getSummonsDelivery().getDeliveryStatus().equals(DeliveryStatus.DELIVERED)) {
+                workflow = Workflow.builder().action("SERVE").build();
+            } else {
+                workflow = Workflow.builder().action("REISSUE").build();
+            }
+        } else if (task.getTaskType().equalsIgnoreCase(WARRANT)) {
+            if (request.getSummonsDelivery().getDeliveryStatus().equals(DeliveryStatus.EXECUTED)) {
+                workflow = Workflow.builder().action("DELIVERED").build();
+            } else {
+                workflow = Workflow.builder().action("NOT DELIVERED").build();
+            }
         }
+        task.setWorkflow(workflow);
         TaskRequest taskRequest = TaskRequest.builder()
                 .requestInfo(request.getRequestInfo()).task(task).build();
         taskUtil.callUpdateTask(taskRequest);
     }
 
     private String getPdfTemplateKey(String taskType) {
-        return switch (taskType.toLowerCase()) {
-            case "summon" -> config.getSummonsPdfTemplateKey();
-            case "warrant" -> config.getWarrantPdfTemplateKey();
-            case "bail" -> config.getBailPdfTemplateKey();
+        return switch (taskType) {
+            case SUMMON -> config.getSummonsPdfTemplateKey();
+            case WARRANT -> config.getNonBailableWarrantPdfTemplateKey();
             default -> throw new CustomException("INVALID_TASK_TYPE", "Task Type must be valid. Provided: " + taskType);
         };
     }
 
     private SummonsDelivery fetchSummonsDelivery(UpdateSummonsRequest request) {
         SummonsDeliverySearchCriteria searchCriteria = SummonsDeliverySearchCriteria.builder()
-                .summonsId(request.getChannelReport().getSummonId())
+                .taskNumber(request.getChannelReport().getTaskNumber())
                 .build();
         Optional<SummonsDelivery> optionalSummons = getSummonsDeliveryFromSearchCriteria(searchCriteria).stream().findFirst();
         if (optionalSummons.isEmpty()) {
@@ -160,7 +170,7 @@ public class SummonsService {
         AdditionalFields additionalFields = AdditionalFields.builder().fields(Collections.singletonList(field)).build();
         return Document.builder()
                 .fileStore(fileStoreId)
-                .documentType("application/pdf")
+                .documentType("UNSIGNED")
                 .additionalDetails(additionalFields)
                 .build();
     }

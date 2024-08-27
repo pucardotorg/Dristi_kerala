@@ -15,8 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.pucar.dristi.config.ServiceConstants.ORDER_EXISTS_EXCEPTION;
-import static org.pucar.dristi.config.ServiceConstants.ORDER_SEARCH_EXCEPTION;
+import static org.pucar.dristi.config.ServiceConstants.*;
 
 
 @Slf4j
@@ -47,10 +46,11 @@ public class OrderRepository {
         try {
             List<Order> orderList = new ArrayList<>();
             List<Object> preparedStmtList = new ArrayList<>();
+            List<Integer> preparedStmtArgList = new ArrayList<>();
             List<Object> preparedStmtListSt;
             List<Object> preparedStmtListDoc;
             String orderQuery = "";
-            orderQuery = queryBuilder.getOrderSearchQuery(criteria,preparedStmtList);
+            orderQuery = queryBuilder.getOrderSearchQuery(criteria,preparedStmtList,preparedStmtArgList);
 
             orderQuery = queryBuilder.addOrderByQuery(orderQuery, pagination);
             log.info("Final order query :: {}", orderQuery);
@@ -59,10 +59,13 @@ public class OrderRepository {
                 Integer totalRecords = getTotalCountOrders(orderQuery, preparedStmtList);
                 log.info("Total count without pagination :: {}", totalRecords);
                 pagination.setTotalCount(Double.valueOf(totalRecords));
-                orderQuery = queryBuilder.addPaginationQuery(orderQuery, pagination, preparedStmtList);
+                orderQuery = queryBuilder.addPaginationQuery(orderQuery, pagination, preparedStmtList, preparedStmtArgList);
             }
-
-            List<Order> list = jdbcTemplate.query(orderQuery, preparedStmtList.toArray(), rowMapper);
+            if(preparedStmtList.size()!=preparedStmtArgList.size()){
+                log.info("Arg size :: {}, and ArgType size :: {}", preparedStmtList.size(),preparedStmtArgList.size());
+                throw new CustomException(ORDER_SEARCH_EXCEPTION, "Arg and ArgType size mismatch");
+            }
+            List<Order> list = jdbcTemplate.query(orderQuery, preparedStmtList.toArray(),preparedStmtArgList.stream().mapToInt(Integer::intValue).toArray(), rowMapper);
             log.info("DB order list :: {}", list);
             if (list != null) {
                 orderList.addAll(list);
@@ -78,9 +81,15 @@ public class OrderRepository {
 
             String statueAndSectionQuery = "";
             preparedStmtListSt = new ArrayList<>();
-            statueAndSectionQuery = queryBuilder.getStatuteSectionSearchQuery(ids, preparedStmtListSt);
+            List<Integer> preparedStmtStSecArgList = new ArrayList<>();
+
+            statueAndSectionQuery = queryBuilder.getStatuteSectionSearchQuery(ids, preparedStmtListSt,preparedStmtStSecArgList);
             log.info("Final statue and sections query :: {}", statueAndSectionQuery);
-            Map<UUID, StatuteSection> statuteSectionsMap = jdbcTemplate.query(statueAndSectionQuery, preparedStmtListSt.toArray(), statuteSectionRowMapper);
+            if(preparedStmtListSt.size()!=preparedStmtStSecArgList.size()){
+                log.info("Statute Arg size :: {}, and ArgType size :: {}", preparedStmtListSt.size(),preparedStmtStSecArgList.size());
+                throw new CustomException(ORDER_SEARCH_EXCEPTION, "Arg and ArgType size mismatch for statute ");
+            }
+            Map<UUID, StatuteSection> statuteSectionsMap = jdbcTemplate.query(statueAndSectionQuery, preparedStmtListSt.toArray(), preparedStmtStSecArgList.stream().mapToInt(Integer::intValue).toArray(),statuteSectionRowMapper);
             log.info("DB statute sections map :: {}", statuteSectionsMap);
             if (statuteSectionsMap != null) {
                 orderList.forEach(order -> {
@@ -90,9 +99,15 @@ public class OrderRepository {
 
             String documentQuery = "";
             preparedStmtListDoc = new ArrayList<>();
-            documentQuery = queryBuilder.getDocumentSearchQuery(ids, preparedStmtListDoc);
+            List<Integer> preparedStmtDocArgList = new ArrayList<>();
+
+            documentQuery = queryBuilder.getDocumentSearchQuery(ids, preparedStmtListDoc,preparedStmtDocArgList);
             log.info("Final document query :: {}", documentQuery);
-            Map<UUID, List<Document>> documentMap = jdbcTemplate.query(documentQuery, preparedStmtListDoc.toArray(), documentRowMapper);
+            if(preparedStmtListDoc.size()!=preparedStmtDocArgList.size()){
+                log.info("Doc Arg size :: {}, and ArgType size :: {}", preparedStmtListDoc.size(),preparedStmtDocArgList.size());
+                throw new CustomException(ORDER_SEARCH_EXCEPTION, "Arg and ArgType size mismatch for document search");
+            }
+            Map<UUID, List<Document>> documentMap = jdbcTemplate.query(documentQuery, preparedStmtListDoc.toArray(), preparedStmtDocArgList.stream().mapToInt(Integer::intValue).toArray(), documentRowMapper);
             log.info("DB document map :: {}", documentMap);
             if (documentMap != null) {
                 orderList.forEach(order -> {
@@ -120,7 +135,7 @@ public class OrderRepository {
                 } else {
                     String orderExistQuery = queryBuilder.checkOrderExistQuery(orderExists.getOrderNumber(), orderExists.getCnrNumber(), orderExists.getFilingNumber(),orderExists.getApplicationNumber(), orderExists.getOrderId(),preparedStmtList);
                     log.info("Final order exist query :: {}", orderExistQuery);
-                    Integer count = jdbcTemplate.queryForObject(orderExistQuery, preparedStmtList.toArray(),Integer.class);
+                    Integer count = jdbcTemplate.queryForObject(orderExistQuery,Integer.class, preparedStmtList.toArray());
                     orderExists.setExists(count != null && count > 0);
                 }
             }
@@ -136,7 +151,7 @@ public class OrderRepository {
     public Integer getTotalCountOrders(String baseQuery, List<Object> preparedStmtList) {
         String countQuery = queryBuilder.getTotalCountQuery(baseQuery);
         log.info("Final count query :: {}", countQuery);
-        return jdbcTemplate.queryForObject(countQuery, preparedStmtList.toArray(), Integer.class);
+        return jdbcTemplate.queryForObject(countQuery, Integer.class, preparedStmtList.toArray());
     }
 
 }

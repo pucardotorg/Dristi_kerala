@@ -1,10 +1,14 @@
 package org.pucar.dristi.config;
 
+import jakarta.annotation.PostConstruct;
 import lombok.*;
 import org.egov.tracer.config.TracerConfiguration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 @Data
@@ -15,76 +19,148 @@ import org.springframework.stereotype.Component;
 @Getter
 public class Configuration {
 
-	//ElasticSearch Config
-	@Value("${egov.infra.indexer.host}")
-	private String esHostUrl;
+    //ElasticSearch Config
+    @Value("${egov.infra.indexer.host}")
+    private String esHostUrl;
 
-	@Value("${elasticsearch.poll.interval.seconds}")
-	private String pollInterval;
+    @Value("${elasticsearch.poll.interval.seconds}")
+    private String pollInterval;
 
-	@Value("${egov.bulk.index}")
-	private String index;
+    @Value("${egov.bulk.index}")
+    private String index;
 
-	@Value("${egov.case.overall.status.topic}")
-	private String caseOverallStatusTopic;
+    @Value("${egov.case.overall.status.topic}")
+    private String caseOverallStatusTopic;
 
-	@Value("${egov.bulk.index.path}")
-	private String bulkPath;
+    @Value("${egov.case.outcome.topic}")
+    private String caseOutcomeTopic;
 
-	@Value("${egov.indexer.es.username}")
-	private String esUsername;
+    @Value("${egov.bulk.index.path}")
+    private String bulkPath;
 
-	@Value("${egov.indexer.es.password}")
-	private String esPassword;
+    @Value("${egov.indexer.es.username}")
+    private String esUsername;
 
-	@Value("${id.timezone}")
-	private String timezone;
+    @Value("${egov.indexer.es.password}")
+    private String esPassword;
 
-	@Value("${egov.statelevel.tenantId}")
-	private String stateLevelTenantId;
+    @Value("${id.timezone}")
+    private String timezone;
 
-	//Hearing Config
-	@Value("${egov.hearing.host}")
-	private String hearingHost;
+    @Value("${egov.statelevel.tenantId}")
+    private String stateLevelTenantId;
 
-	@Value("${egov.hearing.search.endpoint}")
-	private String hearingSearchPath;
+    //Hearing Config
+    @Value("${egov.hearing.host}")
+    private String hearingHost;
 
-	//Case Config
-	@Value("${egov.case.host}")
-	private String caseHost;
+    @Value("${egov.hearing.search.endpoint}")
+    private String hearingSearchPath;
 
-	@Value("${egov.case.search.endpoint}")
-	private String caseSearchPath;
+    //Case Config
+    @Value("${egov.case.host}")
+    private String caseHost;
 
-	//Evidence Config
-	@Value("${egov.evidence.host}")
-	private String evidenceHost;
+    @Value("${egov.case.search.endpoint}")
+    private String caseSearchPath;
 
-	@Value("${egov.evidence.search.endpoint}")
-	private String evidenceSearchPath;
+    //Evidence Config
+    @Value("${egov.evidence.host}")
+    private String evidenceHost;
 
-	//Task Config
-	@Value("${egov.task.host}")
-	private String taskHost;
+    @Value("${egov.evidence.search.endpoint}")
+    private String evidenceSearchPath;
 
-	@Value("${egov.task.search.endpoint}")
-	private String taskSearchPath;
+    //Task Config
+    @Value("${egov.task.host}")
+    private String taskHost;
 
-	//Application Config
-	@Value("${egov.application.host}")
-	private String applicationHost;
+    @Value("${egov.task.search.endpoint}")
+    private String taskSearchPath;
 
-	@Value("${egov.application.search.endpoint}")
-	private String applicationSearchPath;
+    //Application Config
+    @Value("${egov.application.host}")
+    private String applicationHost;
 
-	//Order Config
-	@Value("${egov.order.host}")
-	private String orderHost;
+    @Value("${egov.application.search.endpoint}")
+    private String applicationSearchPath;
 
-	@Value("${egov.order.search.endpoint}")
-	private String orderSearchPath;
+    //Order Config
+    @Value("${egov.order.host}")
+    private String orderHost;
 
-	@Value("${api.call.delay.in.seconds}")
-	private Integer apiCallDelayInSeconds;
+    @Value("${egov.order.search.endpoint}")
+    private String orderSearchPath;
+
+    @Value("${api.call.delay.in.seconds}")
+    private Integer apiCallDelayInSeconds;
+
+    // MDMS Config
+    @Value("${egov.mdms.host}")
+    private String mdmsHost;
+
+    @Value("${egov.mdms.search.endpoint}")
+    private String mdmsEndPoint;
+
+    @Value("${egov.mdms.pending.task.module.name}")
+    private String mdmsPendingTaskModuleName;
+
+    @Value("${egov.mdms.pending.task.master.name}")
+    private String mdmsPendingTaskMasterName;
+
+    @Value("${egov.mdms.case.overall.status.module.name}")
+    private String mdmsCaseOverallStatusModuleName;
+
+    @Value("${egov.mdms.case.overall.status.master.name}")
+    private String mdmsCaseOverallStatusMasterName;
+
+    @Value("${egov.mdms.case.outcome.module.name}")
+    private String mdmsCaseOutcomeModuleName;
+
+    @Value("${egov.mdms.case.outcome.master.name}")
+    private String mdmsCaseOutcomeMasterName;
+
+    @Value("${egov.hearing.business.services}")
+    private String hearingBusinessServices;
+    private List<String> hearingBusinessServiceList;
+
+    @Value("${egov.case.business.services}")
+    private String caseBusinessServices;
+    private List<String> caseBusinessServiceList;
+
+    @Value("${egov.evidence.business.services}")
+    private String evidenceBusinessServices;
+    private List<String> evidenceBusinessServiceList;
+
+    @Value("${egov.task.business.services}")
+    private String taskBusinessServices;
+    private List<String> taskBusinessServiceList;
+
+    @Value("${egov.application.business.services}")
+    private String applicationBusinessServices;
+    private List<String> applicationBusinessServiceList;
+
+    @Value("${egov.order.business.services}")
+    private String orderBusinessServices;
+    private List<String> orderBusinessServiceList;
+
+    // MDMS Hearing module name
+    @Value("${egov.mdms.module.name}")
+    private String mdmsModuleName;
+
+    // MDMS Hearing Type Master List name
+    @Value("${egov.mdms.master.name}")
+    private String mdmsMasterName;
+
+    @PostConstruct
+    public void init() {
+        hearingBusinessServiceList = Arrays.asList(hearingBusinessServices.split(","));
+        caseBusinessServiceList = Arrays.asList(caseBusinessServices.split(","));
+        evidenceBusinessServiceList = Arrays.asList(evidenceBusinessServices.split(","));
+        taskBusinessServiceList = Arrays.asList(taskBusinessServices.split(","));
+        applicationBusinessServiceList = Arrays.asList(applicationBusinessServices.split(","));
+        orderBusinessServiceList = Arrays.asList(orderBusinessServices.split(","));
+    }
+
+
 }

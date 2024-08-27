@@ -108,4 +108,21 @@ public class Configuration {
     // Order Workflow/Business Service name
     @Value("${egov.workflow.order.judgement.business.service.name}")
     private String orderJudgementBusinessServiceName;
+
+    //MDMS validation
+    @Value("${mdms.order.type.path}")
+    private String orderTypePath;
+
+    @Value("${mdms.order.category.path}")
+    private String orderCategoryPath;
+
+    @Value("${mdms.order.module.name}")
+    private String orderModule;
+
+    // Filestore Config
+    @Value("${egov.filestore.host}")
+    private String fileStoreHost;
+
+    @Value("${egov.filestore.path}")
+    private String fileStorePath;
 }

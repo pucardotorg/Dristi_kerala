@@ -3,6 +3,7 @@ import { getUserDetails } from "../../../hooks/useGetAccessToken";
 import { DRISTIService } from "../../../services";
 import { userTypeOptions } from "../registration/config";
 import { formatDate } from "./CaseType";
+import { efilingDocumentKeyAndTypeMapping } from "./Config/efilingDocumentKeyAndTypeMapping";
 
 export const showDemandNoticeModal = ({
   selected,
@@ -259,9 +260,7 @@ export const checkNameValidation = ({ formData, setValue, selected, reset, index
             let updatedValue = value
               .replace(/[^a-zA-Z\s]/g, "")
               .trimStart()
-              .replace(/ +/g, " ")
-              .toLowerCase()
-              .replace(/\b\w/g, (char) => char.toUpperCase());
+              .replace(/ +/g, " ");
             if (updatedValue !== oldValue) {
               const element = document.querySelector(`[name="${key}"]`);
               const start = element?.selectionStart;
@@ -291,9 +290,7 @@ export const checkNameValidation = ({ formData, setValue, selected, reset, index
             let updatedValue = value
               .replace(/[^a-zA-Z\s]/g, "")
               .trimStart()
-              .replace(/ +/g, " ")
-              .toLowerCase()
-              .replace(/\b\w/g, (char) => char.toUpperCase());
+              .replace(/ +/g, " ");
             if (updatedValue !== oldValue) {
               const element = document.querySelector(`[name="${key}"]`);
               const start = element?.selectionStart;
@@ -492,9 +489,7 @@ export const checkOnlyCharInCheque = ({ formData, setValue, selected }) => {
               let updatedValue = value
                 .replace(/[^a-zA-Z\s]/g, "")
                 .trimStart()
-                .replace(/ +/g, " ")
-                .toLowerCase()
-                .replace(/\b\w/g, (char) => char.toUpperCase());
+                .replace(/ +/g, " ");
               if (updatedValue !== oldValue) {
                 const element = document.querySelector(`[name="${key}"]`);
                 const start = element?.selectionStart;
@@ -514,9 +509,7 @@ export const checkOnlyCharInCheque = ({ formData, setValue, selected }) => {
               let updatedValue = value
                 .replace(/[^a-zA-Z0-9 ]/g, "")
                 .trimStart()
-                .replace(/ +/g, " ")
-                .toLowerCase()
-                .replace(/\b\w/g, (char) => char.toUpperCase());
+                .replace(/ +/g, " ");
               if (updatedValue !== oldValue) {
                 const element = document.querySelector(`[name="${key}"]`);
                 const start = element?.selectionStart;
@@ -585,9 +578,7 @@ export const respondentValidation = ({
         ) &&
         !Object.keys(formData?.inquiryAffidavitFileUpload?.document || {}).length
       ) {
-        setFormErrors("inquiryAffidavitFileUpload", { type: "required", msg: "" });
-        setShowErrorToast(true);
-        return true;
+        return false;
       }
     }
 
@@ -659,6 +650,11 @@ export const chequeDetailFileValidation = ({ formData, selected, setShowErrorToa
         setShowErrorToast(true);
         return true;
       }
+    }
+    if (formData?.chequeAmount === "0") {
+      setFormErrors("chequeAmount", { message: "Amount cannot be zero" });
+      setShowErrorToast(true);
+      return true;
     }
   } else {
     return false;
@@ -803,6 +799,18 @@ export const delayApplicationValidation = ({ t, formData, selected, setShowError
   }
 };
 
+export const debtLiabilityValidation = ({ t, formData, selected, setShowErrorToast, setErrorMsg, toast, setFormErrors }) => {
+  if (selected === "debtLiabilityDetails") {
+    if (formData?.totalAmount === "0") {
+      setFormErrors("totalAmount", { message: "Amount cannot be zero" });
+      setShowErrorToast(true);
+      return true;
+    }
+  } else {
+    return false;
+  }
+};
+
 export const prayerAndSwornValidation = ({ t, formData, selected, setShowErrorToast, setErrorMsg, toast, setFormErrors, clearFormDataErrors }) => {
   if (selected === "prayerSwornStatement") {
     let hasError = false;
@@ -891,6 +899,8 @@ export const createIndividualUser = async ({ data, documentData, tenantId }) => 
             "ORDER_VIEWER",
             "SUBMISSION_CREATOR",
             "SUBMISSION_RESPONDER",
+            "SUBMISSION_DELETE",
+            "TASK_VIEWER",
           ]?.map((role) => ({
             code: role,
             name: role,
@@ -910,7 +920,7 @@ export const createIndividualUser = async ({ data, documentData, tenantId }) => 
           latitude: data?.addressDetails?.coordinates?.latitude,
           longitude: data?.addressDetails?.coordinates?.longitude,
           city: data?.addressDetails?.city,
-          pincode: data?.addressDetails?.pincode,
+          pincode: data?.addressDetails?.pincode || data?.["addressDetails-select"]?.pincode,
           addressLine1: data?.addressDetails?.state,
           addressLine2: data?.addressDetails?.district,
           street: data?.addressDetails?.locality,
@@ -950,14 +960,27 @@ const onDocumentUpload = async (fileData, filename, tenantId) => {
   return { file: fileUploadRes?.data, fileType: fileData.type, filename };
 };
 
-export const getAllAssignees = (caseDetails) => {
+const sendDocumentForOcr = async (key, fileStoreId, filingNumber, tenantId, document) => {
+  if ((efilingDocumentKeyAndTypeMapping[key] && document?.type === "image/jpeg") || document?.type === "application/pdf")
+    await window?.Digit?.DRISTIService.sendDocuemntForOCR(
+      {
+        documentType: efilingDocumentKeyAndTypeMapping[key],
+        fileStoreId: fileStoreId,
+        filingNumber: filingNumber,
+        tenantId: tenantId,
+      },
+      {}
+    );
+};
+
+export const getAllAssignees = (caseDetails, getAdvocates = true, getLitigent = true) => {
   if (Array.isArray(caseDetails?.representatives || []) && caseDetails?.representatives?.length > 0) {
     return caseDetails?.representatives
       ?.reduce((res, curr) => {
-        if (curr && curr?.additionalDetails?.uuid) {
+        if (getAdvocates && curr && curr?.additionalDetails?.uuid) {
           res.push(curr?.additionalDetails?.uuid);
         }
-        if (curr && curr?.representing && Array.isArray(curr?.representing || []) && curr?.representing?.length > 0) {
+        if (getLitigent && curr && curr?.representing && Array.isArray(curr?.representing || []) && curr?.representing?.length > 0) {
           const representingUuids = curr?.representing?.reduce((result, current) => {
             if (current && current?.additionalDetails?.uuid) {
               result.push(current?.additionalDetails?.uuid);
@@ -982,6 +1005,25 @@ export const getAllAssignees = (caseDetails) => {
   return null;
 };
 
+export const getAdvocates = (caseDetails) => {
+  let litigants = {};
+  let list = [];
+
+  caseDetails?.litigants?.forEach((litigant) => {
+    list = caseDetails?.representatives
+      ?.filter((item) => {
+        return item?.representing?.some((lit) => lit?.individualId === litigant?.individualId) && item?.additionalDetails?.uuid;
+      })
+      .map((item) => item?.additionalDetails?.uuid);
+    if (list?.length > 0) {
+      litigants[litigant?.additionalDetails?.uuid] = list;
+    } else {
+      litigants[litigant?.additionalDetails?.uuid] = [litigant?.additionalDetails?.uuid];
+    }
+  });
+  return litigants;
+};
+
 const documentUploadHandler = async (document, index, prevCaseDetails, data, pageConfig, key, selected, tenantId) => {
   const tempDocList = [];
   let tempFile;
@@ -1000,6 +1042,9 @@ const documentUploadHandler = async (document, index, prevCaseDetails, data, pag
       documentName: uploadedData.filename || document?.documentName,
       fileName: pageConfig?.selectDocumentName?.[key],
     };
+    if (uploadedData.file?.files?.[0]?.fileStoreId && efilingDocumentKeyAndTypeMapping[key]) {
+      sendDocumentForOcr(key, uploadedData.file?.files?.[0]?.fileStoreId, prevCaseDetails?.filingNumber, tenantId, document);
+    }
     if (oldBouncedChequeFileUpload !== undefined) {
       const xTemp = prevCaseDetails?.documents?.filter((doc) => doc.fileStore === oldBouncedChequeFileUpload?.document?.[index]?.fileStore)?.[0];
       tempDocList.push({
@@ -1343,6 +1388,15 @@ export const updateCaseDetails = async ({
               data?.data?.inquiryAffidavitFileUpload?.document?.map(async (document) => {
                 if (document) {
                   const uploadedData = await onDocumentUpload(document, document.name, tenantId);
+                  if (uploadedData.file?.files?.[0]?.fileStoreId && efilingDocumentKeyAndTypeMapping["inquiryAffidavitFileUpload"]) {
+                    sendDocumentForOcr(
+                      "inquiryAffidavitFileUpload",
+                      uploadedData.file?.files?.[0]?.fileStoreId,
+                      prevCaseDetails?.filingNumber,
+                      tenantId,
+                      document
+                    );
+                  }
                   return {
                     documentType: uploadedData.fileType || document?.documentType,
                     fileStore: uploadedData.file?.files?.[0]?.fileStoreId || document?.fileStore,
@@ -1673,7 +1727,7 @@ export const updateCaseDetails = async ({
                     async (data) => {
                       const evidenceData = await DRISTIService.createEvidence({
                         artifact: {
-                          artifactType: "DOCUMENTARY",
+                          artifactType: "OTHER",
                           sourceType: "COMPLAINANT",
                           caseId: caseDetails?.id,
                           sourceID: individualId,
@@ -1837,6 +1891,7 @@ export const updateCaseDetails = async ({
     };
   }
   if (selected === "advocateDetails") {
+    const advocateDetails = {};
     const newFormData = await Promise.all(
       formdata
         .filter((item) => item.isenabled)
@@ -1848,6 +1903,15 @@ export const updateCaseDetails = async ({
               data?.data?.vakalatnamaFileUpload?.document?.map(async (document) => {
                 if (document) {
                   const uploadedData = await onDocumentUpload(document, document.name, tenantId);
+                  if (uploadedData.file?.files?.[0]?.fileStoreId && efilingDocumentKeyAndTypeMapping["vakalatnamaFileUpload"]) {
+                    sendDocumentForOcr(
+                      "vakalatnamaFileUpload",
+                      uploadedData.file?.files?.[0]?.fileStoreId,
+                      prevCaseDetails?.filingNumber,
+                      tenantId,
+                      document
+                    );
+                  }
                   return {
                     documentType: uploadedData.fileType || document?.documentType,
                     fileStore: uploadedData.file?.files?.[0]?.fileStoreId || document?.fileStore,
@@ -1858,6 +1922,16 @@ export const updateCaseDetails = async ({
               })
             );
           }
+          const advocateDetail = await DRISTIService.searchAdvocateClerk("/advocate/advocate/v1/_search", {
+            criteria: [
+              {
+                barRegistrationNumber: data?.data?.advocateBarRegNumberWithName?.[0]?.barRegistrationNumber,
+              },
+            ],
+            tenantId,
+          });
+          advocateDetails[data?.data?.advocateBarRegNumberWithName?.[0]?.advocateId] =
+            advocateDetail?.advocates?.[0]?.responseList?.[0]?.auditDetails?.createdBy;
           return {
             ...data,
             data: {
@@ -1910,7 +1984,7 @@ export const updateCaseDetails = async ({
             advocateId: data?.data?.advocateBarRegNumberWithName?.[0]?.advocateId,
             additionalDetails: {
               advocateName: data?.data?.advocateBarRegNumberWithName?.[0]?.advocateName,
-              uuid: data?.data?.advocateBarRegNumberWithName?.[0]?.advocateUuid,
+              uuid: advocateDetails?.[data?.data?.advocateBarRegNumberWithName?.[0]?.advocateId],
             },
             tenantId,
           };

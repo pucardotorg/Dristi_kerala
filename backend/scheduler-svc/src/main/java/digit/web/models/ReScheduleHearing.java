@@ -1,21 +1,19 @@
 package digit.web.models;
 
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import digit.models.coremodels.AuditDetails;
-import digit.web.models.enums.Status;
-import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.egov.common.contract.models.Document;
+import org.springframework.validation.annotation.Validated;
 
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
-
+@Validated
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,12 +21,14 @@ import java.util.List;
 public class ReScheduleHearing {
 
     @JsonProperty("rescheduledRequestId")
+    @NotNull
     private String rescheduledRequestId;
 
     @JsonProperty("hearingBookingId")
     private String hearingBookingId;
 
     @JsonProperty("tenantId")
+    @NotNull
     private String tenantId;
 
     @JsonProperty("judgeId")
@@ -43,39 +43,30 @@ public class ReScheduleHearing {
     @JsonProperty("reason")
     private String reason;
 
-    @JsonProperty("availableAfter")
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate availableAfter;
-
     @JsonProperty("status")
-    private Status status;
+    private String status;
 
-    @JsonProperty("actionComment")
-    private String actionComment;
+    @JsonProperty("availableAfter")
+    @NotNull
+    private Long availableAfter;
 
-    @JsonProperty("workflow")
-    private Workflow workflow;
+    @JsonProperty("suggestedDates")
+    private List<Long> suggestedDates;
+
+    @JsonProperty("availableDates")
+    private List<Long> availableDates;
+
+    @JsonProperty("representatives")
+    private Set<String> representatives;
+
+    @JsonProperty("litigants")
+    private Set<String> litigants;
 
     @JsonProperty("auditDetails")
     private AuditDetails auditDetails;
 
     @JsonProperty("rowVersion")
     private Integer rowVersion = null;
-
-    @JsonProperty("documents")
-    @Valid
-    private List<Document> documents = null;
-
-    @JsonProperty("suggestedDates")             // additional details
-    private List<LocalDate> suggestedDates;
-
-    @JsonProperty("availableDates")             // additional details
-    private List<LocalDate> availableDates;
-
-
-    @JsonProperty("scheduleDate")
-    @JsonFormat(pattern = "yyyy-MM-dd")// additional details
-    private LocalDate scheduleDate;
 
 
 }

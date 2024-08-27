@@ -1,20 +1,29 @@
+import { BackButton, FormComposerV2, Header, Loader, Toast } from "@egovernments/digit-ui-react-components";
 import React, { useMemo, useState } from "react";
-import { FormComposerV2, Header, Loader, Toast, BackButton } from "@egovernments/digit-ui-react-components";
-import { CustomArrowDownIcon, RightArrow } from "../../../icons/svgIndex";
-import { reviewCaseFileFormConfig } from "../../citizen/FileCase/Config/reviewcasefileconfig";
-import AdmissionActionModal from "./AdmissionActionModal";
 import { Redirect, useHistory, useLocation } from "react-router-dom/cjs/react-router-dom.min";
-import useSearchCaseService from "../../../hooks/dristi/useSearchCaseService";
-import { DRISTIService } from "../../../services";
-import { formatDate } from "../../citizen/FileCase/CaseType";
 import CustomCaseInfoDiv from "../../../components/CustomCaseInfoDiv";
-import { selectParticipantConfig } from "../../citizen/FileCase/Config/admissionActionConfig";
-import { admitCaseSubmitConfig, scheduleCaseSubmitConfig, sendBackCase } from "../../citizen/FileCase/Config/admissionActionConfig";
-import { OrderTypes, OrderWorkflowAction } from "../../../Utils/orderWorkflow";
-import { CaseWorkflowState } from "../../../Utils/caseWorkflow";
-import { getAllAssignees } from "../../citizen/FileCase/EfilingValidationUtils";
 import { Urls } from "../../../hooks";
+import useSearchCaseService from "../../../hooks/dristi/useSearchCaseService";
+import { CustomArrowDownIcon, RightArrow } from "../../../icons/svgIndex";
+import { DRISTIService } from "../../../services";
+import { CaseWorkflowState } from "../../../Utils/caseWorkflow";
+import { OrderTypes, OrderWorkflowAction } from "../../../Utils/orderWorkflow";
+import { formatDate } from "../../citizen/FileCase/CaseType";
+import {
+  admitCaseSubmitConfig,
+  scheduleCaseSubmitConfig,
+  selectParticipantConfig,
+  sendBackCase,
+} from "../../citizen/FileCase/Config/admissionActionConfig";
+import { reviewCaseFileFormConfig } from "../../citizen/FileCase/Config/reviewcasefileconfig";
+import { getAllAssignees } from "../../citizen/FileCase/EfilingValidationUtils";
+import AdmissionActionModal from "./AdmissionActionModal";
+import { generateUUID } from "../../../Utils";
+import { documentTypeMapping } from "../../citizen/FileCase/Config";
 
+const stateSla = {
+  SCHEDULE_HEARING: 3 * 24 * 3600 * 1000,
+};
 function CaseFileAdmission({ t, path }) {
   const [isDisabled, setIsDisabled] = useState(false);
   const history = useHistory();
@@ -24,10 +33,14 @@ function CaseFileAdmission({ t, path }) {
   const [submitModalInfo, setSubmitModalInfo] = useState(null);
   const [formdata, setFormdata] = useState({ isenabled: true, data: {}, displayindex: 0 });
   const location = useLocation();
+  const todayDate = new Date().getTime();
   const searchParams = new URLSearchParams(location.search);
   const caseId = searchParams.get("caseId");
   const tenantId = window?.Digit.ULBService.getCurrentTenantId();
   const [caseAdmitLoader, setCaseADmitLoader] = useState(false);
+  const [updatedCaseDetails, setUpdatedCaseDetails] = useState({});
+  const roles = Digit.UserService.getUser()?.info?.roles;
+  const isCaseApprover = roles.some((role) => role.code === "CASE_APPROVER");
   const { data: caseFetchResponse, isLoading } = useSearchCaseService(
     {
       criteria: [
@@ -71,7 +84,34 @@ function CaseFileAdmission({ t, path }) {
   }, [caseDetails]);
 
   const updateCaseDetails = async (action, data = {}) => {
-    const newcasedetails = { ...caseDetails, additionalDetails: { ...caseDetails.additionalDetails, judge: data } };
+    let respondentDetails = caseDetails?.additionalDetails?.respondentDetails;
+    let witnessDetails = caseDetails?.additionalDetails?.witnessDetails;
+    if (action === "ADMIT") {
+      respondentDetails = {
+        ...caseDetails?.additionalDetails?.respondentDetails,
+        formdata: caseDetails?.additionalDetails?.respondentDetails?.formdata?.map((data) => ({
+          ...data,
+          data: {
+            ...data?.data,
+            uuid: generateUUID(),
+          },
+        })),
+      };
+      witnessDetails = {
+        ...caseDetails?.additionalDetails?.witnessDetails,
+        formdata: caseDetails?.additionalDetails?.witnessDetails?.formdata?.map((data) => ({
+          ...data,
+          data: {
+            ...data?.data,
+            uuid: generateUUID(),
+          },
+        })),
+      };
+    }
+    const newcasedetails = {
+      ...caseDetails,
+      additionalDetails: { ...caseDetails.additionalDetails, respondentDetails, witnessDetails, judge: data },
+    };
 
     return DRISTIService.caseUpdateService(
       {
@@ -81,13 +121,15 @@ function CaseFileAdmission({ t, path }) {
           workflow: {
             ...caseDetails?.workflow,
             action,
-            ...(action === "SEND_BACK" && { assignes: getAllAssignees(caseDetails) || [] }),
+            ...(action === "SEND_BACK" && { assignes: [caseDetails.auditDetails.createdBy] || [] }),
           },
         },
         tenantId,
       },
       tenantId
-    );
+    ).then((response) => {
+      setUpdatedCaseDetails(response?.cases?.[0]);
+    });
   };
 
   const caseInfo = [
@@ -105,11 +147,11 @@ function CaseFileAdmission({ t, path }) {
     },
     {
       key: "COURT_NAME",
-      value: "Kerala City Criminal Court",
+      value: t(`COMMON_MASTERS_COURT_R00M_${caseDetails?.courtId}`),
     },
     {
       key: "SUBMITTED_ON",
-      value: caseDetails?.filingDate,
+      value: formatDate(new Date(caseDetails?.filingDate)),
     },
   ];
   const onFormValueChange = (setValue, formData, formState, reset, setError, clearErrors, trigger, getValues) => {
@@ -137,7 +179,7 @@ function CaseFileAdmission({ t, path }) {
         },
         {
           key: "COURT_NAME",
-          value: "Kerala City Criminal Court",
+          value: t(`COMMON_MASTERS_COURT_R00M_${caseDetails?.courtId}`),
         },
         {
           key: "CASE_TYPE",
@@ -187,20 +229,61 @@ function CaseFileAdmission({ t, path }) {
     let documentList = [];
     documentList = [
       ...documentList,
-      ...caseDetails?.caseDetails?.chequeDetails?.formdata?.map((form) => form?.data?.bouncedChequeFileUpload?.document),
-      ...caseDetails?.caseDetails?.chequeDetails?.formdata?.map((form) => form?.data?.depositChequeFileUpload?.document),
-      ...caseDetails?.caseDetails?.chequeDetails?.formdata?.map((form) => form?.data?.returnMemoFileUpload?.document),
-      ...caseDetails?.caseDetails?.debtLiabilityDetails?.formdata?.map((form) => form?.data?.debtLiabilityFileUpload?.document),
-      ...caseDetails?.caseDetails?.demandNoticeDetails?.formdata?.map((form) => form?.data?.legalDemandNoticeFileUpload?.document),
-      ...caseDetails?.caseDetails?.demandNoticeDetails?.formdata?.map((form) => form?.data?.proofOfAcknowledgmentFileUpload?.document),
-      ...caseDetails?.caseDetails?.demandNoticeDetails?.formdata?.map((form) => form?.data?.proofOfDispatchFileUpload?.document),
-      ...caseDetails?.caseDetails?.demandNoticeDetails?.formdata?.map((form) => form?.data?.proofOfReplyFileUpload?.document),
-      ...caseDetails?.additionalDetails?.prayerSwornStatement?.formdata?.map((form) => form?.data?.memorandumOfComplaint?.document),
-      ...caseDetails?.additionalDetails?.prayerSwornStatement?.formdata?.map((form) => form?.data?.prayerForRelief?.document),
-      ...caseDetails?.additionalDetails?.prayerSwornStatement?.formdata?.map((form) => form?.data?.swornStatement?.document),
-      ...caseDetails?.additionalDetails?.respondentDetails?.formdata?.map((form) => form?.data?.inquiryAffidavitFileUpload?.document),
-      ...caseDetails?.additionalDetails?.advocateDetails?.formdata?.map((form) => form?.data?.vakalatnamaFileUpload?.document),
+      ...caseDetails?.caseDetails?.chequeDetails?.formdata?.map((form) => ({
+        document: form?.data?.bouncedChequeFileUpload?.document,
+        key: "bouncedChequeFileUpload",
+      })),
+      ...caseDetails?.caseDetails?.chequeDetails?.formdata?.map((form) => ({
+        document: form?.data?.depositChequeFileUpload?.document,
+        key: "depositChequeFileUpload",
+      })),
+      ...caseDetails?.caseDetails?.chequeDetails?.formdata?.map((form) => ({
+        document: form?.data?.returnMemoFileUpload?.document,
+        key: "returnMemoFileUpload",
+      })),
+      ...caseDetails?.caseDetails?.debtLiabilityDetails?.formdata?.map((form) => ({
+        document: form?.data?.debtLiabilityFileUpload?.document,
+        key: "debtLiabilityFileUpload",
+      })),
+      ...caseDetails?.caseDetails?.demandNoticeDetails?.formdata?.map((form) => ({
+        document: form?.data?.legalDemandNoticeFileUpload?.document,
+        key: "legalDemandNoticeFileUpload",
+      })),
+      ...caseDetails?.caseDetails?.demandNoticeDetails?.formdata?.map((form) => ({
+        document: form?.data?.proofOfAcknowledgmentFileUpload?.document,
+        key: "proofOfAcknowledgmentFileUpload",
+      })),
+      ...caseDetails?.caseDetails?.demandNoticeDetails?.formdata?.map((form) => ({
+        document: form?.data?.proofOfDispatchFileUpload?.document,
+        key: "proofOfDispatchFileUpload",
+      })),
+      ...caseDetails?.caseDetails?.demandNoticeDetails?.formdata?.map((form) => ({
+        document: form?.data?.proofOfReplyFileUpload?.document,
+        key: "proofOfReplyFileUpload",
+      })),
+      ...caseDetails?.additionalDetails?.prayerSwornStatement?.formdata?.map((form) => ({
+        document: form?.data?.memorandumOfComplaint?.document,
+        key: "memorandumOfComplaint",
+      })),
+      ...caseDetails?.additionalDetails?.prayerSwornStatement?.formdata?.map((form) => ({
+        document: form?.data?.prayerForRelief?.document,
+        key: "prayerForRelief",
+      })),
+      ...caseDetails?.additionalDetails?.prayerSwornStatement?.formdata?.map((form) => ({
+        document: form?.data?.swornStatement?.document,
+        key: "swornStatement",
+      })),
+      ...caseDetails?.additionalDetails?.respondentDetails?.formdata?.map((form) => ({
+        document: form?.data?.inquiryAffidavitFileUpload?.document,
+        key: "inquiryAffidavitFileUpload",
+      })),
+      ...caseDetails?.additionalDetails?.advocateDetails?.formdata?.map((form) => ({
+        document: form?.data?.vakalatnamaFileUpload?.document,
+        key: "vakalatnamaFileUpload",
+      })),
     ].flat();
+
+    console.log("documentList", documentList, typeof documentTypeMapping[documentList[0]?.key]);
 
     await Promise.all(
       documentList
@@ -208,7 +291,7 @@ function CaseFileAdmission({ t, path }) {
         ?.map(async (data) => {
           await DRISTIService.createEvidence({
             artifact: {
-              artifactType: "DOCUMENTARY",
+              artifactType: documentTypeMapping[data?.key],
               sourceType: "COMPLAINANT",
               sourceID: individualId,
               caseId: caseDetails?.id,
@@ -216,19 +299,19 @@ function CaseFileAdmission({ t, path }) {
               tenantId,
               comments: [],
               file: {
-                documentType: data?.fileType || data?.documentType,
-                fileStore: data?.fileStore,
-                fileName: data?.fileName,
-                documentName: data?.documentName,
+                documentType: data?.document?.fileType || data?.document?.documentType,
+                fileStore: data?.document?.fileStore,
+                fileName: data?.document?.fileName,
+                documentName: data?.document?.documentName,
               },
               workflow: {
                 action: "TYPE DEPOSITION",
                 documents: [
                   {
-                    documentType: data?.documentType,
-                    fileName: data?.fileName,
-                    documentName: data?.documentName,
-                    fileStoreId: data?.fileStore,
+                    documentType: data?.document?.documentType,
+                    fileName: data?.document?.fileName,
+                    documentName: data?.document?.documentName,
+                    fileStoreId: data?.document?.fileStore,
                   },
                 ],
               },
@@ -239,10 +322,65 @@ function CaseFileAdmission({ t, path }) {
 
     updateCaseDetails("ADMIT", formdata).then((res) => {
       setModalInfo({ ...modalInfo, page: 1 });
+      setCaseADmitLoader(false);
+      DRISTIService.customApiService(Urls.dristi.pendingTask, {
+        pendingTask: {
+          name: "Schedule Hearing",
+          entityType: "case-default",
+          referenceId: `MANUAL_${caseDetails?.filingNumber}`,
+          status: "SCHEDULE_HEARING",
+          assignedTo: [],
+          assignedRole: ["JUDGE_ROLE"],
+          cnrNumber: updatedCaseDetails?.cnrNumber,
+          filingNumber: caseDetails?.filingNumber,
+          isCompleted: false,
+          stateSla: todayDate + stateSla.SCHEDULE_HEARING,
+          additionalDetails: {},
+          tenantId,
+        },
+      });
     });
-    setCaseADmitLoader(false);
   };
-  const handleScheduleCase = (props) => {
+  const scheduleHearing = async ({ purpose, participant, date }) => {
+    return DRISTIService.createHearings(
+      {
+        hearing: {
+          tenantId: tenantId,
+          filingNumber: [caseDetails.filingNumber],
+          hearingType: purpose,
+          status: true,
+          attendees: [
+            ...Object.values(participant)
+              .map((val) => val.attendees.map((attendee) => JSON.parse(attendee)))
+              .flat(Infinity),
+          ],
+          startTime: Date.parse(
+            `${date
+              .split(" ")
+              .map((date, i) => (i === 0 ? date.slice(0, date.length - 2) : date))
+              .join(" ")}`
+          ),
+          endTime: Date.parse(
+            `${date
+              .split(" ")
+              .map((date, i) => (i === 0 ? date.slice(0, date.length - 2) : date))
+              .join(" ")}`
+          ),
+          workflow: {
+            action: "CREATE",
+            assignes: [],
+            comments: "Create new Hearing",
+            documents: [{}],
+          },
+          documents: [],
+        },
+        tenantId,
+      },
+      { tenantId: tenantId }
+    );
+  };
+
+  const handleScheduleCase = async (props) => {
     setSubmitModalInfo({
       ...scheduleCaseSubmitConfig,
       caseInfo: [
@@ -253,6 +391,7 @@ function CaseFileAdmission({ t, path }) {
         },
       ],
     });
+    await scheduleHearing({ purpose: "ADMISSION", date: props.date, participant: props.participant });
     updateCaseDetails("SCHEDULE_ADMISSION_HEARING", props).then((res) => {
       setModalInfo({ ...modalInfo, page: 2 });
     });
@@ -261,9 +400,9 @@ function CaseFileAdmission({ t, path }) {
   const handleScheduleNextHearing = () => {
     const reqBody = {
       order: {
-        createdDate: formatDate(new Date()),
+        createdDate: new Date().getTime(),
         tenantId,
-        cnrNumber: caseDetails?.cnrNumber,
+        cnrNumber: updatedCaseDetails?.cnrNumber || caseDetails?.cnrNumber,
         filingNumber: caseDetails?.filingNumber,
         statuteSection: {
           tenantId,
@@ -291,10 +430,26 @@ function CaseFileAdmission({ t, path }) {
       },
     };
     DRISTIService.customApiService(Urls.dristi.ordersCreate, reqBody, { tenantId })
-      .then(() => {
-        history.push(`/digit-ui/employee/orders/generate-orders?filingNumber=${caseDetails?.filingNumber}`, {
+      .then((res) => {
+        history.push(`/digit-ui/employee/orders/generate-orders?filingNumber=${caseDetails?.filingNumber}&orderNumber=${res.order.orderNumber}`, {
           caseId: caseId,
           tab: "Orders",
+        });
+        DRISTIService.customApiService(Urls.dristi.pendingTask, {
+          pendingTask: {
+            name: "Schedule Hearing",
+            entityType: "case-default",
+            referenceId: `MANUAL_${caseDetails?.filingNumber}`,
+            status: "SCHEDULE_HEARING",
+            assignedTo: [],
+            assignedRole: ["JUDGE_ROLE"],
+            cnrNumber: updatedCaseDetails?.cnrNumber,
+            filingNumber: caseDetails?.filingNumber,
+            isCompleted: true,
+            stateSla: todayDate + stateSla.SCHEDULE_HEARING,
+            additionalDetails: {},
+            tenantId,
+          },
         });
       })
       .catch();
@@ -357,19 +512,30 @@ function CaseFileAdmission({ t, path }) {
               </div>
               <CustomCaseInfoDiv t={t} data={caseInfo} style={{ margin: "24px 0px" }} />
               <FormComposerV2
-                label={t("CS_ADMIT_CASE")}
+                label={isCaseApprover ? t("CS_ADMIT_CASE") : undefined}
                 config={formConfig}
                 onSubmit={onSubmit}
                 // defaultValues={}
-                onSecondayActionClick={onSaveDraft}
+                onSecondayActionClick={
+                  caseDetails?.status === CaseWorkflowState.ADMISSION_HEARING_SCHEDULED
+                    ? () =>
+                        history.push(
+                          `/digit-ui/employee/dristi/home/view-case?caseId=${caseId}&filingNumber=${caseDetails?.filingNumber}&tab=Hearings`
+                        )
+                    : onSaveDraft
+                }
                 defaultValues={{}}
                 onFormValueChange={onFormValueChange}
                 cardStyle={{ minWidth: "100%" }}
                 isDisabled={isDisabled}
                 cardClassName={`e-filing-card-form-style review-case-file`}
-                secondaryLabel={t("CS_SCHEDULE_ADMISSION_HEARING")}
-                showSecondaryLabel={caseDetails?.status !== CaseWorkflowState.ADMISSION_HEARING_SCHEDULED}
-                actionClassName="case-file-admission-action-bar"
+                secondaryLabel={
+                  caseDetails?.status === CaseWorkflowState.ADMISSION_HEARING_SCHEDULED
+                    ? t("HEARING_IS_SCHEDULED")
+                    : t("CS_SCHEDULE_ADMISSION_HEARING")
+                }
+                showSecondaryLabel={true}
+                actionClassName={"case-file-admission-action-bar"}
                 showSkip={caseDetails?.status !== CaseWorkflowState.ADMISSION_HEARING_SCHEDULED}
                 onSkip={onSendBack}
                 skiplabel={t("SEND_BACK_FOR_CORRECTION")}
@@ -396,6 +562,7 @@ function CaseFileAdmission({ t, path }) {
                   tenantId={tenantId}
                   handleScheduleNextHearing={handleScheduleNextHearing}
                   caseAdmitLoader={caseAdmitLoader}
+                  caseDetails={caseDetails}
                 ></AdmissionActionModal>
               )}
             </div>

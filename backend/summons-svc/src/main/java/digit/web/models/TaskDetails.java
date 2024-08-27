@@ -14,12 +14,15 @@ public class TaskDetails {
     @JsonProperty("summonDetails")
     private SummonsDetails summonDetails = null;
 
+    @JsonProperty("warrantDetails")
+    private WarrantDetails warrantDetails = null;
+
     @JsonProperty("caseDetails")
     private CaseDetails caseDetails = null;
 
     @JsonProperty("respondentDetails")
     private RespondentDetails respondentDetails = null;
 
-    @JsonProperty("deliveryChannel")
+    @JsonProperty("deliveryChannels")
     private DeliveryChannel deliveryChannel = null;
 }

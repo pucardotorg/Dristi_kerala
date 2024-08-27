@@ -1,5 +1,6 @@
 package org.pucar.dristi.validators;
 
+import org.egov.common.contract.models.Document;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.tracer.model.CustomException;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,18 +11,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.pucar.dristi.repository.OrderRepository;
 import org.pucar.dristi.util.CaseUtil;
-import org.pucar.dristi.web.models.Order;
-import org.pucar.dristi.web.models.OrderExists;
-import org.pucar.dristi.web.models.OrderRequest;
-import org.pucar.dristi.web.models.StatuteSection;
+import org.pucar.dristi.util.FileStoreUtil;
+import org.pucar.dristi.web.models.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.pucar.dristi.config.ServiceConstants.*;
 
 @ExtendWith(MockitoExtension.class)
 class OrderRegistrationValidatorTest {
@@ -32,83 +32,196 @@ class OrderRegistrationValidatorTest {
     @Mock
     private CaseUtil caseUtil;
 
+    @Mock
+    private FileStoreUtil fileStoreUtil;
+
     @InjectMocks
     private OrderRegistrationValidator orderRegistrationValidator;
 
-    private OrderRequest orderRequest;
-    private Order order;
-
     @BeforeEach
     void setUp() {
-        order = new Order();
-        order.setTenantId("tenantId");
+        orderRegistrationValidator = new OrderRegistrationValidator(repository, caseUtil, fileStoreUtil);
+    }
+
+    @Test
+    void testValidateOrderRegistration_success() {
+        // Prepare test data
+        Order order = new Order();
         order.setStatuteSection(new StatuteSection());
-        order.setCnrNumber("cnrNumber");
-        order.setFilingNumber("filingNumber");
+        order.setOrderCategory("Judicial");
+        order.setCnrNumber("CNR12345");
+        order.setFilingNumber("FIL12345");
 
-        orderRequest = new OrderRequest();
-        orderRequest.setOrder(order);
+        OrderRequest orderRequest = new OrderRequest();
         orderRequest.setRequestInfo(new RequestInfo());
+        orderRequest.setOrder(order);
+
+        // Mock behavior
+        when(caseUtil.fetchCaseDetails(any(), eq(order.getCnrNumber()), eq(order.getFilingNumber())))
+                .thenReturn(true);
+
+        // Execute method
+        assertDoesNotThrow(() -> orderRegistrationValidator.validateOrderRegistration(orderRequest));
+
+        // Verify
+        verify(caseUtil).fetchCaseDetails(any(), eq(order.getCnrNumber()), eq(order.getFilingNumber()));
     }
 
     @Test
-    void validateOrderRegistration_shouldThrowExceptionWhenTenantIdIsEmpty() {
-        order.setTenantId(null);
-        CustomException exception = assertThrows(CustomException.class, () ->
-                orderRegistrationValidator.validateOrderRegistration(orderRequest));
-        assertEquals("tenantId is mandatory for creating order", exception.getMessage());
-    }
+    void testValidateOrderRegistration_missingStatuteSection() {
+        // Prepare test data
+        Order order = new Order();
+        order.setOrderCategory("Judicial");
 
-    @Test
-    void validateOrderRegistration_shouldThrowExceptionWhenStatuteSectionIsEmpty() {
-        order.setStatuteSection(null);
+        OrderRequest orderRequest = new OrderRequest();
+        orderRequest.setRequestInfo(new RequestInfo());
+        orderRequest.setOrder(order);
+
+        // Execute and verify exception
         CustomException exception = assertThrows(CustomException.class, () ->
                 orderRegistrationValidator.validateOrderRegistration(orderRequest));
+        assertEquals(CREATE_ORDER_ERR, exception.getCode());
         assertEquals("statute and section is mandatory for creating order", exception.getMessage());
     }
 
     @Test
-    void validateOrderRegistration_shouldThrowExceptionWhenCaseDetailsAreInvalid() {
-        when(caseUtil.fetchCaseDetails(any(RequestInfo.class), anyString(), anyString())).thenReturn(false);
+    void testValidateOrderRegistration_invalidCase() {
+        // Prepare test data
+        Order order = new Order();
+        order.setStatuteSection(new StatuteSection());
+        order.setOrderCategory("Judicial");
+        order.setCnrNumber("CNR12345");
+        order.setFilingNumber("FIL12345");
+
+        OrderRequest orderRequest = new OrderRequest();
+        orderRequest.setRequestInfo(new RequestInfo());
+        orderRequest.setOrder(order);
+
+        // Mock behavior
+        when(caseUtil.fetchCaseDetails(any(), eq(order.getCnrNumber()), eq(order.getFilingNumber())))
+                .thenReturn(false);
+
+        // Execute and verify exception
         CustomException exception = assertThrows(CustomException.class, () ->
                 orderRegistrationValidator.validateOrderRegistration(orderRequest));
+        assertEquals("INVALID_CASE_DETAILS", exception.getCode());
         assertEquals("Invalid Case", exception.getMessage());
     }
 
     @Test
-    void validateOrderRegistration_shouldPassWhenAllValidationsArePassed() {
-        when(caseUtil.fetchCaseDetails(any(RequestInfo.class), anyString(), anyString())).thenReturn(true);
-        assertDoesNotThrow(() -> orderRegistrationValidator.validateOrderRegistration(orderRequest));
-    }
+    void testValidateApplicationExistence_true() {
+        // Prepare test data
+        Order order = new Order();
+        order.setId(UUID.randomUUID());
+        order.setCnrNumber("CNR12345");
+        order.setFilingNumber("FIL12345");
 
-    @Test
-    void validateApplicationExistence_shouldReturnTrueWhenOrderExists() {
-        List<OrderExists> orderExistsList = new ArrayList<>();
+        OrderRequest orderRequest = new OrderRequest();
+        orderRequest.setOrder(order);
+
         OrderExists orderExists = new OrderExists();
         orderExists.setExists(true);
-        orderExistsList.add(orderExists);
-
-        when(repository.checkOrderExists(anyList())).thenReturn(orderExistsList);
-        boolean result = orderRegistrationValidator.validateApplicationExistence(orderRequest);
-        assertTrue(result);
-    }
-
-    @Test
-    void validateApplicationExistence_shouldReturnFalseWhenOrderDoesNotExist() {
         List<OrderExists> orderExistsList = new ArrayList<>();
-        OrderExists orderExists = new OrderExists();
-        orderExists.setExists(false);
         orderExistsList.add(orderExists);
 
+        // Mock behavior
         when(repository.checkOrderExists(anyList())).thenReturn(orderExistsList);
+
+        // Execute method
         boolean result = orderRegistrationValidator.validateApplicationExistence(orderRequest);
-        assertFalse(result);
+
+        // Verify
+        assertTrue(result);
+        verify(repository).checkOrderExists(anyList());
     }
 
     @Test
-    void validateApplicationExistence_shouldReturnFalseWhenOrderExistsListIsEmpty() {
-        when(repository.checkOrderExists(anyList())).thenReturn(new ArrayList<>());
+    void testValidateApplicationExistence_false() {
+        // Prepare test data
+        Order order = new Order();
+        order.setId(UUID.randomUUID());
+        order.setCnrNumber("CNR12345");
+        order.setFilingNumber("FIL12345");
+
+        OrderRequest orderRequest = new OrderRequest();
+        orderRequest.setOrder(order);
+
+        List<OrderExists> orderExistsList = new ArrayList<>();
+
+        // Mock behavior
+        when(repository.checkOrderExists(anyList())).thenReturn(orderExistsList);
+
+        // Execute method
         boolean result = orderRegistrationValidator.validateApplicationExistence(orderRequest);
+
+        // Verify
         assertFalse(result);
+        verify(repository).checkOrderExists(anyList());
+    }
+
+    @Test
+    void testValidateDocuments_success() {
+        // Prepare test data
+        Order order = new Order();
+        Document document = new Document();
+        document.setFileStore("fileStoreId");
+        List<Document> documents = new ArrayList<>();
+        documents.add(document);
+        order.setDocuments(documents);
+        order.setTenantId("pg");
+        order.setFilingNumber("123");
+        OrderRequest orderRequest = new OrderRequest();
+        orderRequest.setOrder(order);
+
+        // Mock behavior
+        when(fileStoreUtil.doesFileExist(anyString(), eq("fileStoreId"))).thenReturn(true);
+
+        // Execute method
+        assertDoesNotThrow(() -> orderRegistrationValidator.validateApplicationExistence(orderRequest));
+
+        // Verify
+        verify(fileStoreUtil).doesFileExist(anyString(), eq("fileStoreId"));
+    }
+
+    @Test
+    void testValidateDocuments_invalidFileStore() {
+        // Prepare test data
+        Order order = new Order();
+        Document document = new Document();
+        document.setFileStore("fileStoreId");
+        List<Document> documents = new ArrayList<>();
+        documents.add(document);
+        order.setDocuments(documents);
+        order.setTenantId("pg");
+        order.setFilingNumber("123");
+        OrderRequest orderRequest = new OrderRequest();
+        orderRequest.setOrder(order);
+
+        // Mock behavior
+        when(fileStoreUtil.doesFileExist(anyString(), eq("fileStoreId"))).thenReturn(false);
+
+        // Execute and verify exception
+        CustomException exception = assertThrows(CustomException.class, () ->
+                orderRegistrationValidator.validateApplicationExistence(orderRequest));
+        assertEquals(INVALID_FILESTORE_ID, exception.getCode());
+        assertEquals(INVALID_DOCUMENT_DETAILS, exception.getMessage());
+    }
+
+    @Test
+    void testValidateDocuments_missingFileStore() {
+        // Prepare test data
+        Order order = new Order();
+        Document document = new Document();
+        List<Document> documents = new ArrayList<>();
+        documents.add(document);
+        order.setDocuments(documents);
+        OrderRequest orderRequest = new OrderRequest();
+        orderRequest.setOrder(order);
+
+        // Execute and verify exception
+        CustomException exception = assertThrows(CustomException.class, () ->
+                orderRegistrationValidator.validateApplicationExistence(orderRequest));
+        assertEquals(INVALID_FILESTORE_ID, exception.getCode());
+        assertEquals(INVALID_DOCUMENT_DETAILS, exception.getMessage());
     }
 }

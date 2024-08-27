@@ -18,14 +18,28 @@ const customNoteConfig = {
   },
 };
 
+const paymentFailedNoteConfig = {
+  populators: {
+    inputs: [
+      {
+        infoHeader: "PLEASE NOTE",
+        infoText: "PAYMENT_FAILED",
+        showTooltip: true,
+      },
+    ],
+  },
+};
+
 function SuccessModal({
   t,
   actionCancelLabel,
   actionCancelOnSubmit,
-  isPaymentDone = false,
+  isPaymentDone,
   handleCloseSuccessModal,
   applicationNumber,
   createdDate,
+  makePayment,
+  paymentStatus,
 }) {
   const submissionData = [
     { key: "SUBMISSION_DATE", value: createdDate, copyData: false },
@@ -35,7 +49,7 @@ function SuccessModal({
     <Modal
       actionCancelLabel={t(actionCancelLabel)}
       actionCancelOnSubmit={actionCancelOnSubmit}
-      actionSaveLabel={t("CS_CLOSE")}
+      actionSaveLabel={makePayment ? t("CS_MAKE_PAYMENT") : t("CS_CLOSE")}
       actionSaveOnSubmit={handleCloseSuccessModal}
       className={"submission-success-modal"}
     >
@@ -48,6 +62,8 @@ function SuccessModal({
           style={{ minWidth: "100%", marginTop: "10px" }}
         ></Banner>
         {isPaymentDone && <SelectCustomNote t={t} config={customNoteConfig} />}
+        {paymentStatus === false && <SelectCustomNote t={t} config={paymentFailedNoteConfig} />}
+
         <CustomCopyTextDiv
           t={t}
           keyStyle={{ margin: "8px 0px" }}

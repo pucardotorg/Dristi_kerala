@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import digit.config.Configuration;
 import digit.repository.ServiceRequestRepository;
 import digit.web.models.cases.SearchCaseRequest;
+import io.swagger.util.Json;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +68,20 @@ public class CaseUtil {
 
     }
 
+    public JsonNode getLitigants(JsonNode caseList) {
+
+        log.info("operation = getLitigants, result = IN_PROGRESS");
+
+        if (caseList != null && caseList.isArray() && !caseList.isEmpty()) {
+            log.info("operation = getLitigants, result = SUCCESS");
+            return caseList.get(0).get("litigants");
+        } else {
+            log.error("operation = getLitigants, result = FAILURE");
+            throw new CustomException("DK_RR_CASE_ERR", "case not found");
+        }
+
+    }
+
     public JsonNode getRepresentatives(SearchCaseRequest searchCaseRequest) {
 
         log.info("operation = getRepresentatives, result = IN_PROGRESS");
@@ -74,6 +89,19 @@ public class CaseUtil {
         if (caseList != null && caseList.isArray() && !caseList.isEmpty()) {
             log.info("operation = getRepresentatives, result = SUCCESS");
             return caseList.get(0).get("representatives");
+        } else {
+            log.error("operation = getRepresentatives, result = FAILURE");
+            throw new CustomException("DK_RR_CASE_ERR", "case not found");
+        }
+    }
+
+    public JsonNode getRepresentatives(JsonNode caseRes) {
+
+        log.info("operation = getRepresentatives, result = IN_PROGRESS");
+
+        if (caseRes != null && caseRes.isArray() && !caseRes.isEmpty()) {
+            log.info("operation = getRepresentatives, result = SUCCESS");
+            return caseRes.get(0).get("representatives");
         } else {
             log.error("operation = getRepresentatives, result = FAILURE");
             throw new CustomException("DK_RR_CASE_ERR", "case not found");
@@ -99,14 +127,46 @@ public class CaseUtil {
         Set<String> response = new HashSet<>();
         if (nodeArray != null && nodeArray.isArray()) {
             for (JsonNode node : nodeArray) {
-                JsonNode id = node.get("id");
+                JsonNode id = node.get("advocateId");
+                if (id != null) {
+                    response.add(String.valueOf(id.asText()));
+                }
+            }
+        }
+        log.info("operation = getIdsFromJsonNodeArray, result = SUCCESS");
+        return response;
+    }
+
+    public Set<String> getIndividualIds(JsonNode nodeArray) {
+        log.info("operation = getIndividualIds, result = IN_PROGRESS");
+        Set<String> response = new HashSet<>();
+        if (nodeArray != null && nodeArray.isArray()) {
+            for (JsonNode node : nodeArray) {
+                JsonNode id = node.get("individualId");
                 if (id != null) {
                     response.add(String.valueOf(id.asText()));
                 }
 
             }
         }
-        log.info("operation = getIdsFromJsonNodeArray, result = SUCCESS");
+        log.info("operation = getIndividualIds, result = SUCCESS");
         return response;
+    }
+
+    public Set<String> getLitigantsFromRepresentatives(Set<String> litigants, JsonNode representatives) {
+        log.info("operation = getLitigantsFromRepresentatives, result = IN_PROGRESS");
+        if (representatives != null && representatives.isArray()) {
+            for (JsonNode node : representatives) {
+                JsonNode representing = node.get("representing");
+                for(JsonNode node1 : representing){
+                    JsonNode individualId = node1.get("individualId");
+                    if(litigants.contains(individualId.asText())){
+                        litigants.remove(individualId.asText());
+                    }
+                }
+            }
+        }
+        log.info("operation = getLitigantsFromRepresentatives, result = SUCCESS");
+        return litigants;
     }
 }

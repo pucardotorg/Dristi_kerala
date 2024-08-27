@@ -5,6 +5,7 @@ import { useHistory } from "react-router-dom";
 import useSearchCaseService from "../../../hooks/dristi/useSearchCaseService";
 import { useToast } from "../../../components/Toast/useToast";
 import { DRISTIService } from "../../../services";
+import { Urls } from "../../../hooks";
 
 const paymentOption = [
   {
@@ -102,7 +103,6 @@ const ViewPaymentDetails = ({ location, match }) => {
     }
   }, [caseDetails]);
 
-  
   const { data: calculationResponse, isLoading: isPaymentLoading } = Digit.Hooks.dristi.usePaymentCalculator(
     {
       EFillingCalculationCriteria: [
@@ -180,7 +180,7 @@ const ViewPaymentDetails = ({ location, match }) => {
         Payment: {
           paymentDetails: [
             {
-              businessService: "case",
+              businessService: "case-default",
               billId: billFetched.id,
               totalDue: billFetched.totalAmount,
               totalAmountPaid: billFetched.totalAmount,
@@ -194,6 +194,20 @@ const ViewPaymentDetails = ({ location, match }) => {
           totalAmountPaid: totalAmount,
           instrumentNumber: additionDetails,
           instrumentDate: new Date().getTime(),
+        },
+      });
+      await DRISTIService.customApiService(Urls.dristi.pendingTask, {
+        pendingTask: {
+          name: "Pending Payment",
+          entityType: "case",
+          referenceId: `MANUAL_${caseDetails?.filingNumber}`,
+          status: "PAYMENT_PENDING",
+          cnrNumber: null,
+          filingNumber: caseDetails?.filingNumber,
+          isCompleted: true,
+          stateSla: null,
+          additionalDetails: {},
+          tenantId,
         },
       });
       history.push(`/${window?.contextPath}/employee/dristi/pending-payment-inbox/response`, {
@@ -221,12 +235,15 @@ const ViewPaymentDetails = ({ location, match }) => {
             showTable: true,
             showCopytext: true,
           },
+          amount: totalAmount,
           fileStoreId: "c162c182-103f-463e-99b6-18654ed7a5b1",
         },
       });
       setIsDisabled(false);
     } catch (err) {
-      history.push(`/${window?.contextPath}/employee/dristi/pending-payment-inbox/response`, { state: { success: false } });
+      history.push(`/${window?.contextPath}/employee/dristi/pending-payment-inbox/response`, {
+        state: { success: false, amount: totalAmount },
+      });
       setIsDisabled(false);
     }
   };

@@ -1,27 +1,31 @@
 const defaultSearchValues = {
   taskType: "",
-  status: "",
-  taskNumber: "",
+  searchText: "",
 };
 
 export const SummonsTabsConfig = {
   tenantId: "pg",
-  moduleName: "commonCampaignUiConfig",
+  moduleName: "reviewSummonWarrantNotice",
   showTab: true,
   SummonsTabsConfig: [
     {
       label: "Pending",
       type: "search",
       apiDetails: {
-        serviceName: "/task/v1/search",
+        serviceName: "/task/v1/table/search",
         requestParam: {
           tenantId: Digit.ULBService.getCurrentTenantId(),
+          limit: 10,
+          offset: 0,
         },
         requestBody: {
-          criteria: {},
+          apiOperation: "SEARCH",
+          criteria: {
+            completeStatus: ["ISSUESUMMON"], // have to do changes
+          },
         },
         masterName: "commonUiConfig",
-        moduleName: "SearchIndividualConfig",
+        moduleName: "reviewSummonWarrantNotice",
         minParametersForSearchForm: 0,
         tableFormJsonPath: "requestParam",
         filterFormJsonPath: "requestBody.criteria",
@@ -37,30 +41,50 @@ export const SummonsTabsConfig = {
             defaultValues: defaultSearchValues,
             fields: [
               {
+                type: "component",
+                component: "CustomSortComponent",
+                isMandatory: false,
+                disable: false,
+                name: "Issue Date",
+                key: "sortCaseListByDate",
+                sortBy: "createdDate",
+                showIcon: true,
+                icon: "UpDownArrowIcon",
+                populators: {},
+              },
+              {
                 label: "Order Type",
                 isMandatory: false,
-                key: "taskType",
+                key: "orderType",
                 type: "dropdown",
                 disable: false,
                 populators: {
-                  name: "taskType",
-                  options: ["Summon", "Warrant"],
+                  name: "orderType",
+                  options: ["SUMMONS", "WARRANT"],
                   optionsCustomStyle: {
                     overflowX: "hidden",
+                  },
+                  styles: {
+                    maxWidth: "200px",
+                    minWidth: "150px",
                   },
                 },
               },
               {
                 label: "E-Sign Status",
                 isMandatory: false,
-                key: "status",
+                key: "applicationStatus",
                 type: "dropdown",
                 disable: false,
                 populators: {
-                  name: "status",
-                  options: ["Signed", "Sign Pending"],
+                  name: "applicationStatus",
+                  options: ["SIGNED", "SIGN_PENDING"],
                   optionsCustomStyle: {
                     overflowX: "hidden",
+                  },
+                  styles: {
+                    maxWidth: "200px",
+                    minWidth: "150px",
                   },
                 },
               },
@@ -68,10 +92,10 @@ export const SummonsTabsConfig = {
                 label: "Seach E-process or Case ID",
                 isMandatory: false,
                 type: "text",
-                key: "taskNumber",
+                key: "searchText", // seach text
                 disable: false,
                 populators: {
-                  name: "taskNumber",
+                  name: "searchText",
                 },
               },
             ],
@@ -89,11 +113,12 @@ export const SummonsTabsConfig = {
               },
               {
                 label: "Status",
-                jsonPath: "status",
+                jsonPath: "documentStatus",
               },
               {
                 label: "Case Name & ID",
                 jsonPath: "filingNumber",
+                additionalCustomization: true,
               },
               {
                 label: "Order Type",
@@ -101,11 +126,13 @@ export const SummonsTabsConfig = {
               },
               {
                 label: "Delivery Channel",
-                jsonPath: "deliveryChannel",
+                jsonPath: "taskDetails",
+                additionalCustomization: true,
               },
               {
                 label: "Issued",
-                jsonPath: "issued",
+                jsonPath: "createdDate",
+                additionalCustomization: true,
               },
             ],
             enableColumnSort: true,
@@ -113,21 +140,26 @@ export const SummonsTabsConfig = {
           },
           show: true,
         },
+      },
+      additionalDetails: {
+        sortBy: "sortCaseListByDate",
       },
     },
     {
       label: "Sent",
       type: "search",
       apiDetails: {
-        serviceName: "/task/v1/search",
+        serviceName: "/task/v1/table/search",
         requestParam: {
           tenantId: Digit.ULBService.getCurrentTenantId(),
         },
         requestBody: {
-          criteria: {},
+          criteria: {
+            completeStatus: ["SUMMONSERVED", "COMPLETED"],
+          },
         },
         masterName: "commonUiConfig",
-        moduleName: "SearchIndividualConfig",
+        moduleName: "reviewSummonWarrantNotice",
         minParametersForSearchForm: 0,
         tableFormJsonPath: "requestParam",
         filterFormJsonPath: "requestBody.criteria",
@@ -143,30 +175,51 @@ export const SummonsTabsConfig = {
             defaultValues: defaultSearchValues,
             fields: [
               {
+                type: "component",
+                component: "CustomSortComponent",
+                isMandatory: false,
+                disable: false,
+                name: "Issue Date",
+                key: "sortCaseListByDate",
+                sortBy: "createdDate",
+                showIcon: true,
+                icon: "UpDownArrowIcon",
+                populators: {},
+              },
+              {
                 label: "Order Type",
                 isMandatory: false,
-                key: "taskType",
+                key: "orderType",
                 type: "dropdown",
                 disable: false,
                 populators: {
-                  name: "taskType",
-                  options: ["Summon", "Warrant"],
+                  name: "orderType",
+                  options: ["SUMMONS", "WARRANT"],
                   optionsCustomStyle: {
                     overflowX: "hidden",
+                  },
+                  styles: {
+                    maxWidth: "200px",
+                    minWidth: "150px",
                   },
                 },
               },
               {
-                label: "E-Sign Status",
+                label: "Summon Status",
                 isMandatory: false,
-                key: "status",
+                key: "applicationStatus",
                 type: "dropdown",
                 disable: false,
                 populators: {
+                  name: "applicationStatus",
                   name: "status",
-                  options: ["Signed", "Sign Pending"],
+                  options: ["DELIVERED", "NOT_DELIVERED"],
                   optionsCustomStyle: {
                     overflowX: "hidden",
+                  },
+                  styles: {
+                    maxWidth: "200px",
+                    minWidth: "150px",
                   },
                 },
               },
@@ -174,10 +227,10 @@ export const SummonsTabsConfig = {
                 label: "Seach E-process or Case ID",
                 isMandatory: false,
                 type: "text",
-                key: "taskNumber",
+                key: "searchText", // seach text
                 disable: false,
                 populators: {
-                  name: "taskNumber",
+                  name: "searchText",
                 },
               },
             ],
@@ -200,6 +253,7 @@ export const SummonsTabsConfig = {
               {
                 label: "Case Name & ID",
                 jsonPath: "filingNumber",
+                additionalCustomization: true,
               },
               {
                 label: "Order Type",
@@ -207,11 +261,13 @@ export const SummonsTabsConfig = {
               },
               {
                 label: "Delivery Channel",
-                jsonPath: "deliveryChannel",
+                jsonPath: "taskDetails",
+                additionalCustomization: true,
               },
               {
                 label: "Issued",
-                jsonPath: "issued",
+                jsonPath: "createdDate",
+                additionalCustomization: true,
               },
             ],
             enableColumnSort: true,
@@ -219,6 +275,9 @@ export const SummonsTabsConfig = {
           },
           show: true,
         },
+      },
+      additionalDetails: {
+        sortBy: "sortCaseListByDate",
       },
     },
   ],

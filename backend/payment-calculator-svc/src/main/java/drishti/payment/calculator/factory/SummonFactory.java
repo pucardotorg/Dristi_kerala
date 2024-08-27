@@ -19,7 +19,7 @@ public class SummonFactory {
     public SummonPayment getChannelById(String channelId) {
         try {
 
-            Field field = SummonChannelConstant.class.getField(channelId);
+            Field field = SummonChannelConstant.class.getField(channelId.toUpperCase());
             String clazzName = (String) field.get(null);
             Class<?> klass = Class.forName(clazzName);
 

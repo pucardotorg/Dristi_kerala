@@ -1,5 +1,6 @@
 package org.pucar.dristi.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,9 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 
@@ -33,22 +32,24 @@ public class EPostController {
         this.responseInfoFactory = responseInfoFactory;
     }
 
-    @RequestMapping(value = "epost/v1/_sendEPost", method = RequestMethod.POST)
-    public ResponseEntity<ChannelResponse> sendEPost(@RequestBody TaskRequest body){
+    @PostMapping("/epost/v1/_sendEPost")
+    public ResponseEntity<ChannelResponse> sendEPost(@RequestBody TaskRequest body) throws JsonProcessingException {
         ChannelMessage channelMessage = ePostService.sendEPost(body);
         ResponseInfo responseInfo = responseInfoFactory.createResponseInfoFromRequestInfo(body.getRequestInfo(), true);
         ChannelResponse channelResponse = ChannelResponse.builder().channelMessage(channelMessage).responseInfo(responseInfo).build();
         return new ResponseEntity<>(channelResponse, HttpStatus.OK);
     }
-    @RequestMapping(value = "epost/v1/_getEPost", method = RequestMethod.POST)
-    public ResponseEntity<EPostResponse> getEPost(@Parameter(in = ParameterIn.DEFAULT, description = "Hearing Details and Request Info", required = true, schema = @Schema()) @Valid @RequestBody EPostTrackerSearchRequest request) {
-        EPostResponse ePostResponse = ePostService.getEPost(request);
+    @PostMapping("/epost/v1/_getEPost")
+    public ResponseEntity<EPostResponse> getEPost(@Parameter(in = ParameterIn.DEFAULT, description = "Hearing Details and Request Info", required = true, schema = @Schema()) @Valid @RequestBody EPostTrackerSearchRequest request,
+                                                  @RequestParam(value = "limit", defaultValue = "10") int limit,
+                                                  @RequestParam(value = "offset", defaultValue = "0") int offset) {
+        EPostResponse ePostResponse = ePostService.getEPost(request,limit,offset);
         ResponseInfo responseInfo = responseInfoFactory.createResponseInfoFromRequestInfo(request.getRequestInfo(), true);
         ePostResponse.setResponseInfo(responseInfo);
         return new ResponseEntity<>(ePostResponse, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "epost/v1/_updateEPost", method = RequestMethod.POST)
+    @PostMapping("/epost/v1/_updateEPost")
     public ResponseEntity<EPostResponse> updateEPost(@RequestBody EPostRequest body){
         EPostTracker ePostTracker = ePostService.updateEPost(body);
         ResponseInfo responseInfo = responseInfoFactory.createResponseInfoFromRequestInfo(body.getRequestInfo(), true);

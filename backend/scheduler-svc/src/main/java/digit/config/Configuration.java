@@ -146,7 +146,34 @@ public class Configuration {
     @Value("${drishti.case.endpoint}")
     private String caseEndpoint;
 
-
     @Value("${drishti.opt-out.selection.limit}")
     private Long optOutLimit;
+
+    @Value("${drishti.analytics.host}")
+    private String analyticsHost;
+
+    @Value("${drishti.analytics.endpoint}")
+    private String analyticsEndpoint;
+
+    //Hearing config
+    @Value("${dristhi.hearing.host}")
+    private String HearingHost;
+
+    @Value("${drishti.hearingupdate.endpoint}")
+    private String HearingUpdateEndPoint;
+
+    @Value("${drishti.hearing.search.endpoint}")
+    private String hearingSearchEndPoint;
+
+    @Value("${app.zone.id}")
+    private String zoneId;
+
+    @Value("${drishti.judge.pending.due.days}")
+    private Long judgePendingSla;
+
+    @Value("${egov.advocate.host}")
+    private String advocateHost;
+
+    @Value("${egov.advocate.path}")
+    private String advocatePath;
 }

@@ -20,7 +20,7 @@ const ProjectBreadCrumb = ({ location }) => {
       show: true,
     },
     {
-      path: `/${window?.contextPath}/employee`,
+      path: `/${window?.contextPath}/${userType}`,
       content: t(location.pathname.split("/").pop()),
       show: true,
     },
@@ -31,12 +31,12 @@ const ProjectBreadCrumb = ({ location }) => {
 const App = ({ path, stateCode, userType, tenants }) => {
   return (
     <Switch>
-      <AppContainer className="ground-container">
+      <AppContainer className="ground-container submission-main">
         <React.Fragment>
           <ProjectBreadCrumb location={window.location} />
         </React.Fragment>
         <PrivateRoute path={`${path}/submissions-response`} component={() => <SubmissionsResponse></SubmissionsResponse>} />
-        <PrivateRoute path={`${path}/submissions-create`} component={() => <SubmissionsCreate />} />
+        <PrivateRoute path={`${path}/submissions-create`} component={() => <SubmissionsCreate path={path} />} />
         <PrivateRoute path={`${path}/submissions-search`} component={() => <SubmissionsSearch></SubmissionsSearch>} />
       </AppContainer>
     </Switch>

@@ -2,9 +2,7 @@ package digit.enrichment;
 
 import digit.config.Configuration;
 import digit.util.IdgenUtil;
-import digit.web.models.SummonsDelivery;
-import digit.web.models.Task;
-import digit.web.models.TaskDetails;
+import digit.web.models.*;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.common.contract.models.AuditDetails;
 import org.egov.common.contract.request.RequestInfo;
@@ -35,7 +33,7 @@ public class SummonsDeliveryEnrichment {
         return SummonsDelivery.builder()
                 .summonDeliveryId(id)
                 .taskNumber(task.getTaskNumber())
-                .caseId(taskDetails.getCaseDetails().getCaseId())
+                .caseId(task.getCnrNumber())
                 .tenantId(config.getEgovStateTenantId())
                 .docType(taskDetails.getSummonDetails().getDocType())
                 .docSubType(taskDetails.getSummonDetails().getDocSubType())
@@ -43,10 +41,10 @@ public class SummonsDeliveryEnrichment {
                 .paymentFees(taskDetails.getDeliveryChannel().getPaymentFees())
                 .paymentStatus(taskDetails.getDeliveryChannel().getPaymentStatus())
                 .paymentTransactionId(taskDetails.getDeliveryChannel().getPaymentTransactionId())
-                .channelName(taskDetails.getDeliveryChannel().getChannelName())
+                .channelName(ChannelName.fromString(taskDetails.getDeliveryChannel().getChannelName()))
                 .deliveryRequestDate(LocalDate.now().toString())
                 .auditDetails(auditDetails)
-                .deliveryStatus("DELIVERY_NOT_STARTED")
+                .deliveryStatus(DeliveryStatus.NOT_UPDATED)
                 .rowVersion(1)
                 .build();
     }

@@ -1,8 +1,8 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import SignatureCard from "./SignatureCard";
 import { DRISTIService } from "../services";
-import { useLocation } from "react-router-dom/cjs/react-router-dom.min";
 import isEqual from "lodash/isEqual";
+import { getFilestoreId } from "../Utils/fileStoreUtil";
 
 function SelectSignature({ t, config, onSelect, formData = {}, errors }) {
   const inputs = useMemo(
@@ -53,6 +53,8 @@ function SelectSignature({ t, config, onSelect, formData = {}, errors }) {
       localStorage.removeItem("formdata");
     }
   }, [isSignSuccess, formData]);
+  const filestoreId = getFilestoreId();
+  const EsignFileStoreID = localStorage.getItem("fileStoreId");
   const handleAadharClick = async (data, name) => {
     try {
       localStorage.setItem("signStatus", JSON.stringify({ [config.key]: { [name]: [true] } }));
@@ -62,7 +64,7 @@ function SelectSignature({ t, config, onSelect, formData = {}, errors }) {
           uidToken: "3456565",
           consent: "6564",
           authType: "6546",
-          fileStoreId: "0cdd01bf-5c6c-43de-86df-48406ce4f5a8",
+          fileStoreId: EsignFileStoreID ? EsignFileStoreID : "4824356d-e582-48bc-8929-c53a1bdb2bf1",
           tenantId: "kl",
           pageModule: "ci",
         },
@@ -120,6 +122,7 @@ function SelectSignature({ t, config, onSelect, formData = {}, errors }) {
                 formData={formData}
                 onSelect={onSelect}
                 configKey={config.key}
+                handleAadharClick={handleAadharClick}
               />
             ))}
           </div>

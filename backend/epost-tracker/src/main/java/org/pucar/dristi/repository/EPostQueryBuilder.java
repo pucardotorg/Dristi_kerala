@@ -13,11 +13,17 @@ import java.util.List;
 @Slf4j
 public class EPostQueryBuilder {
 
-    private final String BASE_APPLICATION_QUERY = "SELECT process_number, tenant_id, file_store_id, task_number, tracking_number, pincode, address, delivery_status, remarks, additional_details, row_version, booking_date, received_date, createdBy, lastModifiedBy, createdTime, lastModifiedTime ";
+    private static final String BASE_APPLICATION_QUERY = "SELECT process_number, tenant_id, file_store_id, task_number, tracking_number, pincode, address, delivery_status, remarks, additional_details, row_version, booking_date, received_date, createdBy, lastModifiedBy, createdTime, lastModifiedTime ";
 
     private static final String FROM_TABLES = " FROM dristi_epost_tracker ";
 
-    private final String LIMIT_OFFSET = " LIMIT ? OFFSET ?";
+    private static final String ORDER_BY_CLAUSE = " ORDER BY {sortBy} ";
+
+    private static final String DEFAULT_ORDER_BY_CLAUSE = " ORDER BY createdtime ";
+
+    private static final String DEFAULT_SORTING_ORDER = "DESC";
+
+    private static final String LIMIT_OFFSET = " LIMIT ? OFFSET ?";
 
     private  static  final String TOTAL_COUNT_QUERY = "SELECT COUNT(*) FROM ({baseQuery}) total_result";
 
@@ -61,9 +67,21 @@ public class EPostQueryBuilder {
         return TOTAL_COUNT_QUERY.replace("{baseQuery}", baseQuery);
     }
 
-    public String addPaginationQuery(String query, List<Object> preparedStmtList, Pagination pagination) {
-        preparedStmtList.add(pagination.getLimit());
-        preparedStmtList.add(pagination.getOffSet());
+    public String addPaginationQuery(String query, List<Object> preparedStmtList, Pagination pagination,int limit,int offset) {
+        if (pagination != null && !ObjectUtils.isEmpty(pagination.getSortBy())) {
+            query += ORDER_BY_CLAUSE.replace("{sortBy}", pagination.getSortBy().name());
+        } else {
+            query += DEFAULT_ORDER_BY_CLAUSE;
+        }
+
+        if (pagination != null && !ObjectUtils.isEmpty(pagination.getOrderBy())) {
+            query += pagination.getOrderBy().name();
+        } else {
+            query += DEFAULT_SORTING_ORDER;
+        }
+
+        preparedStmtList.add(limit);
+        preparedStmtList.add(offset);
         return query + LIMIT_OFFSET;
     }
 
@@ -87,8 +105,6 @@ public class EPostQueryBuilder {
     }
 
     private void addToPreparedStatement(List<Object> preparedStmtList, List<String> ids) {
-        ids.forEach(id -> {
-            preparedStmtList.add(id);
-        });
+        preparedStmtList.addAll(ids);
     }
 }

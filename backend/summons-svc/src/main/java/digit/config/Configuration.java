@@ -32,11 +32,11 @@ public class Configuration {
     @Value("${summons.pdf.template.key}")
     private String summonsPdfTemplateKey;
 
-    @Value("${warrant.pdf.template.key}")
-    private String warrantPdfTemplateKey;
+    @Value("${non.bailable.warrant.pdf.template.key}")
+    private String nonBailableWarrantPdfTemplateKey;
 
-    @Value("${bail.pdf.template.key}")
-    private String bailPdfTemplateKey;
+    @Value("${bailable.warrant.pdf.template.key}")
+    private String bailableWarrantPdfTemplateKey;
 
     //MDMS
     @Value("${egov.mdms.host}")
@@ -72,6 +72,9 @@ public class Configuration {
 
     @Value("${egov.task.service.update.endpoint}")
     private String taskServiceUpdateEndpoint;
+
+    @Value("${egov.task.service.update.document.endpoint}")
+    private String taskServiceUpdateDocumentEndpoint;
 
     // ICops
 
@@ -125,4 +128,24 @@ public class Configuration {
 
     @Value("${payment.calculator.calculate.endpoint}")
     private String paymentCalculatorCalculateEndpoint;
+
+    @Value(("${kafka.topic.save.task.application}"))
+    private String saveTaskApplicationTopic;
+
+    @Value("${kafka.topic.insert.summons}")
+    private String insertSummonsTopic;
+
+    @Value("${kafka.topic.update.summons}")
+    private String updateSummonsTopic;
+
+    @Value("${kafka.topic.issue.summons.application}")
+    private String issueSummonsTopic;
+
+    // EPost
+
+    @Value("${egov.epost.host}")
+    private String ePostHost;
+
+    @Value("${egov.epost.request.endpoint}")
+    private String ePostRequestEndPoint;
 }

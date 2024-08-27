@@ -1,7 +1,10 @@
 package org.pucar.dristi.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.egov.common.contract.models.AuditDetails;
 import org.egov.common.contract.request.RequestInfo;
+import org.egov.tracer.model.CustomException;
 import org.pucar.dristi.config.EPostConfiguration;
 import org.pucar.dristi.model.*;
 import org.pucar.dristi.repository.EPostRepository;
@@ -12,6 +15,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static org.pucar.dristi.config.ServiceConstants.EPOST_TRACKER_ERROR;
+import static org.pucar.dristi.config.ServiceConstants.INVALID_EPOST_TRACKER_FIELD;
+
 @Component
 public class EpostUtil {
 
@@ -21,14 +27,17 @@ public class EpostUtil {
 
     private final EPostRepository ePostRepository;
 
+    private final ObjectMapper objectMapper;
+
     @Autowired
-    public EpostUtil(IdgenUtil idgenUtil, EPostConfiguration config, EPostRepository ePostRepository) {
+    public EpostUtil(IdgenUtil idgenUtil, EPostConfiguration config, EPostRepository ePostRepository, ObjectMapper objectMapper) {
         this.idgenUtil = idgenUtil;
         this.config = config;
         this.ePostRepository = ePostRepository;
+        this.objectMapper = objectMapper;
     }
 
-    public EPostTracker createPostTrackerBody(TaskRequest request) {
+    public EPostTracker createPostTrackerBody(TaskRequest request) throws JsonProcessingException {
         String processNumber = idgenUtil.getIdList(request.getRequestInfo(), config.getEgovStateTenantId(),
                 config.getIdName(),null,1).get(0);
         String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -38,8 +47,8 @@ public class EpostUtil {
                 .tenantId(config.getEgovStateTenantId())
                 .taskNumber(request.getTask().getTaskNumber())
                 .fileStoreId(request.getTask().getDocuments().get(0).getFileStore())
-                .address(request.getTask().getTaskDetails().getRespondentDetails().getAddress())
-                .pinCode(request.getTask().getTaskDetails().getRespondentDetails().getPinCode())
+                .address(request.getTask().getTaskDetails().getRespondentDetails().getAddress().toString())
+                .pinCode(request.getTask().getTaskDetails().getRespondentDetails().getAddress().getPinCode())
                 .deliveryStatus(DeliveryStatus.NOT_UPDATED)
                 .additionalDetails(request.getTask().getAdditionalDetails())
                 .rowVersion(0)
@@ -49,12 +58,12 @@ public class EpostUtil {
     }
 
     public EPostTracker updateEPostTracker(EPostRequest ePostRequest) {
-        Pagination pagination = Pagination.builder().limit(5).offSet(0).build();
+        Pagination pagination = Pagination.builder().build();
         EPostTrackerSearchCriteria searchCriteria = EPostTrackerSearchCriteria.builder()
                 .processNumber(ePostRequest.getEPostTracker().getProcessNumber()).pagination(pagination).build();
-        List<EPostTracker> ePostTrackers = ePostRepository.getEPostTrackerList(searchCriteria);
+        List<EPostTracker> ePostTrackers = ePostRepository.getEPostTrackerList(searchCriteria,5,0);
         if (ePostTrackers.size() != 1) {
-            throw new RuntimeException("Invalid EPost Tracker field with processNumber : " + ePostRequest.getEPostTracker().getProcessNumber());
+            throw new CustomException(EPOST_TRACKER_ERROR,INVALID_EPOST_TRACKER_FIELD + ePostRequest.getEPostTracker().getProcessNumber());
         }
         EPostTracker ePostTracker = ePostTrackers.get(0);
 
