@@ -238,7 +238,7 @@ const Registration = ({ stateCode }) => {
     };
     setNewParams({ ...newParams, indentity: identityObj });
 
-    Digit.SessionStorage.set("UploadedDocument", { filedata: fileUploadRes?.data, IdType, filename });
+    localStorage.setItem("UploadedDocument", { filedata: fileUploadRes?.data, IdType, filename });
     Digit.SessionStorage.del("aadharNumber");
     history.replace(`${path}/user-type`);
   };
