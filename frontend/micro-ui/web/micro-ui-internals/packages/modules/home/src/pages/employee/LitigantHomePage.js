@@ -442,7 +442,7 @@ const containerJoinFileCaseStyle = {
   border: "1px solid #e8e8e8",
   borderRadius: "8px",
 };
-const LitigantHomePage = () => {
+const LitigantHomePage = ({ isApprovalPending }) => {
   const userName = Digit.SessionStorage.get("User");
   const { t } = useTranslation();
   const today = new Date();
@@ -454,12 +454,15 @@ const LitigantHomePage = () => {
     SetCallRefetch(true);
     history.push(`/${window?.contextPath}/${userType}/home/home-pending-task`);
   };
+  if (isApprovalPending) {
+    history.push(`/${window?.contextPath}/${userType}/dristi/home`);
+  }
   return (
     <div className="upcoming-hearing-container" style={{ width: "100%", padding: 40 }}>
-      <div className="header">
+      <div className="header" style={{ fontSize: "30px" }}>
         {curHr < 12 ? "Good Morning" : curHr < 18 ? "Good Afternoon" : "Good Evening"}, <span className="userName">{userName?.info?.name}</span>
       </div>
-      <div className="header sub-text" style={{ marginTop: "40px" }}>
+      <div className="header sub-text" style={{ marginTop: "40px", fontSize: "30px" }}>
         {t("What are you planning to do today?")}
       </div>
       <div
@@ -488,7 +491,9 @@ const LitigantHomePage = () => {
           >
             <FileNewCaseIcon />
             <React.Fragment>
-              <span className="header userName">{t("CS_JOIN_NEW_CASE")}</span>
+              <span className="header userName" style={{ fontSize: "30px" }}>
+                {t("CS_JOIN_NEW_CASE")}
+              </span>
               <span className="subtext" style={subtextStyle}>
                 {t("CS_JOIN_NEW_CASE_SUBTEXT_1")}
               </span>
@@ -522,12 +527,11 @@ const LitigantHomePage = () => {
           >
             <JoinOngoingCaseIcon />
             <React.Fragment>
-              <span className="header userName">{t("CS_JOIN_ONGOING_CASE")}</span>
-              <span className="subtext" style={subtextStyle}>
-                {t("CS_JOIN_ONGOING_CASE_SUBTEXT_1")}
+              <span className="header userName" style={{ fontSize: "30px" }}>
+                {t("CS_JOIN_ONGOING_CASE")}
               </span>
               <span className="subtext" style={subtextStyle}>
-                {t("CS_JOIN_ONGOING_CASE_SUBTEXT_2")}
+                {t("CS_JOIN_ONGOING_CASE_SUBTEXT_1")}
               </span>
             </React.Fragment>
             <JoinCaseHome refreshInbox={refreshInbox} t={t} />

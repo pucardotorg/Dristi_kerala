@@ -73,9 +73,6 @@ public class CaseService {
 
             workflowService.updateWorkflowStatus(body);
 
-            if(config.getIsSMSEnabled()) {
-                notificationService.sendNotification(body, null);
-            }
 
             producer.push(config.getCaseCreateTopic(), body);
             return body.getCases();
@@ -117,9 +114,6 @@ public class CaseService {
             String statusBefore = caseRequest.getCases().getStatus();
             workflowService.updateWorkflowStatus(caseRequest);
 
-//            if (CREATE_DEMAND_STATUS.equals(caseRequest.getCases().getStatus())) {
-//                billingUtil.createDemand(caseRequest);
-//            }
             if (CASE_ADMIT_STATUS.equals(caseRequest.getCases().getStatus())) {
                 enrichmentUtil.enrichAccessCode(caseRequest);
                 enrichmentUtil.enrichCaseNumberAndCNRNumber(caseRequest);
@@ -127,7 +121,11 @@ public class CaseService {
             }
 
             if(config.getIsSMSEnabled()) {
-                notificationService.sendNotification(caseRequest, statusBefore);
+                String notificationStatus = getNotificationStatus(caseRequest.getCases().getWorkflow().getAction(),statusBefore);
+                if(notificationStatus != null) {
+                    notificationService.sendNotification(caseRequest.getRequestInfo(), caseRequest.getCases(), notificationStatus, caseRequest.getCases().getAuditdetails().getCreatedBy());
+                }
+
             }
 
             producer.push(config.getCaseUpdateTopic(), caseRequest);
@@ -141,6 +139,29 @@ public class CaseService {
             throw new CustomException(UPDATE_CASE_ERR, "Exception occurred while updating case: " + e.getMessage());
         }
 
+    }
+
+    private String getNotificationStatus(String action, String statusBefore) {
+        return switch (action.toUpperCase()) {
+            case "SUBMIT_CASE" -> CASE_SUBMISSION;
+            case "MAKE_PAYMENT" -> CASE_FILED;
+            case "VALIDATE" -> SCRUTINY_COMPLETE_CASE_REGISTERED;
+            case "SEND_BACK" -> {
+                if (statusBefore == null) {
+                    yield null;
+                } else {
+                    yield switch (statusBefore) {
+                        case "UNDER_SCRUTINY" ->  EFILING_ERRORS;
+                        case "PENDING_ADMISSION" -> ERRORS_IDENTIFIED_CASE_FILE;
+                        default -> null;
+                    };
+                }
+            }
+            case "SCHEDULE_ADMISSION_HEARING" -> ADMISSION_HEARING_SCHEDULED;
+            case "ADMIT" -> CASE_ADMITTED;
+            case "REJECT" -> HEARING_REJECTED;
+            default -> null;
+        };
     }
 
     public List<CaseExists> existCases(CaseExistsRequest caseExistsRequest) {

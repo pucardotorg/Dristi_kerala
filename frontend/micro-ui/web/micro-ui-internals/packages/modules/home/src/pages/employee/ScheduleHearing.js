@@ -172,15 +172,16 @@ function ScheduleHearing({
   };
 
   const fetchBasicUserInfo = async () => {
+    const userInfo = JSON.parse(window.localStorage.getItem("user-info"));
     const individualData = await window?.Digit.DRISTIService.searchIndividualUser(
       {
         Individual: {
-          userUuid: [caseDetails?.auditDetails?.createdBy],
+          userUuid: [userInfo?.uuid],
         },
       },
       { tenantId, limit: 1000, offset: 0 },
       "",
-      caseDetails?.auditDetails?.createdBy
+      userInfo
     );
     return individualData?.Individual?.[0];
   };
@@ -324,7 +325,7 @@ function ScheduleHearing({
   };
 
   const handleClose = () => {
-    history.push(`/${window?.contextPath}/${userInfoType}/home/home-pending-task`, { taskType: { code: "case", name: "Case" } });
+    history.push(`/${window?.contextPath}/${userInfoType}/home/home-pending-task`, { taskType: { code: "case-default", name: "Case" } });
   };
 
   const handleSubmit = async (data) => {
@@ -374,7 +375,7 @@ function ScheduleHearing({
           await HomeService.customApiService(Urls.pendingTask, {
             pendingTask: {
               name: "Schedule Hearing",
-              entityType: "case",
+              entityType: "case-default",
               referenceId: `MANUAL_${caseDetails?.filingNumber}`,
               status: "SCHEDULE_HEARING",
               assignedTo: [],
@@ -415,7 +416,7 @@ function ScheduleHearing({
           await HomeService.customApiService(Urls.pendingTask, {
             pendingTask: {
               name: "Completed",
-              entityType: "order-managelifecycle",
+              entityType: "order-default",
               referenceId: `MANUAL_${individualId?.userUuid}_${applicationData?.applicationList[0]?.additionalDetails?.hearingId}`,
               status: "DRAFT_IN_PROGRESS",
               assignedTo: [],
@@ -556,6 +557,7 @@ function ScheduleHearing({
             <CustomCalendar
               config={customDateConfig}
               t={t}
+              minDate={new Date()}
               onCalendarConfirm={onCalendarConfirm}
               handleSelect={handleSelect}
               selectedCustomDate={selectedCustomDate}

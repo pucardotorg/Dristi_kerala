@@ -3,8 +3,12 @@ package digit.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import digit.config.Configuration;
 import digit.repository.ServiceRequestRepository;
+import digit.util.MdmsUtil;
+import digit.util.TaskUtil;
 import digit.web.models.*;
 import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.JSONArray;
+import org.egov.common.contract.models.Workflow;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +18,9 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+
+import static digit.config.ServiceConstants.*;
 
 @Service
 @Slf4j
@@ -28,18 +32,31 @@ public class DemandService {
 
     private final ServiceRequestRepository repository;
 
+    private final MdmsUtil mdmsUtil;
+
+    private final TaskUtil taskUtil;
+
     @Autowired
-    public DemandService(Configuration config, ObjectMapper mapper, ServiceRequestRepository repository) {
+    public DemandService(Configuration config, ObjectMapper mapper, ServiceRequestRepository repository, MdmsUtil mdmsUtil, TaskUtil taskUtil) {
         this.config = config;
         this.mapper = mapper;
         this.repository = repository;
+        this.mdmsUtil = mdmsUtil;
+        this.taskUtil = taskUtil;
     }
 
     public BillResponse fetchPaymentDetailsAndGenerateDemandAndBill(TaskRequest taskRequest) {
         Task task = taskRequest.getTask();
-        List<Calculation> calculationList = generatePaymentDetails(taskRequest.getRequestInfo(), task);
-        generateDemands(taskRequest.getRequestInfo(), calculationList, task);
-        return getBill(taskRequest.getRequestInfo(), task);
+        String channelName = taskRequest.getTask().getTaskDetails().getDeliveryChannel().getChannelName();
+        if(channelName.equalsIgnoreCase("POST")) {
+            List<Calculation> calculationList = generatePaymentDetails(taskRequest.getRequestInfo(), task);
+            generateDemands(taskRequest.getRequestInfo(), calculationList, task);
+            return getBill(taskRequest.getRequestInfo(), task);
+        }
+        else {
+            updateTaskStatus(taskRequest);
+            return null;
+        }
     }
 
     public List<Calculation> generatePaymentDetails(RequestInfo requestInfo, Task task) {
@@ -64,35 +81,63 @@ public class DemandService {
 
     public List<Demand> generateDemands(RequestInfo requestInfo, List<Calculation> calculations, Task task) {
         List<Demand> demands = new ArrayList<>();
-
+        List<DemandDetail> demandDetailList = new ArrayList<>();
+        Map<String, Map<String, JSONArray>> mdmsData = mdmsUtil.fetchMdmsData(requestInfo,config.getEgovStateTenantId(),config.getPaymentBusinessServiceNmae(),createMasterDetails());
         for (Calculation calculation : calculations) {
-            DemandDetail demandDetail = DemandDetail.builder()
-                    .tenantId(calculation.getTenantId())
-                    //.taxAmount(BigDecimal.valueOf(calculation.getTotalAmount()))
-                    .taxAmount(BigDecimal.valueOf(4))
-                    .taxHeadMasterCode(config.getTaskTaxHeadMasterCode()).build();
+            if (config.isTest()) {
+                DemandDetail demandDetail = DemandDetail.builder()
+                        .tenantId(calculation.getTenantId())
+//.taxAmount(BigDecimal.valueOf(calculation.getTotalAmount()))
+                        .taxAmount(BigDecimal.valueOf(4))
+                        .taxHeadMasterCode(config.getTaskTaxHeadMasterCode()).build();
+            } else {
+                Map<String,String> masterCodes = getTaxHeadMasterCodes(mdmsData,config.getTaskBusinessService());
+                for (BreakDown breakDown : calculation.getBreakDown()) {
+                    DemandDetail detail = DemandDetail.builder()
+                            .tenantId(calculation.getTenantId())
+                            .taxAmount(BigDecimal.valueOf(breakDown.getAmount()))
+                            .taxHeadMasterCode(masterCodes.get(breakDown.getType())).build();
+                    demandDetailList.add(detail);
+                }
+            }
 
-            //TODO- should create separate demand details based on break down
             Demand demand = Demand.builder()
                     .tenantId(calculation.getTenantId())
                     .consumerCode(task.getTaskNumber())
                     .consumerType(config.getTaxConsumerType())
                     .businessService(config.getTaskModuleCode())
                     .taxPeriodFrom(config.getTaxPeriodFrom()).taxPeriodTo(config.getTaxPeriodTo())
-                    .demandDetails(Collections.singletonList(demandDetail))
+                    .demandDetails(demandDetailList)
                     .build();
-
             demands.add(demand);
         }
         StringBuilder url = new StringBuilder().append(config.getBillingServiceHost())
                 .append(config.getDemandCreateEndpoint());
-
         DemandRequest demandRequest = DemandRequest.builder().requestInfo(requestInfo).demands(demands).build();
-
         Object response = repository.fetchResult(url, demandRequest);
-
         DemandResponse demandResponse = mapper.convertValue(response, DemandResponse.class);
         return demandResponse.getDemands();
+    }
+
+    private Map<String, String> getTaxHeadMasterCodes(Map<String, Map<String, JSONArray>> mdmsData, String taskBusinessService) {
+        if (mdmsData != null && mdmsData.containsKey("payment") && mdmsData.get(config.getPaymentBusinessServiceNmae()).containsKey(PAYMENTMASTERCODE)) {
+            JSONArray masterCode = mdmsData.get(config.getPaymentBusinessServiceNmae()).get(PAYMENTMASTERCODE);
+            Map<String, String> result = new HashMap<>();
+            for (Object masterCodeObj : masterCode) {
+                Map<String, String> subType = (Map<String, String>) masterCodeObj;
+                if (taskBusinessService.equals(subType.get("businessService"))) {
+                    result.put(subType.get("type"), subType.get("masterCode"));
+                }
+            }
+            return result;
+        }
+        return Collections.emptyMap();
+    }
+
+    private List<String> createMasterDetails() {
+        List<String> masterList = new ArrayList<>();
+        masterList.add(PAYMENTMASTERCODE);
+        return masterList;
     }
 
     public BillResponse getBill(RequestInfo requestInfo, Task task) {
@@ -119,5 +164,19 @@ public class DemandService {
             log.error("Error occurred when creating bill uri with search params", e);
             throw new CustomException("GENERATE_BILL_ERROR", "Error Occurred when  generating bill");
         }
+    }
+
+    public void updateTaskStatus(TaskRequest request) {
+
+        Task task = request.getTask();
+        Workflow workflow = null;
+        if (request.getTask().getStatus().equalsIgnoreCase("PAYMENT_PENDING")) {
+            workflow = Workflow.builder().action("MAKE PAYMENT").build();
+        }
+
+        task.setWorkflow(workflow);
+        TaskRequest taskRequest = TaskRequest.builder()
+                .requestInfo(request.getRequestInfo()).task(task).build();
+        taskUtil.callUpdateTask(taskRequest);
     }
 }

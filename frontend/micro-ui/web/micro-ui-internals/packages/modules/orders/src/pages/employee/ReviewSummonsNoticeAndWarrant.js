@@ -9,7 +9,8 @@ import AddSignatureComponent from "../../components/AddSignatureComponent";
 import CustomStepperSuccess from "../../components/CustomStepperSuccess";
 import UpdateDeliveryStatusComponent from "../../components/UpdateDeliveryStatusComponent";
 import { formatDate } from "../../utils";
-import { taskService } from "../../hooks/services";
+import { ordersService, taskService } from "../../hooks/services";
+import { Urls } from "../../hooks/services/Urls";
 
 const defaultSearchValues = {
   eprocess: "",
@@ -47,6 +48,10 @@ const ReviewSummonsNoticeAndWarrant = () => {
   const [reload, setReload] = useState(false);
   const [taskDetails, setTaskDetails] = useState({});
   const [tasksData, setTasksData] = useState(null);
+  const [selectedDelievery, setSelectedDelievery] = useState({});
+
+  const dayInMillisecond = 24 * 3600 * 1000;
+  const todayDate = new Date().getTime();
 
   const [tabData, setTabData] = useState(
     SummonsTabsConfig?.SummonsTabsConfig?.map((configItem, index) => ({ key: index, label: configItem.label, active: index === 0 ? true : false }))
@@ -54,6 +59,16 @@ const ReviewSummonsNoticeAndWarrant = () => {
 
   const handleOpen = (props) => {
     //change status to signed or unsigned
+  };
+
+  const handleDownload = () => {
+    const fileStoreId = rowData?.documents?.filter((data) => data?.documentType === "SIGNED")?.[0]?.fileStore;
+    const url = `${window.location.origin}${Urls.FileFetchById}?tenantId=${tenantId}&fileStoreId=${fileStoreId}`;
+    const link = document.createElement("a");
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const { data: fetchedTasksData, refetch } = Digit.Hooks.hearings.useGetTaskList(
@@ -74,12 +89,25 @@ const ReviewSummonsNoticeAndWarrant = () => {
     }
   }, [fetchedTasksData, tasksData]);
 
+  const { data: orderData } = Digit.Hooks.orders.useSearchOrdersService(
+    { tenantId, criteria: { id: tasksData?.list[0]?.orderId } },
+    { tenantId },
+    tasksData?.list[0]?.orderId,
+    Boolean(tasksData)
+  );
+
   const handleSubmitButtonDisable = (disable) => {
     console.log("disable :>> ", disable);
     setIsDisabled(disable);
   };
 
-  const handleClose = async () => {
+  const handleClose = () => {
+    localStorage.removeItem("SignedFileStoreID");
+    setShowActionModal(false);
+    setReload(!reload);
+  };
+
+  const handleSubmit = async () => {
     localStorage.removeItem("SignedFileStoreID");
     await refetch();
     if (tasksData) {
@@ -103,7 +131,7 @@ const ReviewSummonsNoticeAndWarrant = () => {
     }
   };
 
-  const handleUpdate = async () => {
+  const handleUpdateStatus = async () => {
     await refetch();
     if (tasksData) {
       try {
@@ -118,6 +146,24 @@ const ReviewSummonsNoticeAndWarrant = () => {
           },
         };
         const response = await taskService.updateTask(reqBody, { tenantId });
+        if (selectedDelievery?.key === "NOT_DELIVERED") {
+          ordersService.customApiService(Urls.orders.pendingTask, {
+            pendingTask: {
+              name: "Re-issue Summon",
+              entityType: "order-default",
+              referenceId: `MANUAL_${orderData?.list[0]?.hearingNumber}`,
+              status: "RE-ISSUE_SUMMON",
+              assignedTo: [],
+              assignedRole: ["JUDGE_ROLE"],
+              cnrNumber: tasksData?.list[0]?.cnrNumber,
+              filingNumber: tasksData?.list[0]?.filingNumber,
+              isCompleted: false,
+              stateSla: 3 * dayInMillisecond + todayDate,
+              additionalDetails: {},
+              tenantId,
+            },
+          });
+        }
         setShowActionModal(false);
         setReload(!reload);
       } catch (error) {
@@ -301,6 +347,7 @@ const ReviewSummonsNoticeAndWarrant = () => {
           modalBody: (
             <CustomStepperSuccess
               closeButtonAction={handleClose}
+              submitButtonAction={handleSubmit}
               t={t}
               submissionData={submissionData}
               documents={documents}
@@ -321,7 +368,7 @@ const ReviewSummonsNoticeAndWarrant = () => {
       modalBody: (
         <PrintAndSendDocumentComponent infos={infos} documents={documents?.filter((docs) => docs.documentType === "SIGNED")} links={links} t={t} />
       ),
-      actionSaveOnSubmit: handleClose,
+      actionSaveOnSubmit: handleSubmit,
     };
   }, [documents, infos, links, t]);
 
@@ -330,11 +377,21 @@ const ReviewSummonsNoticeAndWarrant = () => {
       handleClose: () => setShowActionModal(false),
       heading: { label: "Print & Send Documents" },
       actionSaveLabel: "Update Status",
+      actionCancelLabel: "View Document",
       isStepperModal: false,
       modalBody: (
-        <UpdateDeliveryStatusComponent infos={infos} links={links} t={t} handleSubmitButtonDisable={handleSubmitButtonDisable} rowData={rowData} />
+        <UpdateDeliveryStatusComponent
+          infos={infos}
+          links={links}
+          t={t}
+          handleSubmitButtonDisable={handleSubmitButtonDisable}
+          rowData={rowData}
+          selectedDelievery={selectedDelievery}
+          setSelectedDelievery={setSelectedDelievery}
+        />
       ),
-      actionSaveOnSubmit: handleUpdate,
+      actionSaveOnSubmit: handleUpdateStatus,
+      actionCancelOnSubmit: handleDownload,
       isDisabled: isDisabled,
     };
   }, [infos, isDisabled, links, t]);
@@ -342,6 +399,14 @@ const ReviewSummonsNoticeAndWarrant = () => {
   useEffect(() => {
     // if (rowData?.id) getTaskDocuments();
     if (rowData?.filingNumber) getHearingFromCaseId();
+    setSelectedDelievery(
+      rowData?.status === "SUMMONSERVED" || rowData?.status === "COMPLETED"
+        ? {
+            key: "DELIVERED",
+            value: "Delivered",
+          }
+        : {}
+    );
   }, [rowData]);
 
   const handleRowClick = (props) => {

@@ -13,10 +13,11 @@ import CustomInfo from "./components/CustomInfo";
 import SummonsOrderComponent from "./components/SummonsOrderComponent";
 import ReIssueSummonsModal from "./components/ReIssueSummonsModal";
 import PaymentForSummonModal from "./pages/employee/PaymentForSummonModal";
+import PaymentForSummonModalSMSAndEmail from "./pages/employee/PaymentForSummonModalSMSAndEmail";
 
 export const OrdersModule = ({ stateCode, userType, tenants }) => {
   const { path } = useRouteMatch();
-  const moduleCode = ["orders", "common", "workflow"];
+  const moduleCode = ["orders", "hearings", "common", "workflow"];
   const language = Digit.StoreData.getCurrentLanguage();
   const { isLoading } = Digit.Services.useStore({
     stateCode,
@@ -43,6 +44,7 @@ const componentsToRegister = {
   SummonsOrderComponent,
   ReIssueSummonsModal,
   PaymentForSummonModal,
+  PaymentForSummonModalSMSAndEmail,
 };
 
 export const initOrdersComponents = () => {

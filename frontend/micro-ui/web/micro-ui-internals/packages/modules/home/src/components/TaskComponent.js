@@ -46,7 +46,7 @@ const TasksComponent = ({ taskType, setTaskType, caseType, setCaseType, isLitiga
     },
     params: { tenantId },
     key: `${taskType?.code}-${filingNumber}`,
-    config: { enabled: Boolean(taskType.code && tenantId) },
+    config: { enabled: Boolean(taskType?.code && tenantId) },
   });
 
   useEffect(() => {
@@ -213,7 +213,7 @@ const TasksComponent = ({ taskType, setTaskType, caseType, setCaseType, isLitiga
         HomeService.customApiService(Urls.pendingTask, {
           pendingTask: {
             name: "Order Created",
-            entityType: "order-managelifecycle",
+            entityType: "order-default",
             referenceId: `MANUAL_${referenceId}`,
             status: "SAVE_DRAFT",
             assignedTo: [],
@@ -266,7 +266,7 @@ const TasksComponent = ({ taskType, setTaskType, caseType, setCaseType, isLitiga
           const actionName = data?.fields?.find((field) => field.key === "name")?.value;
           const referenceId = data?.fields?.find((field) => field.key === "referenceId")?.value;
           const entityType = data?.fields?.find((field) => field.key === "entityType")?.value;
-          const updateReferenceId = referenceId.split("_").pop();
+          const updateReferenceId = referenceId.split("_")[1];
           const defaultObj = { referenceId: updateReferenceId, ...caseDetail };
           const pendingTaskActions = selectTaskType?.[entityType || taskTypeCode];
           const isCustomFunction = Boolean(pendingTaskActions?.[status]?.customFunction);

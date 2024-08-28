@@ -10,6 +10,8 @@ import usePaymentProcess from "../../../../home/src/hooks/usePaymentProcess";
 import { DRISTIService } from "@egovernments/digit-ui-module-dristi/src/services";
 import { ordersService } from "../../hooks/services";
 import { Urls } from "../../hooks/services/Urls";
+import { useEffect } from "react";
+import { paymentType } from "../../utils/paymentType";
 
 const modeOptions = [
   { label: "E-Post (3-5 days)", value: "e-post" },
@@ -111,6 +113,7 @@ const PaymentForSummonModal = ({ path }) => {
   const history = useHistory();
   const { filingNumber, orderNumber } = Digit.Hooks.useQueryParams();
   const tenantId = Digit.ULBService.getCurrentTenantId();
+  const [caseId, setCaseId] = useState();
 
   const { data: caseData } = Digit.Hooks.dristi.useSearchCaseService(
     {
@@ -127,11 +130,30 @@ const PaymentForSummonModal = ({ path }) => {
     Boolean(filingNumber)
   );
 
+  useEffect(() => {
+    if (caseData) {
+      const id = caseData?.criteria?.[0]?.responseList?.[0]?.id;
+      if (id) {
+        console.log(id, "id");
+        setCaseId(id); // Set the caseId in state
+      } else {
+        console.error("caseId is undefined or not available");
+      }
+    }
+  }, [caseData]);
+
   const caseDetails = useMemo(() => {
     return caseData?.criteria?.[0]?.responseList?.[0];
   }, [caseData]);
 
-  console.log("caseData :>> ", caseData);
+  const onViewOrderClick = () => {
+    console.log(caseId, "caseID");
+    history.push(
+      `/${window.contextPath}/citizen/dristi/home/view-case?caseId=${caseData?.criteria?.[0]?.responseList?.[0]?.id}&filingNumber=${filingNumber}&tab=Orders`
+    );
+  };
+
+  console.log("caseData :>> ", caseData?.criteria?.[0]?.responseList?.[0]?.id);
   const todayDate = new Date().getTime();
   const dayInMillisecond = 24 * 3600 * 1000;
   const { data: orderData, isloading: isOrdersLoading } = Digit.Hooks.orders.useSearchOrdersService(
@@ -174,7 +196,7 @@ const PaymentForSummonModal = ({ path }) => {
 
     const tasksWithPostChannel = tasksWithMatchingOrderId.filter((task) => {
       try {
-        const taskDetails = task?.taskDetails;
+        const taskDetails = task?.taskDetails ? JSON.parse(task.taskDetails) : null;
         return taskDetails?.deliveryChannels?.channelName === "Post";
       } catch (error) {
         console.error("Error parsing taskDetails JSON:", error);
@@ -194,14 +216,14 @@ const PaymentForSummonModal = ({ path }) => {
   const { fetchBill, openPaymentPortal, paymentLoader, showPaymentModal, setShowPaymentModal, billPaymentStatus } = usePaymentProcess({
     tenantId,
     consumerCode: filteredTasks?.[0]?.taskNumber,
-    service: "task-summon",
+    service: paymentType.TASK_SUMMON,
     caseDetails,
     totalAmount: "4",
   });
 
   const { data: billResponse, isLoading: isBillLoading } = Digit.Hooks.dristi.useBillSearch(
     {},
-    { tenantId, consumerCode: filteredTasks?.[0]?.taskNumber, service: "task-summon" },
+    { tenantId, consumerCode: filteredTasks?.[0]?.taskNumber, service: paymentType.TASK_SUMMON },
     "dristi",
     Boolean(filteredTasks?.[0]?.taskNumber)
   );
@@ -215,13 +237,13 @@ const PaymentForSummonModal = ({ path }) => {
             {
               tenantId,
               consumerCode: filteredTasks?.[0]?.taskNumber,
-              consumerType: "task-summon",
-              businessService: "task-summon",
+              consumerType: paymentType.TASK_SUMMON,
+              businessService: paymentType.TASK_SUMMON,
               taxPeriodFrom: Date.now().toString(),
               taxPeriodTo: Date.now().toString(),
               demandDetails: [
                 {
-                  taxHeadMasterCode: "TASK_SUMMON_ADVANCE_CARRYFORWARD",
+                  taxHeadMasterCode: paymentType.TASK_SUMMON_ADVANCE_CARRYFORWARD,
                   taxAmount: 4,
                   collectionAmount: 0,
                 },
@@ -230,7 +252,7 @@ const PaymentForSummonModal = ({ path }) => {
           ],
         });
       }
-      const bill = await fetchBill(filteredTasks?.[0]?.taskNumber, tenantId, "task-summon");
+      const bill = await fetchBill(filteredTasks?.[0]?.taskNumber, tenantId, paymentType.TASK_SUMMON);
       if (bill?.Bill?.length) {
         const billPaymentStatus = await openPaymentPortal(bill);
         console.log(billPaymentStatus);
@@ -242,9 +264,9 @@ const PaymentForSummonModal = ({ path }) => {
             ordersService.customApiService(Urls.orders.pendingTask, {
               pendingTask: {
                 name: "Show Summon-Warrant Status",
-                entityType: "order-managelifecycle",
+                entityType: paymentType.ORDER_MANAGELIFECYCLE,
                 referenceId: hearingsData?.HearingList?.[0]?.hearingId,
-                status: `SUMMON_WARRANT_STATUS`,
+                status: paymentType.ORDER_MANAGELIFECYCLE,
                 assignedTo: [],
                 assignedRole: ["JUDGE_ROLE"],
                 cnrNumber: filteredTasks?.[0]?.cnrNumber,
@@ -260,9 +282,9 @@ const PaymentForSummonModal = ({ path }) => {
             ordersService.customApiService(Urls.orders.pendingTask, {
               pendingTask: {
                 name: `MAKE_PAYMENT_FOR_SUMMONS_POST`,
-                entityType: "async-order-submission-managelifecycle",
-                referenceId: `MANUAL_${orderNumber}`,
-                status: `PAYMENT_PENDING_POST`,
+                entityType: paymentType.ASYNC_ORDER_SUBMISSION_MANAGELIFECYCLE,
+                referenceId: `MANUAL_${orderNumber}_Post`,
+                status: paymentType.PAYMENT_PENDING_POST,
                 assignedTo: [],
                 assignedRole: [],
                 cnrNumber: filteredTasks?.[0]?.cnrNumber,
@@ -393,8 +415,8 @@ const PaymentForSummonModal = ({ path }) => {
   }, [hearingsData?.HearingList]);
 
   const links = useMemo(() => {
-    return [{ text: "View order", link: "" }];
-  }, []);
+    return [{ text: "View order", link: "", onClick: onViewOrderClick }];
+  }, [caseData]);
 
   const paymentForSummonModalConfig = useMemo(() => {
     return {

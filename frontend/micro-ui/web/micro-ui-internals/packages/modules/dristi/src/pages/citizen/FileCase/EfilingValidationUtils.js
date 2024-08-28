@@ -260,9 +260,7 @@ export const checkNameValidation = ({ formData, setValue, selected, reset, index
             let updatedValue = value
               .replace(/[^a-zA-Z\s]/g, "")
               .trimStart()
-              .replace(/ +/g, " ")
-              .toLowerCase()
-              .replace(/\b\w/g, (char) => char.toUpperCase());
+              .replace(/ +/g, " ");
             if (updatedValue !== oldValue) {
               const element = document.querySelector(`[name="${key}"]`);
               const start = element?.selectionStart;
@@ -292,9 +290,7 @@ export const checkNameValidation = ({ formData, setValue, selected, reset, index
             let updatedValue = value
               .replace(/[^a-zA-Z\s]/g, "")
               .trimStart()
-              .replace(/ +/g, " ")
-              .toLowerCase()
-              .replace(/\b\w/g, (char) => char.toUpperCase());
+              .replace(/ +/g, " ");
             if (updatedValue !== oldValue) {
               const element = document.querySelector(`[name="${key}"]`);
               const start = element?.selectionStart;
@@ -1107,6 +1103,7 @@ export const updateCaseDetails = async ({
   pageConfig,
   setFormDataValue,
   action = "SAVE_DRAFT",
+  fileStoreId,
   setErrorCaseDetails = () => {},
 }) => {
   const data = {};
@@ -1731,7 +1728,7 @@ export const updateCaseDetails = async ({
                     async (data) => {
                       const evidenceData = await DRISTIService.createEvidence({
                         artifact: {
-                          artifactType: "DOCUMENTARY",
+                          artifactType: "OTHER",
                           sourceType: "COMPLAINANT",
                           caseId: caseDetails?.id,
                           sourceID: individualId,
@@ -2010,6 +2007,7 @@ export const updateCaseDetails = async ({
         formdata: formdata,
         isCompleted: isCompleted === "PAGE_CHANGE" ? caseDetails.caseDetails?.[selected]?.isCompleted : isCompleted,
       },
+      ...(fileStoreId && { signedCaseDocument: fileStoreId }),
     };
   }
   const caseTitle =

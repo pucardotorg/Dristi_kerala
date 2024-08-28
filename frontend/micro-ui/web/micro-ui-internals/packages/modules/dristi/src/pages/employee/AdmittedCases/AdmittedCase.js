@@ -19,6 +19,7 @@ import ViewAllOrderDrafts from "./ViewAllOrderDrafts";
 import PublishedOrderModal from "./PublishedOrderModal";
 import ViewAllSubmissions from "./ViewAllSubmissions";
 import { getAdvocates } from "../../citizen/FileCase/EfilingValidationUtils";
+import useDownloadCasePdf from "../../../hooks/dristi/useDownloadCasePdf";
 
 const defaultSearchValues = {};
 
@@ -29,7 +30,7 @@ const AdmittedCases = () => {
   const caseId = urlParams.get("caseId");
   const roles = Digit.UserService.getUser()?.info?.roles;
   const isFSO = roles.some((role) => role.code === "FSO_ROLE");
-  const activeTab = isFSO ? "Complaint" : urlParams.get("tab") || "Overview";
+  const activeTab = isFSO ? "Complaints" : urlParams.get("tab") || "Overview";
   const filingNumber = urlParams.get("filingNumber");
   const [show, setShow] = useState(false);
   const userRoles = Digit.UserService.getUser()?.info?.roles.map((role) => role.code);
@@ -50,6 +51,7 @@ const AdmittedCases = () => {
   const OrderReviewModal = Digit.ComponentRegistryService.getComponent("OrderReviewModal") || {};
   const userInfo = Digit.UserService.getUser()?.info;
   const userType = useMemo(() => (userInfo?.type === "CITIZEN" ? "citizen" : "employee"), [userInfo?.type]);
+  const { downloadPdf } = useDownloadCasePdf();
   const { data: caseData, isLoading } = useSearchCaseService(
     {
       criteria: [
@@ -66,7 +68,8 @@ const AdmittedCases = () => {
   );
   const caseDetails = useMemo(() => caseData?.criteria[0]?.responseList[0], [caseData]);
   const cnrNumber = useMemo(() => caseDetails?.cnrNumber, [caseDetails]);
-  const showTakeAction = userRoles.includes("JUDGE_ROLE") && caseData?.criteria[0]?.responseList[0]?.status === "CASE_ADMITTED";
+  const showTakeAction =
+    (userRoles.includes("JUDGE_ROLE") || userRoles.includes("BENCHCLERK_ROLE")) && caseData?.criteria[0]?.responseList[0]?.status === "CASE_ADMITTED";
 
   const statue = useMemo(
     () =>
@@ -74,7 +77,7 @@ const AdmittedCases = () => {
         ? `${caseDetails?.statutesAndSections[0]?.sections[0]
             ?.split(" ")
             ?.map((splitString) => splitString.charAt(0))
-            ?.join("")} ${caseDetails?.statutesAndSections[0]?.subsections[0]}`
+            ?.join("")} S${caseDetails?.statutesAndSections[0]?.subsections[0]}`
         : "",
     [caseDetails?.statutesAndSections]
   );
@@ -152,7 +155,11 @@ const AdmittedCases = () => {
           [SubmissionWorkflowState.PENDINGPAYMENT, SubmissionWorkflowState.PENDINGESIGN, SubmissionWorkflowState.PENDINGSUBMISSION].includes(status)
         ) {
           if (createdByUuid === userInfo?.uuid) {
-            history.push(`/digit-ui/citizen/submissions/submissions-create?filingNumber=${filingNumber}&applicationNumber=${applicationNumber}`);
+            history.push(
+              `/digit-ui/${
+                isCitizen ? "citizen" : "employee"
+              }/submissions/submissions-create?filingNumber=${filingNumber}&applicationNumber=${applicationNumber}`
+            );
           }
         } else {
           setDocumentSubmission(docObj);
@@ -428,7 +435,7 @@ const AdmittedCases = () => {
             },
           };
     });
-  }, [caseId, caseRelatedData.parties, cnrNumber, filingNumber, history, isCitizen, tenantId]);
+  }, [caseId, caseRelatedData, cnrNumber, filingNumber, history, isCitizen, tenantId, userInfo]);
 
   const newTabSearchConfig = {
     ...TabSearchconfig,
@@ -455,9 +462,7 @@ const AdmittedCases = () => {
   const [showScheduleHearingModal, setShowScheduleHearingModal] = useState(false);
 
   const isTabDisabled = useMemo(() => {
-    return isFSO
-      ? true
-      : caseDetails?.status !== "CASE_ADMITTED" && caseDetails?.status !== "ADMISSION_HEARING_SCHEDULED" && config?.label !== "Complaint";
+    return isFSO ? true : caseDetails?.status !== "CASE_ADMITTED" && caseDetails?.status !== "ADMISSION_HEARING_SCHEDULED";
   }, [caseDetails?.status, config?.label, isFSO]);
 
   useEffect(() => {
@@ -514,6 +519,10 @@ const AdmittedCases = () => {
   };
 
   const handleSelect = (option) => {
+    if (option === t("MAKE_SUBMISSION")) {
+      history.push(`/digit-ui/employee/submissions/submissions-create?filingNumber=${filingNumber}&applicationType=DOCUMENT`);
+      return;
+    }
     if (option === t("SCHEDULE_HEARING")) {
       openHearingModule();
       return;
@@ -679,6 +688,26 @@ const AdmittedCases = () => {
       })
       .catch((err) => {});
   };
+  const takeActionOptions = useMemo(
+    () =>
+      userRoles.includes("ORDER_CREATOR")
+        ? [
+            ...((userRoles?.includes("SUBMISSION_CREATOR") || userRoles?.includes("APPLICATION_CREATOR")) && !isCitizen
+              ? [t("MAKE_SUBMISSION")]
+              : []),
+            t("GENERATE_ORDER_HOME"),
+            t("SCHEDULE_HEARING"),
+            t("REFER_TO_ADR"),
+          ]
+        : [
+            ...((userRoles?.includes("SUBMISSION_CREATOR") || userRoles?.includes("APPLICATION_CREATOR")) && !isCitizen
+              ? [t("MAKE_SUBMISSION")]
+              : []),
+            t("SCHEDULE_HEARING"),
+            t("REFER_TO_ADR"),
+          ],
+    [t, userRoles, isCitizen]
+  );
 
   if (isLoading) {
     return <Loader />;
@@ -702,10 +731,24 @@ const AdmittedCases = () => {
             <hr className="vertical-line" />
             <div className="sub-details-text">{caseDetails?.stage}</div>
             <hr className="vertical-line" />
+            <div className="sub-details-text">{caseDetails?.substage}</div>
+            <hr className="vertical-line" />
+            {caseDetails?.outcome && (
+              <React.Fragment>
+                <div className="sub-details-text">{caseDetails?.outcome}</div>
+                <hr className="vertical-line" />
+              </React.Fragment>
+            )}
             <div className="sub-details-text">Code: {caseData?.criteria[0].responseList[0]?.accessCode}</div>
           </div>
           <div className="make-submission-action" style={{ display: "flex", gap: 20, justifyContent: "space-between", alignItems: "center" }}>
-            {isCitizen && <Button variation={"outlined"} label={t("DOWNLOAD_CASE_FILE")} />}
+            {isCitizen && (
+              <Button
+                variation={"outlined"}
+                label={t("DOWNLOAD_CASE_FILE")}
+                onButtonClick={() => downloadPdf(tenantId, caseDetails?.additionalDetails?.signedCaseDocument)}
+              />
+            )}
             {showMakeSubmission && <Button label={t("MAKE_SUBMISSION")} onButtonClick={handleMakeSubmission} />}
           </div>
           {showTakeAction && (
@@ -721,16 +764,7 @@ const AdmittedCases = () => {
                       onClick={handleTakeAction}
                       className={"take-action-btn-class"}
                     ></ActionButton>
-                    {showMenu && (
-                      <Menu
-                        options={
-                          userRoles.includes("ORDER_CREATOR")
-                            ? [t("GENERATE_ORDER_HOME"), t("SCHEDULE_HEARING"), t("REFER_TO_ADR")]
-                            : [t("SCHEDULE_HEARING"), t("REFER_TO_ADR")]
-                        }
-                        onSelect={(option) => handleSelect(option)}
-                      ></Menu>
-                    )}
+                    {showMenu && <Menu options={takeActionOptions} onSelect={(option) => handleSelect(option)}></Menu>}
                   </div>
                 </div>
               </div>
@@ -851,7 +885,7 @@ const AdmittedCases = () => {
         <div className="case-overview-wrapper">
           <CaseOverview
             handleDownload={handleDownload}
-            handleRequestLabel={handleExtensionRequest}
+            handleExtensionRequest={handleExtensionRequest}
             handleSubmitDocument={handleSubmitDocument}
             openHearingModule={openHearingModule}
             caseData={caseRelatedData}

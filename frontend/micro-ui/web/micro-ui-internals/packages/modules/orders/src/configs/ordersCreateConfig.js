@@ -1096,6 +1096,26 @@ export const configsScheduleHearingDate = [
     body: [
       {
         type: "component",
+        component: "SelectCustomNote",
+        key: "unjoinedPartiesNote",
+        populators: {
+          inputs: [
+            {
+              infoHeader: "CS_COMMON_NOTE",
+              infoText: "FOLLOWING_PARTIES_HAVE_NOT_JOINED",
+              infoTooltipMessage: "Tooltip",
+              type: "InfoComponent",
+              children: "unjoinedParties",
+            },
+          ],
+        },
+      },
+    ],
+  },
+  {
+    body: [
+      {
+        type: "component",
         component: "SelectCustomTextArea",
         key: "comments",
         isMandatory: false,
@@ -1228,6 +1248,26 @@ export const configsScheduleNextHearingDate = [
             {
               code: "PARTY_1",
               name: "PARTY_1",
+            },
+          ],
+        },
+      },
+    ],
+  },
+  {
+    body: [
+      {
+        type: "component",
+        component: "SelectCustomNote",
+        key: "unjoinedPartiesNote",
+        populators: {
+          inputs: [
+            {
+              infoHeader: "CS_COMMON_NOTE",
+              infoText: "FOLLOWING_PARTIES_HAVE_NOT_JOINED",
+              infoTooltipMessage: "Tooltip",
+              type: "InfoComponent",
+              children: "unjoinedParties",
             },
           ],
         },
@@ -2975,7 +3015,7 @@ export const configsCreateOrderWarrant = [
         populators: {
           name: "orderType",
           optionsKey: "code",
-          error: "required ",
+          error: "CORE_REQUIRED_FIELD_ERROR",
           mdmsConfig: {
             masterName: "OrderType",
             moduleName: "Order",
@@ -2991,7 +3031,7 @@ export const configsCreateOrderWarrant = [
         disable: true,
         populators: {
           name: "dateOfHearing",
-          error: "Required",
+          error: "CORE_REQUIRED_FIELD_ERROR",
         },
       },
       {
@@ -3002,7 +3042,7 @@ export const configsCreateOrderWarrant = [
         disable: true,
         populators: {
           name: "warrantFor",
-          error: "required ",
+          error: "CORE_REQUIRED_FIELD_ERROR",
         },
       },
       {
@@ -3014,7 +3054,7 @@ export const configsCreateOrderWarrant = [
         populators: {
           name: "warrantType",
           optionsKey: "code",
-          error: "required ",
+          error: "CORE_REQUIRED_FIELD_ERROR",
           options: [
             {
               code: "Arrest",

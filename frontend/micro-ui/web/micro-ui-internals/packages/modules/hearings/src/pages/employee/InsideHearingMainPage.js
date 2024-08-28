@@ -14,6 +14,7 @@ import MarkAttendance from "./MarkAttendance";
 import WitnessModal from "../../components/WitnessModal";
 import { hearingService } from "../../hooks/services";
 import useGetHearingLink from "../../hooks/hearings/useGetHearingLink";
+import isEmpty from "lodash/isEmpty";
 
 import TranscriptComponent from "./Transcription";
 const SECOND = 1000;
@@ -61,7 +62,7 @@ const InsideHearingMainPage = () => {
     return userRoles.some((role) => role.code === userRole);
   };
 
-  const disableTextArea = !userHasRole("HEARING_START");
+  const disableTextArea = !userHasRole("EMPLOYEE");
   // if (!userHasRole("HEARING_VIEWER")) {
   //   history.push(`/${window.contextPath}/${userType}/home/home-pending-task`);
   // }
@@ -176,6 +177,23 @@ const InsideHearingMainPage = () => {
     }
   };
 
+  const updateAPICall = (newText) => {
+    const newHearingUpdated = structuredClone(hearing);
+    newHearingUpdated.transcript[0] = newText;
+    if (userHasRole("EMPLOYEE") && !disableTextArea) {
+      updateTranscriptRequest({ body: { hearing: newHearingUpdated } });
+    }
+  };
+
+  useEffect(() => {
+    if (hearingsData) {
+      const hearingData = hearingsData?.HearingList?.[0];
+      if (hearingData && transcriptText !== hearingData?.transcript[0] && !disableTextArea) {
+        updateAPICall(transcriptText);
+      }
+    }
+  }, [transcriptText, setTranscriptText]);
+
   const isDepositionSaved = Boolean(
     hearing?.additionalDetails?.witnessDepositions?.find((witness) => witness.uuid === selectedWitness.uuid)?.deposition
   );
@@ -249,9 +267,12 @@ const InsideHearingMainPage = () => {
 
   const attendanceCount = useMemo(() => hearing?.attendees?.filter((attendee) => attendee.wasPresent).length || 0, [hearing]);
   const [isRecording, setIsRecording] = useState(false);
+  const IsSelectedWitness = useMemo(() => {
+    return !isEmpty(selectedWitness);
+  }, [selectedWitness]);
 
   return (
-    <div className="admitted-case" style={{ display: "flex", height: "100vh" }}>
+    <div className="admitted-case" style={{ display: "flex" }}>
       <div className="left-side" style={{ padding: "24px 40px" }}>
         <React.Fragment>
           <EvidenceHearingHeader
@@ -274,6 +295,14 @@ const InsideHearingMainPage = () => {
                 select={handleDropdownChange}
                 freeze={true}
                 disable={false}
+                selected={
+                  IsSelectedWitness
+                    ? {
+                        label: `${selectedWitness.firstName} ${selectedWitness.lastName}`,
+                        value: selectedWitness.uuid,
+                      }
+                    : {}
+                }
                 style={{ width: "100%", height: "40px", fontSize: "16px" }}
               />
             </LabelFieldPair>
@@ -302,16 +331,16 @@ const InsideHearingMainPage = () => {
           <div style={{ gap: "16px", border: "1px solid", marginTop: "2px" }}>
             {userHasRole("EMPLOYEE") ? (
               <React.Fragment>
-                {activeTab === "Witness Deposition" && (
-                  <div>
+                {activeTab === "Witness Deposition" ? (
+                  <React.Fragment>
                     <TextArea
                       ref={textAreaRef}
                       style={{ width: "100%", minHeight: "40vh" }}
-                      value={witnessDepositionText || ""}
+                      value={IsSelectedWitness ? witnessDepositionText || "" : ""}
                       onChange={handleChange}
-                      disabled={(activeTab === "Witness Deposition" && isDepositionSaved) || disableTextArea}
+                      disabled={isDepositionSaved || disableTextArea || !IsSelectedWitness}
                     />
-                    {!disableTextArea && (
+                    {!disableTextArea && IsSelectedWitness && !isDepositionSaved && (
                       <TranscriptComponent
                         setWitnessDepositionText={setWitnessDepositionText}
                         isRecording={isRecording}
@@ -319,10 +348,9 @@ const InsideHearingMainPage = () => {
                         activeTab={activeTab}
                       ></TranscriptComponent>
                     )}
-                  </div>
-                )}
-                {activeTab !== "Witness Deposition" && (
-                  <div>
+                  </React.Fragment>
+                ) : (
+                  <React.Fragment>
                     <TextArea
                       ref={textAreaRef}
                       style={{ width: "100%", minHeight: "40vh" }}
@@ -338,17 +366,25 @@ const InsideHearingMainPage = () => {
                         activeTab={activeTab}
                       ></TranscriptComponent>
                     )}
-                  </div>
+                  </React.Fragment>
                 )}
               </React.Fragment>
             ) : (
-              <div>
-                <TextArea
-                  style={{ width: "100%", minHeight: "40vh", cursor: "default", backgroundColor: "#E8E8E8", color: "#3D3C3C" }}
-                  value={activeTab === "Witness Deposition" ? witnessDepositionText : transcriptText}
-                  disabled
-                ></TextArea>
-              </div>
+              <React.Fragment>
+                {activeTab === "Witness Deposition" ? (
+                  <TextArea
+                    style={{ width: "100%", minHeight: "40vh", cursor: "default", backgroundColor: "#E8E8E8", color: "#3D3C3C" }}
+                    value={IsSelectedWitness ? witnessDepositionText || "" : ""}
+                    disabled
+                  />
+                ) : (
+                  <TextArea
+                    style={{ width: "100%", minHeight: "40vh", cursor: "default", backgroundColor: "#E8E8E8", color: "#3D3C3C" }}
+                    value={transcriptText || ""}
+                    disabled
+                  />
+                )}
+              </React.Fragment>
             )}
           </div>
         </div>

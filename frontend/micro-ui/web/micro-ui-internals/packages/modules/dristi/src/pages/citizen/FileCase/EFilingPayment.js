@@ -45,6 +45,7 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
   const { caseId } = window?.Digit.Hooks.useQueryParams();
   const toast = useToast();
   const scenario = "EfillingCase";
+  const fileStoreId = localStorage.getItem("fileStoreId");
 
   const { data: caseData, isLoading } = useSearchCaseService(
     {
@@ -60,20 +61,7 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
     caseId,
     caseId
   );
-  const { data: casePdf, isPdfLoading } = useCasePdfGeneration(
-    {
-      criteria: [
-        {
-          caseId: caseId,
-        },
-      ],
-      tenantId,
-    },
-    {},
-    "dristi",
-    caseId,
-    caseId
-  );
+
   const caseDetails = useMemo(
     () => ({
       ...caseData?.criteria?.[0]?.responseList?.[0],
@@ -116,7 +104,7 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
   );
   const { data: billResponse, isLoading: isBillLoading } = Digit.Hooks.dristi.useBillSearch(
     {},
-    { tenantId, consumerCode: caseDetails?.filingNumber, service: "case" },
+    { tenantId, consumerCode: caseDetails?.filingNumber, service: "case-default" },
     "dristi",
     Boolean(caseDetails?.filingNumber)
   );
@@ -161,24 +149,24 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
   const { fetchBill, openPaymentPortal, paymentLoader, showPaymentModal, setShowPaymentModal } = usePaymentProcess({
     tenantId,
     consumerCode: caseDetails?.filingNumber,
-    service: "case",
+    service: "case-default",
     path,
     caseDetails,
     totalAmount: chequeDetails?.totalAmount,
     mockSubmitModalInfo,
     scenario,
   });
-  const handleDownload = async () => {
-    const blob = new Blob([casePdf.data], { type: "application/pdf" });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", "case_pdf.pdf"); // Name of the downloaded file
-    document.body.appendChild(link);
-    link.click();
-    link.parentNode.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  };
+  // const handleDownload = async () => {
+  //   const blob = new Blob([casePdf.data], { type: "application/pdf" });
+  //   const url = window.URL.createObjectURL(blob);
+  //   const link = document.createElement("a");
+  //   link.href = url;
+  //   link.setAttribute("download", "case_pdf.pdf"); // Name of the downloaded file
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   link.parentNode.removeChild(link);
+  //   window.URL.revokeObjectURL(url);
+  // };
   const onSubmitCase = async () => {
     try {
       if (billResponse?.Bill?.length === 0) {
@@ -187,8 +175,8 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
             {
               tenantId,
               consumerCode: caseDetails?.filingNumber,
-              consumerType: "case",
-              businessService: "case",
+              consumerType: "case-default",
+              businessService: "case-default",
               taxPeriodFrom: Date.now().toString(),
               taxPeriodTo: Date.now().toString(),
               demandDetails: [
@@ -202,14 +190,14 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
           ],
         });
       }
-      const bill = await fetchBill(caseDetails?.filingNumber, tenantId, "case");
+      const bill = await fetchBill(caseDetails?.filingNumber, tenantId, "case-default");
       if (bill?.Bill?.length) {
         const paymentStatus = await openPaymentPortal(bill);
         if (paymentStatus) {
           await DRISTIService.customApiService(Urls.dristi.pendingTask, {
             pendingTask: {
               name: "Pending Payment",
-              entityType: "case",
+              entityType: "case-default",
               referenceId: `MANUAL_${caseDetails?.filingNumber}`,
               status: "PAYMENT_PENDING",
               cnrNumber: null,
@@ -292,6 +280,10 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
   if (isLoading || isPaymentLoading || paymentLoader || isBillLoading) {
     return <Loader />;
   }
+
+  const fileStoreIdToUse = caseDetails?.additionalDetails?.signedCaseDocument || fileStoreId;
+
+  const uri = fileStoreIdToUse ? `${window.location.origin}${Urls.FileFetchById}?tenantId=${tenantId}&fileStoreId=${fileStoreIdToUse}` : null;
   return (
     <div className=" user-registration">
       <div className="e-filing-payment">
@@ -323,16 +315,30 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
               history.push(`/${window?.contextPath}/citizen/dristi/home`);
             }}
           />
-          <Button
-            variation={"secondary"}
-            className={"secondary-button-selector"}
-            label={t("CS_PRINT_CASE_FILE")}
-            labelClassName={"secondary-label-selector"}
-            style={{ minWidth: "30%" }}
-            onButtonClick={() => {
-              handleDownload();
+          <a
+            href={uri}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: "flex",
+              color: "#505A5F",
+              textDecoration: "none",
+              // width: 250,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
             }}
-          />
+          >
+            <Button
+              variation={"secondary"}
+              className={"secondary-button-selector"}
+              label={t("CS_PRINT_CASE_FILE")}
+              labelClassName={"secondary-label-selector"}
+              onButtonClick={() => {
+                localStorage.removeItem("fileStoreId");
+              }}
+            />
+          </a>
           <Button
             className={"tertiary-button-selector"}
             label={t("CS_MAKE_PAYMENT")}

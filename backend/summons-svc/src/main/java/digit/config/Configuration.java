@@ -73,6 +73,9 @@ public class Configuration {
     @Value("${egov.task.service.update.endpoint}")
     private String taskServiceUpdateEndpoint;
 
+    @Value("${egov.task.service.search.endpoint}")
+    private String taskServiceSearchEndpoint;
+
     @Value("${egov.task.service.update.document.endpoint}")
     private String taskServiceUpdateDocumentEndpoint;
 
@@ -148,4 +151,10 @@ public class Configuration {
 
     @Value("${egov.epost.request.endpoint}")
     private String ePostRequestEndPoint;
+
+    @Value("${egov.mdms.payment.business.service.name}")
+    private String paymentBusinessServiceNmae;
+
+    @Value("${egov.is.test}")
+    private boolean isTest;
 }

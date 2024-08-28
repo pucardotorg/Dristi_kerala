@@ -6,18 +6,16 @@ import digit.models.coremodels.RequestInfoWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.egov.common.contract.request.RequestInfo;
+import org.egov.common.models.individual.Individual;
 import org.pucar.dristi.config.Configuration;
 import org.pucar.dristi.kafka.Producer;
 import org.pucar.dristi.repository.ServiceRequestRepository;
-import org.pucar.dristi.web.models.CaseRequest;
+import org.pucar.dristi.web.models.CourtCase;
 import org.pucar.dristi.web.models.SMSRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static org.pucar.dristi.config.ServiceConstants.*;
 
@@ -31,96 +29,97 @@ public class NotificationService {
 
     private final ServiceRequestRepository repository;
 
+    private final IndividualService individualService;
+
     @Autowired
-    public NotificationService(Configuration config, Producer producer, ServiceRequestRepository repository) {
+    public NotificationService(Configuration config, Producer producer, ServiceRequestRepository repository, IndividualService individualService) {
         this.config = config;
         this.producer = producer;
         this.repository = repository;
+        this.individualService = individualService;
     }
 
-    public void sendNotification(CaseRequest request, String statusBefore) {
-        String action = request.getCases().getWorkflow().getAction();
-        String message = getMessageBasedOnAction(request, action, statusBefore);
-        if (StringUtils.isEmpty(message)) {
-            log.info("SMS content has not been configured for this case");
-            return;
-
-        }
-        pushNotification(request, message);
-    }
-
-    private void pushNotification(CaseRequest request, String message) {
-
-        //get individual name, id, mobileNumber
-        log.info("get case e filing number, id, cnr");
-        Map<String, String> smsDetails = getDetailsForSMS(request);
-
-        log.info("build Message");
-        message = buildMessage(smsDetails, message);
-        SMSRequest smsRequest = SMSRequest.builder()
-                .mobileNumber(smsDetails.get("mobileNumber"))
-                .tenantId(smsDetails.get("tenantId"))
-                .templateId(config.getSmsNotificationTemplateId())
-                .contentType("TEXT")
-                .category("NOTIFICATION")
-                .locale(NOTIFICATION_ENG_LOCALE_CODE)
-                .expiryTime(System.currentTimeMillis() + 60 * 60 * 1000)
-                .message(message).build();
-        log.info("push message");
-        producer.push(config.getSmsNotificationTopic(), smsRequest);
-    }
-
-    private Map<String, String> getDetailsForSMS(CaseRequest request) {
-        Map<String, String> smsDetails = new HashMap<>();
-
-        smsDetails.put("caseId", request.getCases().getCaseNumber());
-        smsDetails.put("efilingNumber", request.getCases().getFilingNumber());
-        smsDetails.put("cnr", request.getCases().getCnrNumber());
-        smsDetails.put("date", "");
-        smsDetails.put("link", "");
-        smsDetails.put("tenantId", request.getCases().getTenantId().split("\\.")[0]);
-        smsDetails.put("mobileNumber", request.getRequestInfo().getUserInfo().getMobileNumber());
-        return smsDetails;
-    }
-
-    private String getMessageBasedOnAction(CaseRequest request, String action, String statusBefore) {
-        return switch (action.toUpperCase()) {
-            case "SUBMIT_CASE" -> getMessage(request, CASE_SUBMISSION);
-            case "MAKE_PAYMENT" -> getMessage(request, CASE_FILED);
-            case "VALIDATE" -> getMessage(request, SCRUTINY_COMPLETE_CASE_REGISTERED);
-            case "SEND_BACK" -> {
-                if (statusBefore == null) {
-                    yield null;
-                } else {
-                    yield switch (statusBefore) {
-                        case "UNDER_SCRUTINY" -> getMessage(request, EFILING_ERRORS);
-                        case "PENDING_ADMISSION" -> getMessage(request, ERRORS_IDENTIFIED_CASE_FILE);
-                        default -> null;
-                    };
-                }
+    public void sendNotification(RequestInfo requestInfo, CourtCase courtCase, String notificationStatus, String uuid) {
+        try {
+            List<Individual> individuals = individualService.getIndividuals(requestInfo, Collections.singletonList(uuid));
+            if (individuals == null) {
+                log.info("No individual found with UUID: {}", courtCase.getAuditdetails().getCreatedBy());
+                return;
             }
-            case "SCHEDULE_ADMISSION_HEARING" -> getMessage(request, ADMISSION_HEARING_SCHEDULED);
-            case "ADMIT" -> getMessage(request, CASE_ADMITTED);
-            case "REJECT" -> getMessage(request, HEARING_REJECTED);
-            default -> null;
-        };
+            String message = getMessage(requestInfo,courtCase, notificationStatus);
+            if (StringUtils.isEmpty(message)) {
+                log.info("SMS content has not been configured for this case");
+                return;
+            }
+            if(notificationStatus.equalsIgnoreCase(PAYMENT_PENDING)){
+                pushNotification(courtCase, message, individuals,config.getSmsNotificationPaymentPendingTemplateId());
+            }
+            else if(notificationStatus.equalsIgnoreCase(ESIGN_PENDING)){
+                pushNotification(courtCase, message, individuals,config.getSmsNotificationEsignPendingTemplateId());
+            }
+            else if(notificationStatus.equalsIgnoreCase(ADVOCATE_ESIGN_PENDING)){
+                pushNotification(courtCase, message, individuals,config.getSmsNotificationAdvocateEsignPendingTemplateId());
+            }
+            else {
+                pushNotification(courtCase, message, individuals,config.getSmsNotificationTemplateId());
+            }
+
+        } catch (Exception e){
+            log.error("Error in Sending Message To Notification Service: " , e);
+        }
+
     }
+
+    private void pushNotification(CourtCase courtCase, String message, List<Individual> individuals, String templateId) {
+
+           //get individual name, id, mobileNumber
+            log.info("get case e filing number, id, cnr");
+            Map<String, String> smsDetails = getDetailsForSMS(courtCase, individuals);
+
+            log.info("build Message");
+            message = buildMessage(smsDetails, message);
+            SMSRequest smsRequest = SMSRequest.builder()
+                    .mobileNumber(smsDetails.get("mobileNumber"))
+                    .tenantId(smsDetails.get("tenantId"))
+                    .templateId(templateId)
+                    .contentType("TEXT")
+                    .category("NOTIFICATION")
+                    .locale(NOTIFICATION_ENG_LOCALE_CODE)
+                    .expiryTime(System.currentTimeMillis() + 60 * 60 * 1000)
+                    .message(message).build();
+            log.info("push message");
+            producer.push(config.getSmsNotificationTopic(), smsRequest);
+
+    }
+
+    private Map<String, String> getDetailsForSMS(CourtCase courtCase, List<Individual> individuals) {
+        Map<String, String> smsDetails = new HashMap<>();
+            smsDetails.put("caseId", courtCase.getCaseNumber());
+            smsDetails.put("efilingNumber", courtCase.getFilingNumber());
+            smsDetails.put("cnr", courtCase.getCnrNumber());
+            smsDetails.put("date", "");
+            smsDetails.put("link", "");
+            smsDetails.put("tenantId", courtCase.getTenantId().split("\\.")[0]);
+            smsDetails.put("mobileNumber", individuals.get(0).getMobileNumber());
+            return smsDetails;
+
+    }
+
 
     /**
      * Gets the message from localization
      *
-     * @param request
+     * @param requestInfo
+     * @param courtCase
      * @param msgCode
      * @return
      */
 
-    public String getMessage(CaseRequest request, String msgCode) {
-        String rootTenantId = request.getCases().getTenantId().split("\\.")[0];
-        RequestInfo requestInfo = request.getRequestInfo();
+    public String getMessage(RequestInfo requestInfo, CourtCase courtCase, String msgCode) {
+        String rootTenantId = courtCase.getTenantId().split("\\.")[0];
         Map<String, Map<String, String>> localizedMessageMap = getLocalisedMessages(requestInfo, rootTenantId,
                 NOTIFICATION_ENG_LOCALE_CODE, NOTIFICATION_MODULE_CODE);
-        return localizedMessageMap.get(NOTIFICATION_ENG_LOCALE_CODE + "|" + rootTenantId).get(HIGH_COURT_LOCALIZATION_CODE)
-                + localizedMessageMap.get(NOTIFICATION_ENG_LOCALE_CODE + "|" + rootTenantId).get(msgCode);
+        return localizedMessageMap.get(NOTIFICATION_ENG_LOCALE_CODE + "|" + rootTenantId).get(msgCode);
     }
 
     /**
