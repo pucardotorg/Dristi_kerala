@@ -56,6 +56,8 @@ module.exports = {
     reject_adr_application: process.env.REJECT_ADR_APPLICATION || "reject-adr-application",
     reject_adr_application_qr: process.env.REJECT_ADR_APPLICATION_QR || "reject-adr-application-qr",
     application_submission_extension: process.env.APPLICATION_SUBMISSION_EXTENSION || "application-submission-extension",
+    application_generic: process.env.APPLICATION_GENERIC || "application-generic",
+    application_generic_qr: process.env.APPLICATION_GENERIC_QR || "application-generic-qr",
   },
 
   app: {
@@ -80,6 +82,7 @@ module.exports = {
 
   paths: {
     pdf_create: "/pdf-service/v1/_createnosave",
+    pdf_create_save: "/pdf-service/v1/_create",
     case_search:"/case/v1/_search",
     order_search: "/order/v1/search",
     hearing_search: "/hearing/v1/search",
