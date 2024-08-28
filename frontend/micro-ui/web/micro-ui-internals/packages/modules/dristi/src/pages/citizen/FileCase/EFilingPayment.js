@@ -104,7 +104,7 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
   );
   const { data: billResponse, isLoading: isBillLoading } = Digit.Hooks.dristi.useBillSearch(
     {},
-    { tenantId, consumerCode: caseDetails?.filingNumber, service: "case" },
+    { tenantId, consumerCode: caseDetails?.filingNumber, service: "case-default" },
     "dristi",
     Boolean(caseDetails?.filingNumber)
   );
@@ -175,8 +175,8 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
             {
               tenantId,
               consumerCode: caseDetails?.filingNumber,
-              consumerType: "case",
-              businessService: "case",
+              consumerType: "case-default",
+              businessService: "case-default",
               taxPeriodFrom: Date.now().toString(),
               taxPeriodTo: Date.now().toString(),
               demandDetails: [
@@ -190,7 +190,7 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
           ],
         });
       }
-      const bill = await fetchBill(caseDetails?.filingNumber, tenantId, "case");
+      const bill = await fetchBill(caseDetails?.filingNumber, tenantId, "case-default");
       if (bill?.Bill?.length) {
         const paymentStatus = await openPaymentPortal(bill);
         if (paymentStatus) {
