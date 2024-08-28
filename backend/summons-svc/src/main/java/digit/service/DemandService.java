@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import digit.config.Configuration;
 import digit.repository.ServiceRequestRepository;
 import digit.util.MdmsUtil;
+import digit.util.TaskUtil;
 import digit.web.models.*;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
+import org.egov.common.contract.models.Workflow;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,19 +34,29 @@ public class DemandService {
 
     private final MdmsUtil mdmsUtil;
 
+    private final TaskUtil taskUtil;
+
     @Autowired
-    public DemandService(Configuration config, ObjectMapper mapper, ServiceRequestRepository repository, MdmsUtil mdmsUtil) {
+    public DemandService(Configuration config, ObjectMapper mapper, ServiceRequestRepository repository, MdmsUtil mdmsUtil, TaskUtil taskUtil) {
         this.config = config;
         this.mapper = mapper;
         this.repository = repository;
         this.mdmsUtil = mdmsUtil;
+        this.taskUtil = taskUtil;
     }
 
     public BillResponse fetchPaymentDetailsAndGenerateDemandAndBill(TaskRequest taskRequest) {
         Task task = taskRequest.getTask();
-        List<Calculation> calculationList = generatePaymentDetails(taskRequest.getRequestInfo(), task);
-        generateDemands(taskRequest.getRequestInfo(), calculationList, task);
-        return getBill(taskRequest.getRequestInfo(), task);
+        String channelName = taskRequest.getTask().getTaskDetails().getDeliveryChannel().getChannelName();
+        if(channelName.equalsIgnoreCase("POST")) {
+            List<Calculation> calculationList = generatePaymentDetails(taskRequest.getRequestInfo(), task);
+            generateDemands(taskRequest.getRequestInfo(), calculationList, task);
+            return getBill(taskRequest.getRequestInfo(), task);
+        }
+        else {
+            updateTaskStatus(taskRequest);
+            return null;
+        }
     }
 
     public List<Calculation> generatePaymentDetails(RequestInfo requestInfo, Task task) {
@@ -152,5 +164,19 @@ public class DemandService {
             log.error("Error occurred when creating bill uri with search params", e);
             throw new CustomException("GENERATE_BILL_ERROR", "Error Occurred when  generating bill");
         }
+    }
+
+    public void updateTaskStatus(TaskRequest request) {
+
+        Task task = request.getTask();
+        Workflow workflow = null;
+        if (request.getTask().getStatus().equalsIgnoreCase("PAYMENT_PENDING")) {
+            workflow = Workflow.builder().action("MAKE_PAYMENT").build();
+        }
+
+        task.setWorkflow(workflow);
+        TaskRequest taskRequest = TaskRequest.builder()
+                .requestInfo(request.getRequestInfo()).task(task).build();
+        taskUtil.callUpdateTask(taskRequest);
     }
 }
