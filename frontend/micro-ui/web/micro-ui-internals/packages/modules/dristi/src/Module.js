@@ -79,7 +79,7 @@ export const DRISTIModule = ({ stateCode, userType, tenants }) => {
     history.push(`/${window?.contextPath}/employee/home/home-pending-task`);
   }
 
-  localStorage.setItem("DRISTI_TENANTS", tenants);
+  Digit.SessionStorage.set("DRISTI_TENANTS", tenants);
   const urlParams = new URLSearchParams(window.location.search);
   const result = urlParams.get("result");
   const fileStoreId = urlParams.get("filestoreId");

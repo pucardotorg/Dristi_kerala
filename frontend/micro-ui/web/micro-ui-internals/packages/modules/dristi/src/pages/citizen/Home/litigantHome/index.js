@@ -57,9 +57,9 @@ function Home() {
   if (userType === "ADVOCATE" && searchData) {
     const advocateBarRegNumber = searchData?.advocates?.[0]?.responseList?.[0]?.barRegistrationNumber;
     if (advocateBarRegNumber) {
-      window?.localStorage.setItem("isAdvocateAndApproved", true);
+      window?.Digit.SessionStorage.set("isAdvocateAndApproved", true);
     } else {
-      window?.localStorage.setItem("isAdvocateAndApproved", false);
+      window?.Digit.SessionStorage.set("isAdvocateAndApproved", false);
     }
   }
 

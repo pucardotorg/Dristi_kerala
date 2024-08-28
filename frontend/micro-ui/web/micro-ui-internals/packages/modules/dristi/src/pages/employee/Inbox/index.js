@@ -16,7 +16,7 @@ const sectionsParentStyle = {
 
 const Inbox = ({ tenants, parentRoute }) => {
   const { t } = useTranslation();
-  localStorage.setItem("ENGAGEMENT_TENANTS", tenants);
+  Digit.SessionStorage.set("ENGAGEMENT_TENANTS", tenants);
   const tenantId = Digit.ULBService.getCurrentTenantId();
   const roles = Digit.UserService.getUser()?.info?.roles;
   const history = useHistory();
