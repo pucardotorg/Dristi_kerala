@@ -80,7 +80,7 @@ const Login = ({ config: propsConfig, t, isDisabled }) => {
     delete requestData.city;
     try {
       const { UserRequest: info, ...tokens } = await Digit.UserService.authenticate(requestData);
-      localStorage.setItem("Employee.tenantId", info?.tenantId);
+      Digit.SessionStorage.set("Employee.tenantId", info?.tenantId);
       setUser({ info, ...tokens });
     } catch (err) {
       setShowToast(

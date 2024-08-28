@@ -35,8 +35,8 @@ if (!user || !user.access_token || !user.info) {
   const employeeTenantId = getFromStorage("Employee.tenant-id");
   const userType = token === citizenToken ? "citizen" : "employee";
 
-  localStorage.setItem("user_type", userType);
-  localStorage.setItem("userType", userType);
+  window.Digit.SessionStorage.set("user_type", userType);
+  window.Digit.SessionStorage.set("userType", userType);
 
   const getUserDetails = (access_token, info) => ({
     token: access_token,
@@ -49,9 +49,9 @@ if (!user || !user.access_token || !user.info) {
       ? getUserDetails(citizenToken, citizenInfo)
       : getUserDetails(employeeToken, employeeInfo);
 
-  localStorage.setItem("User", userDetails);
-  localStorage.setItem("Citizen.tenantId", citizenTenantId);
-  localStorage.setItem("Employee.tenantId", employeeTenantId);
+  window.Digit.SessionStorage.set("User", userDetails);
+  window.Digit.SessionStorage.set("Citizen.tenantId", citizenTenantId);
+  window.Digit.SessionStorage.set("Employee.tenantId", employeeTenantId);
   // end
 }
 

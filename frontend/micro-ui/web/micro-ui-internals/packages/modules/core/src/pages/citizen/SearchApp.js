@@ -21,7 +21,7 @@ const Search = ({ path }) => {
     }
   };
   function onSubmit(_data) {
-    localStorage.setItem("AUDIT_APPLICATION_DETAIL", {
+    Digit.SessionStorage.set("AUDIT_APPLICATION_DETAIL", {
       offset: 0,
       limit: 5,
       sortBy: "commencementDate",
