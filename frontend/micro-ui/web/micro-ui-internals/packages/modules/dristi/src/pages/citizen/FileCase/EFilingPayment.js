@@ -281,7 +281,7 @@ function EFilingPayment({ t, setShowModal, header, subHeader, submitModalInfo = 
     return <Loader />;
   }
 
-  const fileStoreIdToUse = caseDetails?.caseDetails?.[0]?.additionalDetails?.signedCaseDocument || fileStoreId;
+  const fileStoreIdToUse = caseDetails?.additionalDetails?.signedCaseDocument || fileStoreId;
 
   const uri = fileStoreIdToUse ? `${window.location.origin}${Urls.FileFetchById}?tenantId=${tenantId}&fileStoreId=${fileStoreIdToUse}` : null;
   return (
