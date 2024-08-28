@@ -194,9 +194,9 @@ const InsideHearingMainPage = () => {
     }
   }, [transcriptText, setTranscriptText]);
 
-  const isDepositionSaved = Boolean(
-    hearing?.additionalDetails?.witnessDepositions?.find((witness) => witness.uuid === selectedWitness.uuid)?.deposition
-  );
+  const isDepositionSaved = useMemo(() => {
+    return hearing?.additionalDetails?.witnessDepositions?.find((witness) => witness.uuid === selectedWitness.uuid)?.deposition.length;
+  }, [selectedWitness]);
 
   const saveWitnessDeposition = () => {
     const updatedHearing = structuredClone(hearing);
@@ -217,10 +217,10 @@ const InsideHearingMainPage = () => {
 
   const handleDropdownChange = (selectedWitnessOption) => {
     const selectedUUID = selectedWitnessOption.value;
-    const selectedWitness = additionalDetails?.witnessDetails?.formdata?.find((w) => w.data.uuid === selectedUUID)?.data || {};
-    setSelectedWitness(selectedWitness);
+    const selectedWitnessDeposition = additionalDetails?.witnessDetails?.formdata?.find((w) => w.data.uuid === selectedUUID)?.data || {};
+    setSelectedWitness(selectedWitnessDeposition);
     setWitnessDepositionText(
-      hearing?.additionalDetails?.witnessDepositions?.find((witness) => witness.uuid === selectedWitness.uuid)?.deposition || ""
+      hearing?.additionalDetails?.witnessDepositions?.find((witness) => witness.uuid === selectedWitnessDeposition.uuid)?.deposition || ""
     );
   };
 
@@ -331,7 +331,7 @@ const InsideHearingMainPage = () => {
           <div style={{ gap: "16px", border: "1px solid", marginTop: "2px" }}>
             {userHasRole("EMPLOYEE") ? (
               <React.Fragment>
-                {activeTab === "Witness Deposition" ? (
+                {activeTab === "Witness Deposition" && (
                   <React.Fragment>
                     <TextArea
                       ref={textAreaRef}
@@ -349,7 +349,8 @@ const InsideHearingMainPage = () => {
                       ></TranscriptComponent>
                     )}
                   </React.Fragment>
-                ) : (
+                )}
+                {activeTab !== "Witness Deposition" && (
                   <React.Fragment>
                     <TextArea
                       ref={textAreaRef}
@@ -371,13 +372,14 @@ const InsideHearingMainPage = () => {
               </React.Fragment>
             ) : (
               <React.Fragment>
-                {activeTab === "Witness Deposition" ? (
+                {activeTab === "Witness Deposition" && (
                   <TextArea
                     style={{ width: "100%", minHeight: "40vh", cursor: "default", backgroundColor: "#E8E8E8", color: "#3D3C3C" }}
                     value={IsSelectedWitness ? witnessDepositionText || "" : ""}
                     disabled
                   />
-                ) : (
+                )}
+                {activeTab !== "Witness Deposition" && (
                   <TextArea
                     style={{ width: "100%", minHeight: "40vh", cursor: "default", backgroundColor: "#E8E8E8", color: "#3D3C3C" }}
                     value={transcriptText || ""}
