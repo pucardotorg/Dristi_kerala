@@ -79,7 +79,7 @@ const ViewPaymentDetails = ({ location, match }) => {
     {
       tenantId: tenantId,
       consumerCode: caseDetails?.filingNumber,
-      businessService: "case",
+      businessService: "case-default",
     },
     {
       enabled: Boolean(tenantId && caseDetails?.filingNumber),
@@ -147,8 +147,8 @@ const ViewPaymentDetails = ({ location, match }) => {
         {
           tenantId,
           consumerCode: caseDetails?.filingNumber,
-          consumerType: "case",
-          businessService: "case",
+          consumerType: "case-default",
+          businessService: "case-default",
           taxPeriodFrom: Date.now().toString(),
           taxPeriodTo: Date.now().toString(),
           demandDetails: [
@@ -168,7 +168,10 @@ const ViewPaymentDetails = ({ location, match }) => {
 
   const onSubmitCase = async () => {
     setIsDisabled(true);
-    const regenerateBill = await DRISTIService.callFetchBill({}, { consumerCode: caseDetails?.filingNumber, tenantId, businessService: "case" });
+    const regenerateBill = await DRISTIService.callFetchBill(
+      {},
+      { consumerCode: caseDetails?.filingNumber, tenantId, businessService: "case-default" }
+    );
     const billFetched = regenerateBill?.Bill ? regenerateBill?.Bill[0] : {};
     if (!Object.keys(bill || regenerateBill || {}).length) {
       toast.error(t("CS_BILL_NOT_AVAILABLE"));
