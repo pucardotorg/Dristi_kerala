@@ -95,7 +95,7 @@ const HomeView = () => {
     );
   }, [searchResult, userType]);
   const advocateId = useMemo(() => {
-    return searchResult?.[0]?.responseList?.[0]?.id;
+    return searchResult?.[0]?.id;
   }, [searchResult]);
 
   const additionalDetails = useMemo(() => {
