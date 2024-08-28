@@ -62,7 +62,7 @@ const InsideHearingMainPage = () => {
     return userRoles.some((role) => role.code === userRole);
   };
 
-  const disableTextArea = !userHasRole("HEARING_START");
+  const disableTextArea = !userHasRole("EMPLOYEE");
   // if (!userHasRole("HEARING_VIEWER")) {
   //   history.push(`/${window.contextPath}/${userType}/home/home-pending-task`);
   // }
