@@ -62,8 +62,15 @@ public class AdvocateUtil {
             log.error("ERROR_WHILE_FETCHING_FROM_ADVOCATE", e);
             throw new CustomException("ERROR_WHILE_FETCHING_FROM_ADVOCATE", e.getMessage());
         }
+        List<Advocate> list = new ArrayList<>();
 
-        List<Advocate> list = advocateResponse.getAdvocates().get(0).getResponseList().stream().filter(Advocate::getIsActive).toList();
+        advocateResponse.getAdvocates().forEach(advocate -> {
+            List<Advocate> activeAdvocates = advocate.getResponseList().stream()
+                    .filter(Advocate::getIsActive)
+                    .toList();
+            list.addAll(activeAdvocates);
+        });
+
 
         return list.stream().map(Advocate::getIndividualId).collect(Collectors.toSet());
     }
