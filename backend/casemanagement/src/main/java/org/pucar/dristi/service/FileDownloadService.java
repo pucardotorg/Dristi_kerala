@@ -48,7 +48,7 @@ public class FileDownloadService {
         String fileStoreId= vcCredentialRequest.getFileStoreId();
         StringBuilder fileStoreSearch = new StringBuilder();
         fileStoreSearch.append(configuration.getFileStoreHost()).append(configuration.getFileStorePath());
-        String fileStoreSearchUrl= fileStoreSearch.toString()+"?fileStoreId=" + fileStoreId + "&tenantId=" + tenantId;
+        String fileStoreSearchUrl= fileStoreSearch.toString()+"?fileStoreIds=" + fileStoreId + "&tenantId=" + tenantId;
         String authToken = vcCredentialRequest.getRequestInfo().getAuthToken();
         // Step 1: Call the API to get the S3 URL
         String s3Url = getS3Url(fileStoreSearchUrl, authToken, tenantId);
