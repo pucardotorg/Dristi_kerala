@@ -64,7 +64,7 @@ public class TaskRowMapper implements ResultSetExtractor<List<Task>> {
                             .dateCloseBy(rs.getLong("datecloseby"))
                             .dateClosed(rs.getLong("dateclosed"))
                             .taskDescription(rs.getString("taskdescription"))
-                            .taskDetails(objectMapper.readValue(rs.getString("task_details"), Object.class))
+                            .taskDetails(objectMapper.readValue(rs.getString("taskdetails"), Object.class))
                             .taskType(rs.getString("tasktype"))
                             .status(rs.getString("status"))
                             .assignedTo(getObjectFromJson(rs.getString("assignedto"), new TypeReference<AssignedTo>() {
