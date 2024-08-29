@@ -10,7 +10,6 @@ const useESign = () => {
       try {
         const newSignStatuses = [...parsedObj, { name: name, isSigned: true }];
         localStorage.setItem("signStatus", JSON.stringify(newSignStatuses));
-        localStorage.setItem("isSignSuccess", "success");
 
         const eSignResponse = await Digit.DRISTIService.eSignService({
           ESignParameter: {
