@@ -28,9 +28,6 @@ async function applicationGeneric(req, res, qrCode) {
   const cnrNumber = req.query.cnrNumber;
   const applicationNumber = req.query.applicationNumber;
   const tenantId = req.query.tenantId;
-  const partyName = req.query.partyName;
-  const advocateName = req.query.advocateName;
-  const barRegistrationNumber = req.query.barRegistrationNumber;
   const entityId = req.query.entityId;
   const code = req.query.code;
   const requestInfo = req.body.RequestInfo;
@@ -39,9 +36,6 @@ async function applicationGeneric(req, res, qrCode) {
   if (!cnrNumber) missingFields.push("cnrNumber");
   if (!applicationNumber) missingFields.push("applicationNumber");
   if (!tenantId) missingFields.push("tenantId");
-  if (!partyName) missingFields.push("partyName");
-  if (!advocateName) missingFields.push("advocateName");
-  if (!barRegistrationNumber) missingFields.push("barRegistrationNumber");
   if (requestInfo === undefined) missingFields.push("requestInfo");
   if (qrCode === "true" && (!entityId || !code))
     missingFields.push("entityId and code");
@@ -72,9 +66,10 @@ async function applicationGeneric(req, res, qrCode) {
     );
     const courtCase = resCase?.data?.criteria[0]?.responseList[0];
     if (!courtCase) {
-      renderError(res, "Court case not found", 404);
+      return renderError(res, "Court case not found", 404);
     }
-
+    // const allAdvocates = getAdvocates(courtCase);
+    // console.debug(allAdvocates);
     // Search for HRMS details
     // const resHrms = await handleApiCall(
     //   () => search_hrms(tenantId, "JUDGE", courtCase.courtId, requestInfo),
@@ -98,7 +93,7 @@ async function applicationGeneric(req, res, qrCode) {
     );
     const mdmsCourtRoom = resMdms?.data?.mdms[0]?.data;
     if (!mdmsCourtRoom) {
-      renderError(res, "Court room MDMS master not found", 404);
+      return renderError(res, "Court room MDMS master not found", 404);
     }
 
     // Search for MDMS designation details
@@ -124,9 +119,9 @@ async function applicationGeneric(req, res, qrCode) {
     );
     const application = resApplication?.data?.applicationList[0];
     if (!application) {
-      renderError(res, "Application not found", 404);
+      return renderError(res, "Application not found", 404);
     }
-
+    const partyName = application?.additionalDetails?.onBehalOfName || "";
     // Handle QR code if enabled
     let base64Url = "";
     if (qrCode === "true") {
@@ -191,7 +186,6 @@ async function applicationGeneric(req, res, qrCode) {
       Data: [
         {
           courtComplex: mdmsCourtRoom.name,
-          applicationName: "Production of Documents",
           caseType: "Negotiable Instruments Act 138 A",
           caseNumber: courtCase.cnrNumber,
           caseYear: caseYear,
@@ -200,17 +194,20 @@ async function applicationGeneric(req, res, qrCode) {
           courtDesignation: "HIGHT COURRT", //FIXME: mdmsDesignation.name,
           addressOfTheCourt: "Kerala", //FIXME: mdmsCourtRoom.address,
           date: currentDate,
+          applicationName: "Generic Application",
           partyName: partyName,
+          purposeOfApplication: "asdfasdf",
           complainantName: partyName, //FIXME: REMOVE it from both pdf configs and here,
-          advocateName: advocateName,
+          additionalComments: "Additional Comments",
+          prayerOptional: " asdasd ",
+          advocateSignature: "Advocate Signature",
+          advocateName: "SURESH",
+          barRegistrationNumber: "sdf",
           documentSubmissionName: "documents",
           documentId: "documents",
           day: day + ordinalSuffix,
           month: month,
           year: year,
-          additionalComments: "Additional Comments",
-          advocateSignature: "Advocate Signature",
-          barRegistrationNumber: barRegistrationNumber,
           qrCodeUrl: base64Url,
         },
       ],
@@ -237,12 +234,13 @@ async function applicationGeneric(req, res, qrCode) {
         return renderError(res, "Failed to send PDF response", 500, err);
       });
   } catch (ex) {
-    return renderError(
-      res,
-      "Failed to query details of APPLICATION FOR EXTENSION OF SUBMISSION DEADLINE",
-      500,
-      ex
-    );
+    logger.error(ex);
+    // return renderError(
+    //   res,
+    //   "Failed to query details of APPLICATION FOR EXTENSION OF SUBMISSION DEADLINE",
+    //   500,
+    //   ex
+    // );
   }
 }
 

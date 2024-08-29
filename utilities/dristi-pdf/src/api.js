@@ -212,7 +212,7 @@ async function search_sunbirdrc_credential_service(tenantId, code, uuid, request
 async function create_pdf(tenantId, key, data, requestinfo) {
   try {
     return await axios({
-      responseType: "stream",
+      responseType: "json",
       method: "post",
       url: url.resolve(config.host.pdf, config.paths.pdf_create),
       data: Object.assign(requestinfo, data),
