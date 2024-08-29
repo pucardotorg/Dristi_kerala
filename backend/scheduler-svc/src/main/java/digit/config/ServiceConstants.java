@@ -40,7 +40,7 @@ public class ServiceConstants {
     public final String SCHEDULER_CONFIG_MASTER_NAME = "config";
     public final String SCHEDULER_CONFIG_MODULE_NAME = "SCHEDULER-CONFIG";
 
-    public static final String PENDING_TASK_ENTITY_TYPE ="order-managelifecycle";
+    public static final String PENDING_TASK_ENTITY_TYPE ="order-default";
     public static final String PENDING_TASK_NAME = "Create Order for rescheduling the hearing";
     public static final String PENDING_TASK_STATUS = "RESCHEDULE_HEARING";
 
