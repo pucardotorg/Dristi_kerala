@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - sdc-ui
+    paths:
+      - 'frontend/micro-ui/**'
 
 jobs:
   docker_image-build:
@@ -21,8 +23,8 @@ jobs:
 
       - name: Build and Push Docker image for digit-ui
         run: |
-          docker build  -t pucarsolutionsdev.azurecr.io/digit-ui:v1.0.0-SDC -f  web/docker/Dockerfile .
-          docker push pucarsolutionsdev.azurecr.io/digit-ui:v1.0.0-SDC
+          docker build  -t pucarsolutionsdev.azurecr.io/digit-ui:v1.0.0-SDC-${{ github.sha }} -f  web/docker/Dockerfile .
+          docker push pucarsolutionsdev.azurecr.io/digit-ui:v1.0.0-SDC-${{ github.sha }}
         working-directory: frontend/micro-ui
 
 
