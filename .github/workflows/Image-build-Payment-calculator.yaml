@@ -2,12 +2,12 @@ name: Payment Calculator Image Build workflow
 on:
   push:
     branches:
-      - qa2
+      - UAT
     paths:
       - 'backend/payment-calculator-svc/**'
   pull_request:
     branches:
-      - qa2
+      - UAT
     paths:
       - 'backend/payment-calculator-svc/**'
   workflow_dispatch:
@@ -36,7 +36,7 @@ jobs:
 
       # Login to Azure Container Registry
       - name: Login to Azure Container Registry
-        if: github.ref == 'refs/heads/qa2' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/UAT' && github.event_name == 'push'
         run: docker login -u pucarsolutionsdev -p ${{ secrets.ACR_PASSWORD }} pucarsolutionsdev.azurecr.io
 
       - name: Build and Push Docker image for Payment-calculator-svc

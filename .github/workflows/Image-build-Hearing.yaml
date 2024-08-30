@@ -2,12 +2,12 @@ name: Hearing Image Build workflow
 on:
   push:
     branches:
-      - qa2
+      - UAT
     paths:
       - 'backend/hearing/**'
   pull_request:
     branches:
-      - qa2
+      - UAT
     paths:
       - 'backend/hearing/**'
   workflow_dispatch:
@@ -15,7 +15,7 @@ on:
 
 jobs:
   docker_image-build:
-    if: github.ref == 'refs/heads/qa2' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/UAT' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -40,7 +40,7 @@ jobs:
         working-directory: backend/hearing/src/main/resources/db
 
   Workflow_Trigger:
-    if: github.ref == 'refs/heads/qa2' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/UAT' && github.event_name == 'push'
     runs-on: ubuntu-latest
     needs: docker_image-build
     steps:

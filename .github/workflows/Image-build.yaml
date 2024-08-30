@@ -2,12 +2,12 @@ name: Scheduler Image Build workflow
 on:
   push:
     branches:
-      - qa2
+      - UAT
     paths:
       - 'backend/scheduler-svc/**'
   pull_request:
     branches:
-      - qa2
+      - UAT
     paths:
       - 'backend/scheduler-svc/**'
   workflow_dispatch:
@@ -36,11 +36,11 @@ jobs:
 
       # Login to Azure Container Registry
       - name: Login to Azure Container Registry
-        if: github.ref == 'refs/heads/qa2' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/UAT' && github.event_name == 'push'
         run: docker login -u pucarsolutionsdev -p ${{ secrets.ACR_PASSWORD }} pucarsolutionsdev.azurecr.io
 
       - name: Build and Push Docker image for Scheduler-svc
-        if: github.ref == 'refs/heads/qa2' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/UAT' && github.event_name == 'push'
         run: |
           docker build --build-arg WORK_DIR="backend/scheduler-svc" -t pucarsolutionsdev.azurecr.io/scheduler-svc:v1.0.0-${{ github.sha }} -f build/maven/Dockerfile .
           docker push pucarsolutionsdev.azurecr.io/scheduler-svc:v1.0.0-${{ github.sha }}
