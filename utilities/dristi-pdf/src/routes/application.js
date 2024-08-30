@@ -9,6 +9,9 @@ const { logger } = require("../logger");
 const { clear } = require("winston");
 const applicationGeneric = require("../applicationHandlers/applicationGeneric");
 const applicationProductionOfDocuments = require("../applicationHandlers/applicationProductionOfDocuments");
+const applicationBailBond = require("../applicationHandlers/applicationBailBond");
+const applicationCaseTransfer = require("../applicationHandlers/applicationCaseTransfer");
+const applicationCaseWithdrawal = require("../applicationHandlers/applicationCaseWithdrawal");
 
 function renderError(res, errorMessage, errorCode, errorObject) {
   if (errorCode == undefined) errorCode = 500;
@@ -50,6 +53,15 @@ router.post(
           break;
         case "application-production-of-documents":
           await applicationProductionOfDocuments(req, res, qrCode);
+          break;
+        case "application-bail-bond":
+          await applicationBailBond(req, res, qrCode);
+          break;
+        case "application-case-transfer":
+          await applicationCaseTransfer(req, res, qrCode);
+          break;
+        case "application-case-withdrawal":
+          await applicationCaseWithdrawal(req, res, qrCode);
           break;
         default:
           renderError(res, "Invalid application type", 400);
