@@ -5,10 +5,10 @@ export const getFilestoreId = () => {
   } else if (origin.includes("kerala-qa")) {
     return "0cdd01bf-5c6c-43de-86df-48406ce4f5a8";
   } else if (origin.includes("kerala-hc")) {
-    return "efc91171-a5ed-4849-acfb-96c58627ecd3";
+    return "800efc73-7424-4df7-ba2d-fbd643f6ef90";
   } else if (origin.includes("oncourts-uat")) {
-    return "efc91171-a5ed-4849-acfb-96c58627ecd3";
+    return "800efc73-7424-4df7-ba2d-fbd643f6ef90";
   } else {
-    return "efc91171-a5ed-4849-acfb-96c58627ecd3";
+    return "800efc73-7424-4df7-ba2d-fbd643f6ef90";
   }
 };
