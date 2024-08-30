@@ -9,6 +9,7 @@ const {
   create_pdf,
 } = require("../api");
 const { renderError } = require("../utils/renderError");
+const { getAdvocates } = require("./getAdvocates");
 
 function getOrdinalSuffix(day) {
   if (day > 3 && day < 21) return "th"; // 11th, 12th, 13th, etc.
@@ -68,7 +69,7 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
     if (!courtCase) {
       return renderError(res, "Court case not found", 404);
     }
-    // const allAdvocates = getAdvocates(courtCase);
+    const allAdvocates = getAdvocates(courtCase);
     // console.debug(allAdvocates);
     // Search for HRMS details
     // const resHrms = await handleApiCall(
@@ -121,6 +122,13 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
     if (!application) {
       return renderError(res, "Application not found", 404);
     }
+    const onBehaluuid =
+      "28e692cd-5b70-433c-a890-fddb395de22e" || application?.onBehalfOf?.[0];
+    const advocate = allAdvocates[onBehaluuid]?.[0]?.additionalDetails
+      ?.advocateName
+      ? allAdvocates[onBehaluuid]?.[0]
+      : {};
+    const advocateName = advocate?.additionalDetails?.advocateName || "";
     const partyName = application?.additionalDetails?.onBehalOfName || "";
     // Handle QR code if enabled
     let base64Url = "";
@@ -200,8 +208,8 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
           complainantName: partyName, //FIXME: REMOVE it from both pdf configs and here,
           additionalComments: "Additional Comments",
           prayerOptional: " asdasd ",
-          advocateSignature: "Advocate Signature",
-          advocateName: "SURESH",
+          advocateSignature: "Advocate_Signature",
+          advocateName: advocateName,
           nameOfDocument: "Aadhar card",
           barRegistrationNumber: "sdf",
           documentSubmissionName: "documents",
@@ -240,7 +248,7 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
   } catch (ex) {
     return renderError(
       res,
-      "Failed to query details of APPLICATION FOR EXTENSION OF SUBMISSION DEADLINE",
+      "Failed to query details of APPLICATION FOR PRODCUTION OF DOCUMENTS",
       500,
       ex
     );
