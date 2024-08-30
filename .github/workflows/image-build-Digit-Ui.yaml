@@ -2,9 +2,10 @@ name: Digit-UI Image Build workflow
 on:
   push:
     branches:
-      - sdc-ui
+      - sdc-ui-sa-fixes
     paths:
       - 'frontend/micro-ui/**'
+  workflow_dispatch:
 
 jobs:
   docker_image-build:
