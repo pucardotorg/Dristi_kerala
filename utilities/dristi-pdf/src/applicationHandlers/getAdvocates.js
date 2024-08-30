@@ -12,7 +12,6 @@ const getAdvocates = (caseDetails) => {
         );
       })
       .map((item) => {
-        console.debug(item);
         return item;
       });
     litigants[litigant?.additionalDetails?.uuid] = list;

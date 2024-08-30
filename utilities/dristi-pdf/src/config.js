@@ -58,6 +58,8 @@ module.exports = {
     application_submission_extension: process.env.APPLICATION_SUBMISSION_EXTENSION || "application-submission-extension",
     application_generic: process.env.APPLICATION_GENERIC || "application-generic",
     application_generic_qr: process.env.APPLICATION_GENERIC_QR || "application-generic-qr",
+    application_production_documents: process.env.APPLICATION_PRODUCTION_DOCUMENTS || "application-production-of-documents",
+    application_production_documents_qr: process.env.APPLICATION_PRODUCTION_DOCUMENTS_QR || "application-production-of-documents-qr"
   },
 
   app: {

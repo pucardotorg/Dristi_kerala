@@ -28,12 +28,6 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
   const cnrNumber = req.query.cnrNumber;
   const applicationNumber = req.query.applicationNumber;
   const tenantId = req.query.tenantId;
-  const partyName = req.query.partyName;
-  const advocateName = req.query.advocateName;
-  const originalSubmissionDate = req.query.originalSubmissionDate;
-  const requestedSubmissionDate = req.query.requestedSubmissionDate;
-  const extensionReason = req.query.extensionReason;
-  const barRegistrationNumber = req.query.barRegistrationNumber;
   const entityId = req.query.entityId;
   const code = req.query.code;
   const requestInfo = req.body.RequestInfo;
@@ -42,12 +36,6 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
   if (!cnrNumber) missingFields.push("cnrNumber");
   if (!applicationNumber) missingFields.push("applicationNumber");
   if (!tenantId) missingFields.push("tenantId");
-  if (!partyName) missingFields.push("partyName");
-  if (!advocateName) missingFields.push("advocateName");
-  if (!originalSubmissionDate) missingFields.push("originalSubmissionDate");
-  if (!requestedSubmissionDate) missingFields.push("requestedSubmissionDate");
-  if (!extensionReason) missingFields.push("extensionReason");
-  if (!barRegistrationNumber) missingFields.push("barRegistrationNumber");
   if (requestInfo === undefined) missingFields.push("requestInfo");
   if (qrCode === "true" && (!entityId || !code))
     missingFields.push("entityId and code");
@@ -78,18 +66,19 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
     );
     const courtCase = resCase?.data?.criteria[0]?.responseList[0];
     if (!courtCase) {
-      renderError(res, "Court case not found", 404);
+      return renderError(res, "Court case not found", 404);
     }
-
+    // const allAdvocates = getAdvocates(courtCase);
+    // console.debug(allAdvocates);
     // Search for HRMS details
-    const resHrms = await handleApiCall(
-      () => search_hrms(tenantId, "JUDGE", courtCase.courtId, requestInfo),
-      "Failed to query HRMS service"
-    );
-    const employee = resHrms?.data?.Employees[0];
-    if (!employee) {
-      renderError(res, "Employee not found", 404);
-    }
+    // const resHrms = await handleApiCall(
+    //   () => search_hrms(tenantId, "JUDGE", courtCase.courtId, requestInfo),
+    //   "Failed to query HRMS service"
+    // );
+    // const employee = resHrms?.data?.Employees[0];
+    // if (!employee) {
+    //   renderError(res, "Employee not found", 404);
+    // }
 
     // Search for MDMS court room details
     const resMdms = await handleApiCall(
@@ -104,24 +93,24 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
     );
     const mdmsCourtRoom = resMdms?.data?.mdms[0]?.data;
     if (!mdmsCourtRoom) {
-      renderError(res, "Court room MDMS master not found", 404);
+      return renderError(res, "Court room MDMS master not found", 404);
     }
 
     // Search for MDMS designation details
-    const resMdms1 = await handleApiCall(
-      () =>
-        search_mdms(
-          employee.assignments[0].designation,
-          "common-masters.Designation",
-          tenantId,
-          requestInfo
-        ),
-      "Failed to query MDMS service for court room"
-    );
-    const mdmsDesignation = resMdms1?.data?.mdms[0]?.data;
-    if (!mdmsDesignation) {
-      renderError(res, "Court room MDMS master not found", 404);
-    }
+    // const resMdms1 = await handleApiCall(
+    //   () =>
+    //     search_mdms(
+    //       employee.assignments[0].designation,
+    //       "common-masters.Designation",
+    //       tenantId,
+    //       requestInfo
+    //     ),
+    //   "Failed to query MDMS service for court room"
+    // );
+    // const mdmsDesignation = resMdms1?.data?.mdms[0]?.data;
+    // if (!mdmsDesignation) {
+    //   renderError(res, "Court room MDMS master not found", 404);
+    // }
 
     // Search for application details
     const resApplication = await handleApiCall(
@@ -130,9 +119,9 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
     );
     const application = resApplication?.data?.applicationList[0];
     if (!application) {
-      renderError(res, "Application not found", 404);
+      return renderError(res, "Application not found", 404);
     }
-
+    const partyName = application?.additionalDetails?.onBehalOfName || "";
     // Handle QR code if enabled
     let base64Url = "";
     if (qrCode === "true") {
@@ -201,23 +190,26 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
           caseNumber: courtCase.cnrNumber,
           caseYear: caseYear,
           caseName: courtCase.caseTitle,
-          judgeName: employee.user.name,
-          courtDesignation: mdmsDesignation.name,
-          addressOfTheCourt: mdmsCourtRoom.address,
+          judgeName: "John Doe", // FIXME: employee.user.name
+          courtDesignation: "HIGHT COURRT", //FIXME: mdmsDesignation.name,
+          addressOfTheCourt: "Kerala", //FIXME: mdmsCourtRoom.address,
           date: currentDate,
+          applicationName: "Generic Application",
           partyName: partyName,
-          advocateName: advocateName,
+          purposeOfApplication: "asdfasdf",
+          complainantName: partyName, //FIXME: REMOVE it from both pdf configs and here,
+          additionalComments: "Additional Comments",
+          prayerOptional: " asdasd ",
+          advocateSignature: "Advocate Signature",
+          advocateName: "SURESH",
+          nameOfDocument: "Aadhar card",
+          barRegistrationNumber: "sdf",
           documentSubmissionName: "documents",
+          originalCourt: "fsdaasdf",
           documentId: "documents",
-          originalSubmissionDate: originalSubmissionDate,
-          requestedSubmissionDate: requestedSubmissionDate,
-          extensionReason: extensionReason,
           day: day + ordinalSuffix,
           month: month,
           year: year,
-          additionalComments: "Additional Comments",
-          advocateSignature: "Advocate Signature",
-          barRegistrationNumber: barRegistrationNumber,
           qrCodeUrl: base64Url,
         },
       ],
@@ -226,14 +218,16 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
     // Generate the PDF
     const pdfKey =
       qrCode === "true"
-        ? config.pdf.application_submission_extension_qr
-        : config.pdf.application_submission_extension;
+        ? config.pdf.application_production_documents_qr
+        : config.pdf.application_production_documents;
     const pdfResponse = await handleApiCall(
       () => create_pdf(tenantId, pdfKey, data, req.body),
-      "Failed to generate PDF of APPLICATION FOR EXTENSION OF SUBMISSION DEADLINE"
+      "Failed to generate PDF of Application for production of documents"
     );
+    const filename = `${pdfKey}_${new Date().getTime()}`;
     res.writeHead(200, {
-      "Content-Type": "application/json",
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename=${filename}.pdf`,
     });
     pdfResponse.data
       .pipe(res)
