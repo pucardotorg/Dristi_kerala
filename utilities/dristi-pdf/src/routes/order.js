@@ -22,6 +22,9 @@ const { logger } = require("../logger");
 const { clear } = require("winston");
 const orderBailAcceptance = require("../orderHandlers/orderBailAcceptance");
 const orderBailRejection = require("../orderHandlers/orderBailRejection");
+const orderForAcceptReschedulingRequest = require("../orderHandlers/orderForAcceptReschedulingRequest");
+const orderForRejectionReschedulingRequest = require("../orderHandlers/orderForRejectionReschedulingRequest");
+const orderForMandatoryAsyncSubmissionsAndResponse = require("../orderHandlers/orderForMandatoryAsyncSubmissionsAndResponse");
 
 function renderError(res, errorMessage, errorCode, errorObject) {
   if (errorCode == undefined) errorCode = 500;
@@ -102,6 +105,15 @@ router.post(
           break;
         case "order-bail-rejection":
           await orderBailRejection(req, res, qrCode);
+          break;
+        case "order-for-accept-rescheduling-request":
+          await orderForAcceptReschedulingRequest(req, res, qrCode);
+          break;
+        case "order-for-rejection-rescheduling-request":
+          await orderForRejectionReschedulingRequest(req, res, qrCode);
+          break;
+        case "order-for-mandatory-async-submissions-and-response":
+          await orderForMandatoryAsyncSubmissionsAndResponse(req, res, qrCode);
           break;
         default:
           renderError(res, "Invalid order type", 400);
