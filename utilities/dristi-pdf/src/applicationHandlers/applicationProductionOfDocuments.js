@@ -70,7 +70,6 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
       return renderError(res, "Court case not found", 404);
     }
     const allAdvocates = getAdvocates(courtCase);
-    // console.debug(allAdvocates);
     // Search for HRMS details
     // const resHrms = await handleApiCall(
     //   () => search_hrms(tenantId, "JUDGE", courtCase.courtId, requestInfo),
@@ -122,8 +121,8 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
     if (!application) {
       return renderError(res, "Application not found", 404);
     }
-    const onBehaluuid =
-      "28e692cd-5b70-433c-a890-fddb395de22e" || application?.onBehalfOf?.[0];
+
+    const onBehaluuid = application?.onBehalfOf?.[0];
     const advocate = allAdvocates[onBehaluuid]?.[0]?.additionalDetails
       ?.advocateName
       ? allAdvocates[onBehaluuid]?.[0]
@@ -202,19 +201,16 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
           courtDesignation: "HIGHT COURRT", //FIXME: mdmsDesignation.name,
           addressOfTheCourt: "Kerala", //FIXME: mdmsCourtRoom.address,
           date: currentDate,
-          applicationName: "Generic Application",
           partyName: partyName,
-          purposeOfApplication: "asdfasdf",
+          reasonForApplication: "Reason", //FIXME : Currently this field is document inside the application, it should be a textbox
           complainantName: partyName, //FIXME: REMOVE it from both pdf configs and here,
-          additionalComments: "Additional Comments",
-          prayerOptional: " asdasd ",
-          advocateSignature: "Advocate_Signature",
+          additionalComments:
+            application?.additionalDetails?.formdata?.comments | " ",
+          prayerOptional: "",
+          advocateSignature: "Advocate_Signature", //FIXME: It should also come from the application
           advocateName: advocateName,
-          nameOfDocument: "Aadhar card",
+          nameOfDocument: "Aadhar card", //FIXME: It should come from the application, currently there is not field present inside of it
           barRegistrationNumber: "sdf",
-          documentSubmissionName: "documents",
-          originalCourt: "fsdaasdf",
-          documentId: "documents",
           day: day + ordinalSuffix,
           month: month,
           year: year,

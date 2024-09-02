@@ -113,6 +113,12 @@ module.exports = {
     application_case_withdrawal_qr:
       process.env.APPLICATION_CASE_WITHDRAWAL_QR ||
       "application-case-withdrawal-qr",
+    application_reschedule_request:
+      process.env.APPLICATION_RESCHEDULE_REQUEST ||
+      "application-reschedule-request",
+    application_reschedule_request_qr:
+      process.env.APPLICATION_RESCHEDULE_REQUEST_QR ||
+      "application-reschedule-request-qr",
     order_bail_rejection:
       process.env.ORDER_BAIL_REJECTION || "order-bail-rejection",
     order_bail_rejection_qr:
@@ -121,6 +127,12 @@ module.exports = {
       process.env.ORDER_BAIL_ACCEPTANCE || "order-bail-acceptance",
     order_bail_acceptance_qr:
       process.env.ORDER_BAIL_ACCEPTANCE_QR || "order-bail-acceptance-qr",
+    order_for_mandatory_async_submissions_and_response_qr:
+      process.env.ORDER_MANDATORY_SUBMISSION_QR ||
+      "order-for-mandatory-async-submissions-and-response-qr",
+    order_for_mandatory_async_submissions_and_response:
+      process.env.ORDER_MANDATORY_SUBMISSION_QR ||
+      "order-for-mandatory-async-submissions-and-response",
   },
 
   app: {

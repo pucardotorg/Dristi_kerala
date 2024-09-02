@@ -9,6 +9,7 @@ const {
   create_pdf,
 } = require("../api");
 const { renderError } = require("../utils/renderError");
+const { getAdvocates } = require("./getAdvocates");
 
 function getOrdinalSuffix(day) {
   if (day > 3 && day < 21) return "th"; // 11th, 12th, 13th, etc.
@@ -68,7 +69,7 @@ async function applicationGeneric(req, res, qrCode) {
     if (!courtCase) {
       return renderError(res, "Court case not found", 404);
     }
-    // const allAdvocates = getAdvocates(courtCase);
+    const allAdvocates = getAdvocates(courtCase);
     // console.debug(allAdvocates);
     // Search for HRMS details
     // const resHrms = await handleApiCall(
@@ -121,6 +122,12 @@ async function applicationGeneric(req, res, qrCode) {
     if (!application) {
       return renderError(res, "Application not found", 404);
     }
+    const onBehaluuid = application?.onBehalfOf?.[0];
+    const advocate = allAdvocates[onBehaluuid]?.[0]?.additionalDetails
+      ?.advocateName
+      ? allAdvocates[onBehaluuid]?.[0]
+      : {};
+    const advocateName = advocate?.additionalDetails?.advocateName || "";
     const partyName = application?.additionalDetails?.onBehalOfName || "";
     // Handle QR code if enabled
     let base64Url = "";
@@ -201,7 +208,7 @@ async function applicationGeneric(req, res, qrCode) {
           additionalComments: "Additional Comments",
           prayerOptional: " asdasd ",
           advocateSignature: "Advocate Signature",
-          advocateName: "SURESH",
+          advocateName: advocateName,
           barRegistrationNumber: "sdf",
           documentSubmissionName: "documents",
           documentId: "documents",
@@ -222,8 +229,10 @@ async function applicationGeneric(req, res, qrCode) {
       () => create_pdf(tenantId, pdfKey, data, req.body),
       "Failed to generate PDF of Generic Application"
     );
+    const filename = `${pdfKey}_${new Date().getTime()}`;
     res.writeHead(200, {
-      "Content-Type": "application/json",
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename=${filename}.pdf`,
     });
     pdfResponse.data
       .pipe(res)
@@ -234,13 +243,12 @@ async function applicationGeneric(req, res, qrCode) {
         return renderError(res, "Failed to send PDF response", 500, err);
       });
   } catch (ex) {
-    logger.error(ex);
-    // return renderError(
-    //   res,
-    //   "Failed to query details of APPLICATION FOR EXTENSION OF SUBMISSION DEADLINE",
-    //   500,
-    //   ex
-    // );
+    return renderError(
+      res,
+      "Failed to query details of Generic Application",
+      500,
+      ex
+    );
   }
 }
 

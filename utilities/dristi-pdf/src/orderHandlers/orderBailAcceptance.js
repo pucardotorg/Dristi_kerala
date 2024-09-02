@@ -184,7 +184,7 @@ const orderBailAcceptance = async (req, res, qrCode) => {
         : config.pdf.order_bail_acceptance;
     const pdfResponse = await handleApiCall(
       () => create_pdf(tenantId, pdfKey, data, req.body),
-      "Failed to generate PDF of Application for production of documents"
+      "Failed to generate PDF of Order for acceptance of Bail"
     );
 
     const filename = `${pdfKey}_${new Date().getTime()}`;

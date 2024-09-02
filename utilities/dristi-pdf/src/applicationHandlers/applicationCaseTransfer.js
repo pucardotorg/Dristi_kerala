@@ -189,7 +189,7 @@ const applicationCaseTransfer = async (req, res, qrCode) => {
         : config.pdf.application_case_transfer;
     const pdfResponse = await handleApiCall(
       () => create_pdf(tenantId, pdfKey, data, req.body),
-      "Failed to generate PDF of Application for production of documents"
+      "Failed to generate PDF of Application for Case Transfer"
     );
 
     const filename = `${pdfKey}_${new Date().getTime()}`;
