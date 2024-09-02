@@ -123,6 +123,11 @@ public class Hearing {
     @JsonProperty("registrationDate")
     private Long registrationDate = null;
 
+    @JsonProperty("stage")
+    private String stage = null;
+
+    @JsonProperty("substage")
+    private String substage = null;
 
     public Hearing addFilingNumberItem(String filingNumberItem) {
         this.filingNumber.add(filingNumberItem);

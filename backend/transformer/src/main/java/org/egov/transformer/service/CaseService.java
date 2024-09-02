@@ -10,7 +10,6 @@ import org.egov.transformer.models.CaseRequest;
 import org.egov.transformer.models.CourtCase;
 import org.egov.transformer.models.Order;
 import org.egov.transformer.producer.TransformerProducer;
-import org.egov.transformer.util.CaseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,34 +29,16 @@ public class CaseService {
     private final TransformerProperties properties;
     private final TransformerProducer producer;
     private final ObjectMapper objectMapper;
-    private  final CaseUtil caseUtil;
 
     @Autowired
-    public CaseService(ElasticSearchService elasticSearchService, TransformerProperties properties, TransformerProducer producer, ObjectMapper objectMapper, CaseUtil caseUtil) {
+    public CaseService(ElasticSearchService elasticSearchService, TransformerProperties properties, TransformerProducer producer, ObjectMapper objectMapper) {
         this.elasticSearchService = elasticSearchService;
         this.properties = properties;
         this.producer = producer;
         this.objectMapper = objectMapper;
-        this.caseUtil = caseUtil;
     }
 
-    public void updateCaseWithFullName(CourtCase courtCase)
-    {
-
-    }
-
-    public void addCaseWithFullName(CourtCase courtCase)
-    {
-          Object additionalDetails = courtCase.getAdditionalDetails();
-
-          if(additionalDetails!=null)
-          {
-
-          }
-
-    }
-
-    private CourtCase fetchCase(String fieldValue) throws IOException {
+    public CourtCase fetchCase(String fieldValue) throws IOException {
         LinkedHashMap<String, Object> sourceMap = elasticSearchService.getDocumentByField(ServiceConstants.CASE_INDEX, ServiceConstants.FILING_NUMBER, fieldValue);
         if (null == sourceMap || null == sourceMap.get("Data")) {
             log.error("No case data found for {}", fieldValue);

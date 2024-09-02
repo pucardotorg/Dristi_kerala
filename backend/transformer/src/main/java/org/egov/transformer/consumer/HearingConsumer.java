@@ -4,11 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.egov.transformer.config.TransformerProperties;
-import org.egov.transformer.models.CaseRequest;
-import org.egov.transformer.models.CourtCase;
 import org.egov.transformer.models.Hearing;
 import org.egov.transformer.models.HearingRequest;
-import org.egov.transformer.service.CaseService;
 import org.egov.transformer.service.HearingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +18,7 @@ public class HearingConsumer {
     private static final Logger logger = LoggerFactory.getLogger(HearingConsumer.class);
     private final ObjectMapper objectMapper;
 
-    private  final HearingService hearingService;
+    private final HearingService hearingService;
     private final TransformerProperties transformerProperties;
 
     @Autowired
@@ -30,25 +27,27 @@ public class HearingConsumer {
         this.hearingService = hearingService;
         this.transformerProperties = transformerProperties;
     }
-    @KafkaListener(topics = {"${kafka.topics.hearing.create}"})
+
+    @KafkaListener(topics = {"${transformer.consumer.create.hearing.topic}"})
     public void saveHearing(ConsumerRecord<String, Object> payload,
-                              @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
+                            @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
         publishHearing(payload, transformerProperties.getSaveHearingTopic());
     }
-    @KafkaListener(topics = {"${kafka.topics.hearing.update}"})
+
+    @KafkaListener(topics = {"${transformer.consumer.update.hearing.topic}"})
     public void updateHearing(ConsumerRecord<String, Object> payload,
-                           @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
+                              @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
         publishHearing(payload, transformerProperties.getUpdateHearingTopic());
     }
 
 
     private void publishHearing(ConsumerRecord<String, Object> payload,
-                             @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
+                                @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
         try {
             Hearing hearing = (objectMapper.readValue((String) payload.value(), new TypeReference<HearingRequest>() {
             })).getHearing();
             logger.info(objectMapper.writeValueAsString(hearing));
-            hearingService.addCaseDetailsToHearing(hearing,topic);
+            hearingService.addCaseDetailsToHearing(hearing, topic);
         } catch (Exception exception) {
             logger.error("error in saving hearing", exception);
         }
