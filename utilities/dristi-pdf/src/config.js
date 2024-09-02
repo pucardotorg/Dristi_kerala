@@ -131,8 +131,19 @@ module.exports = {
       process.env.ORDER_MANDATORY_SUBMISSION_QR ||
       "order-for-mandatory-async-submissions-and-response-qr",
     order_for_mandatory_async_submissions_and_response:
-      process.env.ORDER_MANDATORY_SUBMISSION_QR ||
+      process.env.ORDER_MANDATORY_SUBMISSION ||
       "order-for-mandatory-async-submissions-and-response",
+    order_for_rejection_rescheduling_request_qr:
+      process.env.ORDER_REJECTION_RESCHEDULE_REQUEST_QR ||
+      "order-for-rejection-rescheduling-request-qr",
+    order_for_rejection_rescheduling_request:
+      process.env.ORDER_REJECTION_RESCHEDULE_REQUEST ||
+      "order-for-rejection-rescheduling-request",
+    order_initiate_reschedule_qr:
+      process.env.ORDER_INITIATE_RESCHEDULE_QR ||
+      "order-initiate-reschedule-qr",
+    order_initiate_reschedule:
+      process.env.ORDER_INITIATE_RESCHEDULE || "order-initiate-reschedule",
   },
 
   app: {

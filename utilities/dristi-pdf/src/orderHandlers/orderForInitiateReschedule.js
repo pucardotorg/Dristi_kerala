@@ -25,7 +25,7 @@ function getOrdinalSuffix(day) {
   }
 }
 
-const orderForRejectionReschedulingRequest = async (req, res, qrCode) => {
+const orderForInitiateReschedule = async (req, res, qrCode) => {
   const cnrNumber = req.query.cnrNumber;
   const orderId = req.query.orderId;
   const tenantId = req.query.tenantId;
@@ -177,13 +177,9 @@ const orderForRejectionReschedulingRequest = async (req, res, qrCode) => {
           parties: "Parties from UI",
           documentList: "List of documents from UI",
           evidenceSubmissionDeadline: "Evidence submission deadline from UI",
+          ifResponse: "If response from UI ",
           responseSubmissionDeadline: "Response submission deadline from UI",
           additionalComments: order.comments,
-          partyName: partyName,
-          applicationId: order?.additionalDetails?.formdata?.refApplicationId,
-          reasonForRescheduling: "",
-          originalHearingDate: "",
-          additionalComments: "",
           Date: "Date from UI",
           Month: "Month from UI",
           Year: "Year from UI",
@@ -222,11 +218,11 @@ const orderForRejectionReschedulingRequest = async (req, res, qrCode) => {
   } catch (ex) {
     return renderError(
       res,
-      "Failed to query details of Order for Rejcetion of Reschedule Request",
+      "Failed to query details of Order for Initiate Reschedule Hearing",
       500,
       ex
     );
   }
 };
 
-module.exports = orderForRejectionReschedulingRequest;
+module.exports = orderForInitiateReschedule;
