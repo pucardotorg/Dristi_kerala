@@ -25,7 +25,7 @@ function getOrdinalSuffix(day) {
   }
 }
 
-async function applicationProductionOfDocuments(req, res, qrCode) {
+async function applicationRescheduleRequest(req, res, qrCode) {
   const cnrNumber = req.query.cnrNumber;
   const applicationNumber = req.query.applicationNumber;
   const tenantId = req.query.tenantId;
@@ -70,6 +70,7 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
       return renderError(res, "Court case not found", 404);
     }
     const allAdvocates = getAdvocates(courtCase);
+
     // Search for HRMS details
     // const resHrms = await handleApiCall(
     //   () => search_hrms(tenantId, "JUDGE", courtCase.courtId, requestInfo),
@@ -129,6 +130,17 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
       : {};
     const advocateName = advocate?.additionalDetails?.advocateName || "";
     const partyName = application?.additionalDetails?.onBehalOfName || "";
+    const onBehalfOfLitigent = courtCase?.litigants?.find(
+      (item) => item.additionalDetails.uuid === onBehalfOfuuid
+    );
+    const sourceType = onBehalfOfLitigent?.partyType
+      ?.toLowerCase()
+      ?.includes("complainant")
+      ? "COMPLAINANT"
+      : !isCitizen
+      ? "COURT"
+      : "ACCUSED";
+
     // Handle QR code if enabled
     let base64Url = "";
     if (qrCode === "true") {
@@ -202,15 +214,15 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
           addressOfTheCourt: "Kerala", //FIXME: mdmsCourtRoom.address,
           date: currentDate,
           partyName: partyName,
-          reasonForApplication: "Reason", //FIXME : Currently this field is document inside the application, it should be a textbox
-          complainantName: partyName, //FIXME: REMOVE it from both pdf configs and here,
-          additionalComments:
-            application?.additionalDetails?.formdata?.comments | " ",
-          prayerOptional: "",
-          advocateSignature: "Advocate_Signature", //FIXME: It should also come from the application
+          partyType: sourceType,
+          initialHearingDate: "11212",
+          reasonForReschedule: "121212",
+          proposedHearingDate: "121212",
+          proposed_Hearing_Date: "121212",
+          additionalComments: "Additional Comments",
+          advocateSignature: "Advocate Signature",
           advocateName: advocateName,
-          nameOfDocument: "Aadhar card", //FIXME: It should come from the application, currently there is not field present inside of it
-          barRegistrationNumber: "sdf",
+          barRegistrationNumber: "bar registration Number",
           day: day + ordinalSuffix,
           month: month,
           year: year,
@@ -218,15 +230,15 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
         },
       ],
     };
-
+    console.debug(data);
     // Generate the PDF
     const pdfKey =
       qrCode === "true"
-        ? config.pdf.application_production_documents_qr
-        : config.pdf.application_production_documents;
+        ? config.pdf.application_reschedule_request_qr
+        : config.pdf.application_reschedule_request;
     const pdfResponse = await handleApiCall(
       () => create_pdf(tenantId, pdfKey, data, req.body),
-      "Failed to generate PDF of Application for production of documents"
+      "Failed to generate PDF of Reschedule Request Application"
     );
     const filename = `${pdfKey}_${new Date().getTime()}`;
     res.writeHead(200, {
@@ -242,13 +254,14 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
         return renderError(res, "Failed to send PDF response", 500, err);
       });
   } catch (ex) {
-    return renderError(
-      res,
-      "Failed to query details of APPLICATION FOR PRODCUTION OF DOCUMENTS",
-      500,
-      ex
-    );
+    logger.error(ex);
+    // return renderError(
+    //   res,
+    //   "Failed to query details of APPLICATION FOR EXTENSION OF SUBMISSION DEADLINE",
+    //   500,
+    //   ex
+    // );
   }
 }
 
-module.exports = applicationProductionOfDocuments;
+module.exports = applicationRescheduleRequest;

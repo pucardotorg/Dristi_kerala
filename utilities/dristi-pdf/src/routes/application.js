@@ -12,6 +12,7 @@ const applicationProductionOfDocuments = require("../applicationHandlers/applica
 const applicationBailBond = require("../applicationHandlers/applicationBailBond");
 const applicationCaseTransfer = require("../applicationHandlers/applicationCaseTransfer");
 const applicationCaseWithdrawal = require("../applicationHandlers/applicationCaseWithdrawal");
+const applicationRescheduleRequest = require("../applicationHandlers/applicationRescheduleRequest");
 
 function renderError(res, errorMessage, errorCode, errorObject) {
   if (errorCode == undefined) errorCode = 500;
@@ -53,6 +54,9 @@ router.post(
           break;
         case "application-production-of-documents":
           await applicationProductionOfDocuments(req, res, qrCode);
+          break;
+        case "application-reschedule-request":
+          await applicationRescheduleRequest(req, res, qrCode);
           break;
         case "application-bail-bond":
           await applicationBailBond(req, res, qrCode);

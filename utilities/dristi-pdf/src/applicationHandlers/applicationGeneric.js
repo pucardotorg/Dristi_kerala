@@ -122,10 +122,10 @@ async function applicationGeneric(req, res, qrCode) {
     if (!application) {
       return renderError(res, "Application not found", 404);
     }
-    const onBehaluuid = application?.onBehalfOf?.[0];
-    const advocate = allAdvocates[onBehaluuid]?.[0]?.additionalDetails
+    const onBehalfOfuuid = application?.onBehalfOf?.[0];
+    const advocate = allAdvocates[onBehalfOfuuid]?.[0]?.additionalDetails
       ?.advocateName
-      ? allAdvocates[onBehaluuid]?.[0]
+      ? allAdvocates[onBehalfOfuuid]?.[0]
       : {};
     const advocateName = advocate?.additionalDetails?.advocateName || "";
     const partyName = application?.additionalDetails?.onBehalOfName || "";
