@@ -8,6 +8,7 @@ import digit.util.TaskUtil;
 import digit.web.models.*;
 import lombok.extern.slf4j.Slf4j;
 import net.minidev.json.JSONArray;
+import org.egov.common.contract.models.RequestInfoWrapper;
 import org.egov.common.contract.models.Workflow;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.tracer.model.CustomException;
@@ -143,7 +144,9 @@ public class DemandService {
     public BillResponse getBill(RequestInfo requestInfo, Task task) {
         String uri = buildFetchBillURI(task.getTenantId(), task.getTaskNumber(), config.getTaskBusinessService());
 
-        Object response = repository.fetchResult(new StringBuilder(uri), requestInfo);
+        RequestInfoWrapper requestInfoWrapper = RequestInfoWrapper.builder().requestInfo(requestInfo).build();
+
+        Object response = repository.fetchResult(new StringBuilder(uri), requestInfoWrapper);
 
         return mapper.convertValue(response, BillResponse.class);
     }
