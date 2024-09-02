@@ -76,8 +76,8 @@ public class OptOutProcessor {
 
             // todo: audit details part
             reScheduleHearing.setAvailableDates(new ArrayList<>(suggestedDatesSet));
-            if (totalOptOutCanBeMade - optOutAlreadyMade == 1 || totalOptOutCanBeMade - optOutAlreadyMade == 0) { // second condition is for lag if this data is already persisted into the db,it should be second only
-
+            if (totalOptOutCanBeMade - optOutAlreadyMade == 0) { // second condition is for lag if this data is already persisted into the db,it should be second only
+                // TODO: check for the condition when opt-out is not getting stored
                 // this is last opt out, need to close the request. open the pending task for judge
                 PendingTask pendingTask = pendingTaskUtil.createPendingTask(reScheduleHearing);
                 PendingTaskRequest request = PendingTaskRequest.builder()
