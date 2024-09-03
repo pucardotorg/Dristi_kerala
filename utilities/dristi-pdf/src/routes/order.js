@@ -25,6 +25,8 @@ const orderBailRejection = require("../orderHandlers/orderBailRejection");
 const orderForAcceptReschedulingRequest = require("../orderHandlers/orderForAcceptReschedulingRequest");
 const orderForRejectionReschedulingRequest = require("../orderHandlers/orderForRejectionReschedulingRequest");
 const orderForMandatoryAsyncSubmissionsAndResponse = require("../orderHandlers/orderForMandatoryAsyncSubmissionsAndResponse");
+const orderAcceptVoluntary = require("../orderHandlers/orderAcceptVoluntary");
+const orderRejectVoluntary = require("../orderHandlers/orderRejectVoluntary");
 
 function renderError(res, errorMessage, errorCode, errorObject) {
   if (errorCode == undefined) errorCode = 500;
@@ -114,6 +116,12 @@ router.post(
           break;
         case "order-for-mandatory-async-submissions-and-response":
           await orderForMandatoryAsyncSubmissionsAndResponse(req, res, qrCode);
+          break;
+        case "order-accept-voluntary":
+          await orderAcceptVoluntary(req, res, qrCode);
+          break;
+        case "order-reject-voluntary":
+          await orderRejectVoluntary(req, res, qrCode);
           break;
         default:
           renderError(res, "Invalid order type", 400);

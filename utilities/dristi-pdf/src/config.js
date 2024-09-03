@@ -33,6 +33,24 @@ module.exports = {
     summons_issue_qr: process.env.SUMMONS_ISSUE_QR || "summons-issue-qr",
     order_generic: process.env.ORDER_GENERIC || "order-generic",
     order_generic_qr: process.env.ORDER_GENERIC_QR || "order-generic-qr",
+    order_accept_voluntary:
+      process.env.ORDER_ACCEPT_VOLUNTARY || "order-accept-voluntary",
+    order_accept_voluntary_qr:
+      process.env.ORDER_ACCEPT_VOLUNTARY_QR || "order-accept-voluntary-qr",
+    order_reject_voluntary:
+      process.env.ORDER_REJECT_VOLUNTARY || "order-reject-voluntary",
+    order_reject_voluntary_qr:
+      process.env.ORDER_REJECT_VOLUNTARY_QR || "order-reject-voluntary-qr",
+    order_accept_checkout:
+      process.env.ORDER_ACCEPT_CHECKOUT || "order-accept-checkout-request",
+    order_accept_checkout_qr:
+      process.env.ORDER_ACCEPT_CHECKOUT_QR ||
+      "order-accept-checkout-request-qr",
+    order_reject_checkout:
+      process.env.ORDER_REJECT_CHECKOUT || "order-reject-checkout-request",
+    order_reject_checkout_qr:
+      process.env.ORDER_REJECT_CHECKOUT_QR ||
+      "order-reject-checkout-request-qr",
     case_transfer: process.env.CASE_TRANSFER || "case-transfer",
     case_transfer_qr: process.env.CASE_TRANSFER_QR || "case-transfer-qr",
     case_settlement_acceptance:
