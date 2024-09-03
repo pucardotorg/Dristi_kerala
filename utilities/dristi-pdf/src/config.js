@@ -159,9 +159,18 @@ module.exports = {
     order_for_rejection_rescheduling_request_qr:
       process.env.ORDER_REJECTION_RESCHEDULE_REQUEST_QR ||
       "order-for-rejection-rescheduling-request-qr",
+    order_for_accept_rescheduling_request:
+      process.env.ORDER_FOR_ACCEPT_RESCHEDULING_REQUEST ||
+      "order-for-accept-rescheduling-request",
+    order_for_accept_rescheduling_request_qr:
+      process.env.ORDER_FOR_ACCEPT_RESCHEDULING_REQUEST_QR ||
+      "order-for-accept-rescheduling-request-qr",
     order_for_rejection_rescheduling_request:
       process.env.ORDER_REJECTION_RESCHEDULE_REQUEST ||
       "order-for-rejection-rescheduling-request",
+    order_for_rejection_rescheduling_request_qr:
+      process.env.ORDER_FOR_REJECTION_RESCHEDULING_REQUEST_QR ||
+      "order-for-rejection-rescheduling-request-qr",
     order_initiate_reschedule_qr:
       process.env.ORDER_INITIATE_RESCHEDULE_QR ||
       "order-initiate-reschedule-qr",
