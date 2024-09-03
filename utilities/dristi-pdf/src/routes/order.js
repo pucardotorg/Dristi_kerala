@@ -132,7 +132,7 @@ router.post(
           await orderRejectCheckout(req, res, qrCode);
           break;
         default:
-          renderError(res, "Invalid order type", 400);
+          await orderGeneric(req, res, qrCode);
           break;
       }
     } catch (error) {

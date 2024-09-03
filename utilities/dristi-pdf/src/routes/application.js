@@ -47,9 +47,9 @@ router.post(
 
     try {
       switch (applicationType.toLowerCase()) {
-        case "application-submission-extension":
-          await applicationSubmissionExtension(req, res, qrCode);
-          break;
+        // case "application-submission-extension":
+        //   await applicationSubmissionExtension(req, res, qrCode);
+        //   break;
         case "application-generic":
           await applicationGeneric(req, res, qrCode);
           break;
@@ -59,20 +59,20 @@ router.post(
         case "application-reschedule-request":
           await applicationRescheduleRequest(req, res, qrCode);
           break;
-        case "application-bail-bond":
-          await applicationBailBond(req, res, qrCode);
-          break;
-        case "application-case-transfer":
-          await applicationCaseTransfer(req, res, qrCode);
-          break;
-        case "application-case-withdrawal":
-          await applicationCaseWithdrawal(req, res, qrCode);
-          break;
-        case "application-for-checkout-request":
-          await applicationCheckout(req, res, qrCode);
-          break;
+        // case "application-bail-bond":
+        //   await applicationBailBond(req, res, qrCode);
+        //   break;
+        // case "application-case-transfer":
+        //   await applicationCaseTransfer(req, res, qrCode);
+        //   break;
+        // case "application-case-withdrawal":
+        //   await applicationCaseWithdrawal(req, res, qrCode);
+        //   break;
+        // case "application-for-checkout-request":
+        //   await applicationCheckout(req, res, qrCode);
+        //   break;
         default:
-          renderError(res, "Invalid application type", 400);
+          await applicationGeneric(req, res, qrCode);
           break;
       }
     } catch (error) {
