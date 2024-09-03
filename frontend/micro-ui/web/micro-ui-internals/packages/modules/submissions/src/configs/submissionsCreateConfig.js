@@ -157,6 +157,7 @@ export const configsRescheduleRequest = [
         disable: true,
         isMandatory: true,
         key: "initialHearingDate",
+        schemaKeyPath: "applicationDetails.initialHearingDate",
         type: "date",
         populators: {
           name: "initialHearingDate",
@@ -188,6 +189,7 @@ export const configsRescheduleRequest = [
         label: "PROPOSED_DATE",
         isMandatory: true,
         key: "changedHearingDate",
+        schemaKeyPath: "applicationDetails.newHearingScheduledDate",
         type: "date",
         populators: {
           name: "changedHearingDate",
@@ -523,6 +525,8 @@ export const configsExtensionSubmissionDeadline = [
         isMandatory: true,
         disable: true,
         key: "initialSubmissionDate",
+        schemaKeyPath: "applicationDetails.originalSubmissionDate",
+        transformer: "date",
         type: "date",
         populators: {
           name: "initialSubmissionDate",
@@ -533,6 +537,8 @@ export const configsExtensionSubmissionDeadline = [
         label: "REQUESTED_DATE",
         isMandatory: true,
         key: "changedSubmissionDate",
+        schemaKeyPath: "applicationDetails.requestedExtensionDate",
+        transformer: "date",
         type: "date",
         populators: {
           name: "changedSubmissionDate",
@@ -543,6 +549,8 @@ export const configsExtensionSubmissionDeadline = [
         label: "EXTENSION_REASON",
         isMandatory: true,
         key: "extensionReason",
+        schemaKeyPath: "applicationDetails.benefitOfExtension",
+        transformer: "mdmsDropdown",
         type: "dropdown",
         populators: {
           name: "extensionReason",
@@ -567,6 +575,8 @@ export const configsExtensionSubmissionDeadline = [
         type: "component",
         component: "SelectCustomTextArea",
         key: "extensionBenefit",
+        schemaKeyPath: "applicationDetails.reasonForExtension",
+        transformer: "customTextArea",
         isMandatory: true,
         populators: {
           inputs: [
@@ -880,6 +890,8 @@ export const configsProductionOfDocuments = [
         inline: true,
         type: "component",
         component: "SelectCustomTextArea",
+        schemaKeyPath: "applicationDetails.additionalComments",
+        transformer: "customTextArea",
         key: "comments",
         isMandatory: false,
         populators: {
@@ -1003,6 +1015,8 @@ export const configsCaseWithdrawal = [
         isMandatory: true,
         type: "dropdown",
         key: "reasonForWithdrawal",
+        schemaKeyPath: "applicationDetails.benefitOfExtension",
+        transformer: "mdmsDropdown",
         populators: {
           name: "reasonForWithdrawal",
           optionsKey: "name",
@@ -1025,6 +1039,8 @@ export const configsCaseWithdrawal = [
         inline: true,
         type: "component",
         component: "SelectCustomTextArea",
+        schemaKeyPath: "applicationDetails.additionalComments",
+        transformer: "customTextArea",
         key: "comments",
         isMandatory: false,
         populators: {
@@ -1145,6 +1161,7 @@ export const configsCaseTransfer = [
       {
         inline: true,
         label: "REQUESTED_COURT",
+        schemaKeyPath: "applicationDetails.selectRequestedCourt",
         isMandatory: true,
         disable: true,
         key: "requestedCourt",
@@ -1157,6 +1174,7 @@ export const configsCaseTransfer = [
         isMandatory: true,
         key: "groundsForTransfer",
         type: "text",
+        schemaKeyPath: "applicationDetails.groundsForSeekingTransfer",
         populators: {
           name: "groundsForTransfer",
           error: "CS_ALPHANUMERIC_ALLOWED",
@@ -1177,6 +1195,8 @@ export const configsCaseTransfer = [
         type: "component",
         component: "SelectCustomTextArea",
         key: "comments",
+        schemaKeyPath: "applicationDetails.additionalComments",
+        transformer: "customTextArea",
         isMandatory: false,
         populators: {
           inputs: [
@@ -1301,6 +1321,8 @@ export const configsSettlement = [
         inline: true,
         type: "component",
         component: "SelectCustomTextArea",
+        schemaKeyPath: "applicationDetails.additionalComments",
+        transformer: "customTextArea",
         key: "comments",
         isMandatory: false,
         populators: {
@@ -1346,6 +1368,8 @@ export const configsSurety = [
         isMandatory: true,
         inline: false,
         component: "SelectCustomTextArea",
+        schemaKeyPath: "applicationDetails.reasonForBail",
+        transformer: "customTextArea",
         populators: {
           inputs: [
             {
@@ -1399,6 +1423,8 @@ export const configsSurety = [
         type: "component",
         component: "AddSubmissionDocument",
         key: "submissionDocuments",
+        schemaKeyPath: "applicationDetails.bailDocuments",
+        transformer: "bailDocuments", 
         inline: false,
         populators: {
           inputs: [
@@ -1473,6 +1499,8 @@ export const configsBailBond = [
         isMandatory: true,
         inline: false,
         component: "SelectCustomTextArea",
+        schemaKeyPath: "applicationDetails.reasonForBail",
+        transformer: "customTextArea",
         populators: {
           inputs: [
             {
@@ -1512,6 +1540,8 @@ export const configsBailBond = [
         type: "component",
         component: "AddSubmissionDocument",
         key: "submissionDocuments",
+        schemaKeyPath: "applicationDetails.bailDocuments",
+        transformer: "bailDocuments",
         inline: false,
         populators: {
           inputs: [
@@ -1573,6 +1603,7 @@ export const configsOthers = [
         label: "APPLICATION_TITLE",
         isMandatory: true,
         key: "applicationTitle",
+        schemaKeyPath: "applicationDetails.applicationTitle",
         type: "text",
         populators: {
           name: "applicationTitle",
@@ -1614,6 +1645,8 @@ export const configsOthers = [
       {
         type: "component",
         component: "SelectCustomTextArea",
+        schemaKeyPath: "applicationDetails.purposeOfApplication",
+        transformer: "customTextArea",
         key: "applicationDetails",
         isMandatory: true,
         populators: {

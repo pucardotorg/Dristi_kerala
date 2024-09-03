@@ -478,9 +478,16 @@ const SubmissionsCreate = ({ path }) => {
         DRISTIService.createEvidence(evidenceReqBody);
       });
 
+      let applicationSchema = {};
+      try {
+        applicationSchema = Digit.Customizations.dristiOrders.ApplicationFormSchemaUtils.formToSchema(formdata, modifiedFormConfig);
+      } catch (error) {
+        console.log(error);
+      }
       const applicationReqBody = {
         tenantId,
         application: {
+          ...applicationSchema,
           tenantId,
           filingNumber,
           cnrNumber: caseDetails?.cnrNumber,
