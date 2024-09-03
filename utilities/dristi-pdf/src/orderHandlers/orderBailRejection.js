@@ -7,6 +7,7 @@ const {
   search_sunbirdrc_credential_service,
   search_application,
   create_pdf,
+  search_order,
 } = require("../api");
 const { renderError } = require("../utils/renderError");
 
@@ -26,7 +27,7 @@ function getOrdinalSuffix(day) {
 
 const orderBailRejection = async (req, res, qrCode) => {
   const cnrNumber = req.query.cnrNumber;
-  const applicationNumber = req.query.applicationNumber;
+  const orderId = req.query.orderId;
   const tenantId = req.query.tenantId;
   const entityId = req.query.entityId;
   const code = req.query.code;
@@ -34,7 +35,7 @@ const orderBailRejection = async (req, res, qrCode) => {
 
   const missingFields = [];
   if (!cnrNumber) missingFields.push("cnrNumber");
-  if (!applicationNumber) missingFields.push("applicationNumber");
+  if (!orderId) missingFields.push("orderId");
   if (!tenantId) missingFields.push("tenantId");
   if (requestInfo === undefined) missingFields.push("requestInfo");
   if (qrCode === "true" && (!entityId || !code))
@@ -67,7 +68,14 @@ const orderBailRejection = async (req, res, qrCode) => {
     if (!courtCase) {
       return renderError(res, "Court case not found", 404);
     }
-
+    const resOrder = await handleApiCall(
+      () => search_order(tenantId, orderId, requestInfo),
+      "Failed to query order service"
+    );
+    const order = resOrder?.data?.list[0];
+    if (!order) {
+      renderError(res, "Order not found", 404);
+    }
     // Search for MDMS court room details
     const resMdms = await handleApiCall(
       () =>
@@ -84,16 +92,6 @@ const orderBailRejection = async (req, res, qrCode) => {
       return renderError(res, "Court room MDMS master not found", 404);
     }
 
-    // Search for application details
-    const resApplication = await handleApiCall(
-      () => search_application(tenantId, applicationNumber, requestInfo),
-      "Failed to query application service"
-    );
-    const application = resApplication?.data?.applicationList[0];
-    if (!application) {
-      return renderError(res, "Application not found", 404);
-    }
-    const partyName = application?.additionalDetails?.onBehalOfName || "";
     // Handle QR code if enabled
     let base64Url = "";
     if (qrCode === "true") {
@@ -167,7 +165,6 @@ const orderBailRejection = async (req, res, qrCode) => {
           briefSummaryOfBail:
             "The court was not able to find sufficient evidence to not give bail.",
           date: "14-05-2024",
-          partyName: partyName,
           documentNameList: ["Addhar Card", "Pan Card", "Passport"],
           bailType: "Non problematic",
           conditionOfBail:
