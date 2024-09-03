@@ -156,6 +156,16 @@ module.exports = {
     order_for_mandatory_async_submissions_and_response:
       process.env.ORDER_MANDATORY_SUBMISSION ||
       "order-for-mandatory-async-submissions-and-response",
+    order_accept_checkout:
+      process.env.ORDER_ACCEPT_CHECKOUT || "order-accept-checkout-request",
+    order_accept_checkout_qr:
+      process.env.ORDER_ACCEPT_CHECKOUT_QR ||
+      "order-accept-checkout-request-qr",
+    order_reject_checkout:
+      process.env.ORDER_REJECT_CHECKOUT || "order-reject-checkout-request",
+    order_reject_checkout_qr:
+      process.env.ORDER_REJECT_CHECKOUT_QR ||
+      "order-reject-checkout-request-qr",
     order_for_rejection_rescheduling_request_qr:
       process.env.ORDER_REJECTION_RESCHEDULE_REQUEST_QR ||
       "order-for-rejection-rescheduling-request-qr",
