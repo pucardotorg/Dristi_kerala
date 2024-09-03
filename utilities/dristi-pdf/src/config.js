@@ -137,6 +137,11 @@ module.exports = {
     application_reschedule_request_qr:
       process.env.APPLICATION_RESCHEDULE_REQUEST_QR ||
       "application-reschedule-request-qr",
+    application_checkout:
+      process.env.APPLICATION_CHECKOUT || "application-for-checkout-request",
+    application_checkout_qr:
+      process.env.APPLICATION_CHECKOUT_QR ||
+      "application-for-checkout-request-qr",
     order_bail_rejection:
       process.env.ORDER_BAIL_REJECTION || "order-bail-rejection",
     order_bail_rejection_qr:

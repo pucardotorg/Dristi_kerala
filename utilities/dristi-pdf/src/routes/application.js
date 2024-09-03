@@ -13,6 +13,7 @@ const applicationBailBond = require("../applicationHandlers/applicationBailBond"
 const applicationCaseTransfer = require("../applicationHandlers/applicationCaseTransfer");
 const applicationCaseWithdrawal = require("../applicationHandlers/applicationCaseWithdrawal");
 const applicationRescheduleRequest = require("../applicationHandlers/applicationRescheduleRequest");
+const applicationCheckout = require("../applicationHandlers/applicationCheckout");
 
 function renderError(res, errorMessage, errorCode, errorObject) {
   if (errorCode == undefined) errorCode = 500;
@@ -66,6 +67,9 @@ router.post(
           break;
         case "application-case-withdrawal":
           await applicationCaseWithdrawal(req, res, qrCode);
+          break;
+        case "application-for-checkout-request":
+          await applicationCheckout(req, res, qrCode);
           break;
         default:
           renderError(res, "Invalid application type", 400);
