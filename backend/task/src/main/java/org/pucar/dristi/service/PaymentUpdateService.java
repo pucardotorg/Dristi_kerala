@@ -77,20 +77,31 @@ public class PaymentUpdateService {
 
         try {
             Bill bill = paymentDetail.getBill();
-            
-            String taskNumber = bill.getConsumerCode();
-            if(taskNumber.endsWith(config.getSummonsEpostFeesSufix()) || taskNumber.endsWith(config.getSummonsCourtFeesSufix())){
-                BillResponse billResponse = getBill(requestInfo, bill.getTenantId(), taskNumber);
-                Bill bill1 = billResponse.getBill().get(0);
-                if(bill1.getStatus().equals(Bill.StatusEnum.PAID)){
-                    updatePaymentSuccessWorkflow(requestInfo, tenantId, bill1);
-                }
-                else {
+
+            if(bill.getStatus().equals(Bill.StatusEnum.PAID)) {
+                String taskNumber = bill.getConsumerCode();
+                if (taskNumber.endsWith(config.getSummonsEpostFeesSufix())) {
+                    taskNumber = taskNumber.substring(0, taskNumber.length() - config.getSummonsEpostFeesSufix().length())
+                            + config.getSummonsCourtFeesSufix();
+                    BillResponse billResponse = getBill(requestInfo, bill.getTenantId(), taskNumber);
+                    Bill bill1 = billResponse.getBill().get(0);
+                    if (bill1.getStatus().equals(Bill.StatusEnum.PAID)) {
+                        updatePaymentSuccessWorkflow(requestInfo, tenantId, bill1);
+                    }
+                    return;
+                } else if (taskNumber.endsWith(config.getSummonsCourtFeesSufix())) {
+                    taskNumber = taskNumber.substring(0, taskNumber.length() - config.getSummonsCourtFeesSufix().length())
+                            + config.getSummonsEpostFeesSufix();
+                    BillResponse billResponse = getBill(requestInfo, bill.getTenantId(), taskNumber);
+                    Bill bill1 = billResponse.getBill().get(0);
+                    if (bill1.getStatus().equals(Bill.StatusEnum.PAID)) {
+                        updatePaymentSuccessWorkflow(requestInfo, tenantId, bill1);
+                    }
                     return;
                 }
-            }
 
-            updatePaymentSuccessWorkflow(requestInfo, tenantId, bill);
+                updatePaymentSuccessWorkflow(requestInfo, tenantId, bill);
+            }
         } catch (Exception e) {
             log.error("Error updating workflow for task payment: {}", e.getMessage(), e);
         }
