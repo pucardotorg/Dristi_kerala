@@ -80,49 +80,88 @@ public class DemandService {
         return calculationResponse.getCalculation();
     }
 
-    public List<Demand> generateDemands(RequestInfo requestInfo, List<Calculation> calculations, Task task) {
+    public void generateDemands(RequestInfo requestInfo, List<Calculation> calculations, Task task) {
         List<Demand> demands = new ArrayList<>();
-        List<DemandDetail> demandDetailList = new ArrayList<>();
-        Map<String, Map<String, JSONArray>> mdmsData = mdmsUtil.fetchMdmsData(requestInfo,config.getEgovStateTenantId(),config.getPaymentBusinessServiceNmae(),createMasterDetails());
+        Map<String, Map<String, JSONArray>> mdmsData = mdmsUtil.fetchMdmsData(requestInfo,
+                config.getEgovStateTenantId(), config.getPaymentBusinessServiceName(), createMasterDetails()
+        );
         for (Calculation calculation : calculations) {
-            if (config.isTest()) {
-                DemandDetail demandDetail = DemandDetail.builder()
-                        .tenantId(calculation.getTenantId())
-//.taxAmount(BigDecimal.valueOf(calculation.getTotalAmount()))
-                        .taxAmount(BigDecimal.valueOf(4))
-                        .taxHeadMasterCode(config.getTaskTaxHeadMasterCode()).build();
-            } else {
-                Map<String,String> masterCodes = getTaxHeadMasterCodes(mdmsData,config.getTaskBusinessService());
-                for (BreakDown breakDown : calculation.getBreakDown()) {
-                    DemandDetail detail = DemandDetail.builder()
-                            .tenantId(calculation.getTenantId())
-                            .taxAmount(BigDecimal.valueOf(breakDown.getAmount()))
-                            .taxHeadMasterCode(masterCodes.get(breakDown.getType())).build();
-                    demandDetailList.add(detail);
-                }
-            }
-
-            Demand demand = Demand.builder()
-                    .tenantId(calculation.getTenantId())
-                    .consumerCode(task.getTaskNumber())
-                    .consumerType(config.getTaxConsumerType())
-                    .businessService(config.getTaskModuleCode())
-                    .taxPeriodFrom(config.getTaxPeriodFrom()).taxPeriodTo(config.getTaxPeriodTo())
-                    .demandDetails(demandDetailList)
-                    .build();
-            demands.add(demand);
+            List<DemandDetail> demandDetailList = createDemandDetails(calculation, mdmsData);
+            demands.addAll(createDemandList(task, demandDetailList, calculation.getTenantId()));
         }
+        callBillServiceAndCreateDemand(requestInfo, demands);
+    }
+
+    private List<DemandDetail> createDemandDetails(Calculation calculation, Map<String, Map<String, JSONArray>> mdmsData) {
+        List<DemandDetail> demandDetailList = new ArrayList<>();
+
+        if (config.isTest()) {
+            demandDetailList.add(createTestDemandDetail(calculation.getTenantId()));
+        } else {
+            Map<String, String> masterCodes = getTaxHeadMasterCodes(mdmsData, config.getTaskBusinessService());
+            for (BreakDown breakDown : calculation.getBreakDown()) {
+                demandDetailList.add(createDemandDetail(calculation.getTenantId(), breakDown, masterCodes));
+            }
+        }
+        return demandDetailList;
+    }
+
+    private DemandDetail createTestDemandDetail(String tenantId) {
+        return DemandDetail.builder()
+                .tenantId(tenantId)
+                .taxAmount(BigDecimal.valueOf(4))
+                .taxHeadMasterCode(config.getTaskTaxHeadMasterCode())
+                .build();
+    }
+
+    private DemandDetail createDemandDetail(String tenantId, BreakDown breakDown, Map<String, String> masterCodes) {
+        return DemandDetail.builder()
+                .tenantId(tenantId)
+                .taxAmount(BigDecimal.valueOf(breakDown.getAmount()))
+                .taxHeadMasterCode(masterCodes.getOrDefault(breakDown.getType(), ""))
+                .build();
+    }
+
+    private void callBillServiceAndCreateDemand(RequestInfo requestInfo, List<Demand> demands) {
         StringBuilder url = new StringBuilder().append(config.getBillingServiceHost())
                 .append(config.getDemandCreateEndpoint());
         DemandRequest demandRequest = DemandRequest.builder().requestInfo(requestInfo).demands(demands).build();
-        Object response = repository.fetchResult(url, demandRequest);
-        DemandResponse demandResponse = mapper.convertValue(response, DemandResponse.class);
-        return demandResponse.getDemands();
+        repository.fetchResult(url, demandRequest);
+    }
+
+    private List<Demand> createDemandList(Task task, List<DemandDetail> demandDetailList, String tenantId) {
+        List<Demand> demandList = new ArrayList<>();
+        String consumerCode = task.getTaskNumber();
+        String channelName = ChannelName.fromString(task.getTaskDetails().getDeliveryChannel().getChannelName()).name();
+
+        for (DemandDetail detail : demandDetailList) {
+            String taxHeadMasterCode = detail.getTaxHeadMasterCode();
+            if (taxHeadMasterCode.equalsIgnoreCase("TASK_SUMMON_ADVANCE_CARRY_FORWARD_COURT") && channelName.equals("POST")) {
+                consumerCode += "COURT";
+            } else if (taxHeadMasterCode.equalsIgnoreCase("TASK_SUMMON_ADVANCE_CARRY_FORWARD_POST") && channelName.equals("POST")) {
+                consumerCode += "EPOST";
+            }
+            demandList.add(createDemandObject(Collections.singletonList(detail), tenantId, consumerCode));
+        }
+
+        return demandList;
+    }
+
+    private Demand createDemandObject(List<DemandDetail> demandDetailList, String tenantId, String consumerCode) {
+        Demand demand = Demand.builder()
+                .tenantId(tenantId)
+                .consumerCode(consumerCode)
+                .consumerType(config.getTaxConsumerType())
+                .businessService(config.getTaskModuleCode())
+                .taxPeriodFrom(config.getTaxPeriodFrom()).taxPeriodTo(config.getTaxPeriodTo())
+                .demandDetails(demandDetailList)
+                .build();
+        return demand;
     }
 
     private Map<String, String> getTaxHeadMasterCodes(Map<String, Map<String, JSONArray>> mdmsData, String taskBusinessService) {
-        if (mdmsData != null && mdmsData.containsKey("payment") && mdmsData.get(config.getPaymentBusinessServiceNmae()).containsKey(PAYMENTMASTERCODE)) {
-            JSONArray masterCode = mdmsData.get(config.getPaymentBusinessServiceNmae()).get(PAYMENTMASTERCODE);
+        if (mdmsData != null && mdmsData.containsKey("payment") && mdmsData.get(config.getPaymentBusinessServiceName()).containsKey(PAYMENTMASTERCODE)) {
+            JSONArray masterCode = mdmsData.get(config.getPaymentBusinessServiceName()).get(PAYMENTMASTERCODE);
             Map<String, String> result = new HashMap<>();
             for (Object masterCodeObj : masterCode) {
                 Map<String, String> subType = (Map<String, String>) masterCodeObj;

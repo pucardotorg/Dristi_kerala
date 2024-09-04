@@ -153,7 +153,7 @@ public class Configuration {
     private String ePostRequestEndPoint;
 
     @Value("${egov.mdms.payment.business.service.name}")
-    private String paymentBusinessServiceNmae;
+    private String paymentBusinessServiceName;
 
     @Value("${egov.is.test}")
     private boolean isTest;
