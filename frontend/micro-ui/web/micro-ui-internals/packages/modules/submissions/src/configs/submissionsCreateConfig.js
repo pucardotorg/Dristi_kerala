@@ -211,6 +211,8 @@ export const configsRescheduleRequest = [
         type: "component",
         component: "SelectCustomTextArea",
         key: "comments",
+        schemaKeyPath: "applicationDetails.additionalComments",
+        transformer: "customTextArea",
         isMandatory: false,
         populators: {
           inputs: [
@@ -1424,7 +1426,7 @@ export const configsSurety = [
         component: "AddSubmissionDocument",
         key: "submissionDocuments",
         schemaKeyPath: "applicationDetails.bailDocuments",
-        transformer: "bailDocuments", 
+        transformer: "bailDocuments",
         inline: false,
         populators: {
           inputs: [
