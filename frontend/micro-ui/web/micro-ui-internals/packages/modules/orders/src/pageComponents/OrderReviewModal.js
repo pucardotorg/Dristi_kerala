@@ -11,6 +11,23 @@ const OrderPreviewOrderTypeMap = {
   SCHEDULE_OF_HEARING_DATE: "schedule-hearing-date",
   SUMMONS: "summons-issue",
   INITIATING_RESCHEDULING_OF_HEARING_DATE: "accept-reschedule-request",
+  OTHERS: "order-generic",
+  REFERRAL_CASE_TO_ADR: "adr-case-referral",
+  EXTENSION_OF_DOCUMENT_SUBMISSION_DATE: "order-generic",
+  SCHEDULING_NEXT_HEARING: "reschedule-request-judge",
+  RESCHEDULE_OF_HEARING_DATE: "new-hearing-date-after-rescheduling",
+  REJECTION_RESCHEDULE_REQUEST: "order-for-rejection-rescheduling-request",
+  ASSIGNING_NEW_HEARING_DATE: "order-generic",
+  CASE_TRANSFER: "case-transfer",
+  SETTLEMENT: "case-settlement-acceptance",
+  BAIL_APPROVED: "order-bail-acceptance",
+  BAIL_REJECT: "order-bail-rejection",
+  WARRANT: "order-generic",
+  WITHDRAWAL: "order-generic",
+  APPROVE_VOLUNTARY_SUBMISSIONS: "order-accept-voluntary",
+  REJECT_VOLUNTARY_SUBMISSIONS: "order-reject-voluntary",
+  JUDGEMENT: "order-generic",
+  SECTION_202_CRPC: "order-generic",
 };
 
 const onDocumentUpload = async (fileData, filename) => {
@@ -25,8 +42,16 @@ function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal,
   const DocViewerWrapper = Digit?.ComponentRegistryService?.getComponent("DocViewerWrapper");
   const filestoreId = "c4fef888-6d43-404f-8d37-63cae7651619";
 
+  let orderPreviewKey = order?.orderType;
+  if (order?.additionalDetails?.applicationStatus === "APPROVED") {
+    orderPreviewKey = "BAIL_APPROVED";
+  } else if (order?.additionalDetails?.applicationStatus === "Rejected") {
+    orderPreviewKey = "BAIL_REJECT";
+  }
+  orderPreviewKey = OrderPreviewOrderTypeMap[orderPreviewKey] || OrderPreviewOrderTypeMap[order?.orderType];
+
   const { data: { file: orderPreviewPdf, fileName: orderPreviewFileName } = {}, isFetching: isLoading } = useQuery({
-    queryKey: ["orderPreviewPdf", tenantId, order?.id, order?.cnrNumber, OrderPreviewOrderTypeMap[order?.orderType]],
+    queryKey: ["orderPreviewPdf", tenantId, order?.id, order?.cnrNumber, orderPreviewKey],
     queryFn: async () => {
       return Axios({
         method: "POST",
@@ -36,7 +61,7 @@ function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal,
           orderId: order?.id,
           cnrNumber: order?.cnrNumber,
           qrCode: false,
-          orderType: OrderPreviewOrderTypeMap[order?.orderType],
+          orderType: orderPreviewKey,
         },
         data: {
           RequestInfo: {
@@ -49,7 +74,7 @@ function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal,
         responseType: "blob",
       }).then((res) => ({ file: res.data, fileName: res.headers["content-disposition"]?.split("filename=")[1] }));
     },
-    enabled: !!order?.id && !!order?.cnrNumber && !!OrderPreviewOrderTypeMap[order?.orderType],
+    enabled: !!order?.id && !!order?.cnrNumber && !!orderPreviewKey,
   });
 
   const Heading = (props) => {

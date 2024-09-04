@@ -31,7 +31,7 @@ function OrderSignatureModal({
 }) {
   const [isSigned, setIsSigned] = useState(false);
   const { handleEsign, checkSignStatus } = useESign();
-  const fileStoreIdESign = getFilestoreId();
+  const fileStoreIdESign = orderPdfFileStoreID || getFilestoreId();
   const [formData, setFormData] = useState({}); // storing the file upload data
   const [openUploadSignatureModal, setOpenUploadSignatureModal] = useState(false);
   const UploadSignatureModal = window?.Digit?.ComponentRegistryService?.getComponent("UploadSignatureModal");

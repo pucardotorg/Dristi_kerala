@@ -55,6 +55,7 @@ const SubmissionsCreate = ({ path }) => {
   const userType = useMemo(() => (userInfo?.type === "CITIZEN" ? "citizen" : "employee"), [userInfo?.type]);
   const isCitizen = useMemo(() => userInfo?.type === "CITIZEN", [userInfo]);
   const [signedDoucumentUploadedID, setSignedDocumentUploadID] = useState("");
+  const [applicationPdfFileStoreId, setApplicationPdfFileStoreId] = useState(null);
   const [paymentStatus, setPaymentStatus] = useState();
   const scenario = "applicationSubmission";
   const hasSubmissionRole = useMemo(
@@ -761,12 +762,14 @@ const SubmissionsCreate = ({ path }) => {
         <ReviewSubmissionModal
           t={t}
           applicationType={applicationDetails?.applicationType}
+          application={applicationDetails}
           submissionDate={applicationDetails?.createdDate}
           sender={caseDetails?.additionalDetails?.payerName}
           setShowReviewModal={setShowReviewModal}
           setShowsignatureModal={setShowsignatureModal}
           handleBack={handleBack}
           documents={applicationDetails?.documents || []}
+          setApplicationPdfFileStoreId={setApplicationPdfFileStoreId}
         />
       )}
       {showsignatureModal && (
@@ -775,6 +778,7 @@ const SubmissionsCreate = ({ path }) => {
           handleProceed={handleAddSignature}
           handleCloseSignaturePopup={handleCloseSignaturePopup}
           setSignedDocumentUploadID={setSignedDocumentUploadID}
+          applicationPdfFileStoreId={applicationPdfFileStoreId}
         />
       )}
       {showPaymentModal && (
