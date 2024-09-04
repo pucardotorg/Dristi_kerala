@@ -81,35 +81,41 @@ public class PaymentUpdateService {
             if(bill.getStatus().equals(Bill.StatusEnum.PAID)) {
                 String taskNumber = bill.getConsumerCode();
                 if (taskNumber.endsWith(config.getSummonsEpostFeesSufix())) {
-                    taskNumber = taskNumber.substring(0, taskNumber.length() - config.getSummonsEpostFeesSufix().length())
-                            + config.getSummonsCourtFeesSufix();
+                    String taskNumberWithoutSuffix = removeSuffix(taskNumber, config.getSummonsEpostFeesSufix());
+                    taskNumber = taskNumberWithoutSuffix + config.getSummonsCourtFeesSufix();
                     BillResponse billResponse = getBill(requestInfo, bill.getTenantId(), taskNumber);
                     Bill bill1 = billResponse.getBill().get(0);
                     if (bill1.getStatus().equals(Bill.StatusEnum.PAID)) {
-                        updatePaymentSuccessWorkflow(requestInfo, tenantId, bill1);
+                        updatePaymentSuccessWorkflow(requestInfo, tenantId, taskNumberWithoutSuffix);
                     }
                     return;
-                } else if (taskNumber.endsWith(config.getSummonsCourtFeesSufix())) {
-                    taskNumber = taskNumber.substring(0, taskNumber.length() - config.getSummonsCourtFeesSufix().length())
-                            + config.getSummonsEpostFeesSufix();
+                }
+                else if (taskNumber.endsWith(config.getSummonsCourtFeesSufix())) {
+                    String taskNumberWithoutSuffix = removeSuffix(taskNumber, config.getSummonsCourtFeesSufix());
+                    taskNumber = taskNumberWithoutSuffix + config.getSummonsEpostFeesSufix();
                     BillResponse billResponse = getBill(requestInfo, bill.getTenantId(), taskNumber);
                     Bill bill1 = billResponse.getBill().get(0);
                     if (bill1.getStatus().equals(Bill.StatusEnum.PAID)) {
-                        updatePaymentSuccessWorkflow(requestInfo, tenantId, bill1);
+                        updatePaymentSuccessWorkflow(requestInfo, tenantId, taskNumberWithoutSuffix);
                     }
                     return;
                 }
 
-                updatePaymentSuccessWorkflow(requestInfo, tenantId, bill);
+                updatePaymentSuccessWorkflow(requestInfo, tenantId, taskNumber);
             }
         } catch (Exception e) {
             log.error("Error updating workflow for task payment: {}", e.getMessage(), e);
         }
     }
 
-    private void updatePaymentSuccessWorkflow(RequestInfo requestInfo, String tenantId, Bill bill) {
+    private String removeSuffix(String taskNumber, String suffix) {
+        return taskNumber.substring(0, taskNumber.length() - suffix.length());
+
+    }
+
+    private void updatePaymentSuccessWorkflow(RequestInfo requestInfo, String tenantId, String taskNumber) {
         TaskCriteria criteria = TaskCriteria.builder()
-                .taskNumber(bill.getConsumerCode())
+                .taskNumber(taskNumber)
                 .build();
 
         List<Task> tasks = repository.getApplications(criteria ,null);
