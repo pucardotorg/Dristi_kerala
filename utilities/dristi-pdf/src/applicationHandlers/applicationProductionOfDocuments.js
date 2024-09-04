@@ -10,6 +10,7 @@ const {
 } = require("../api");
 const { renderError } = require("../utils/renderError");
 const { getAdvocates } = require("./getAdvocates");
+const { formatDate } = require("./formatDate");
 
 function getOrdinalSuffix(day) {
   if (day > 3 && day < 21) return "th"; // 11th, 12th, 13th, etc.
@@ -182,16 +183,16 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
     ];
 
     const currentDate = new Date();
-
+    const formattedToday = formatDate(currentDate, "DD-MM-YYYY");
     const day = currentDate.getDate();
     const month = months[currentDate.getMonth()];
     const year = currentDate.getFullYear();
 
     const ordinalSuffix = getOrdinalSuffix(day);
     const reasonForApplication =
-      application.applicationDetails.reasonForApplication || "";
+      application?.applicationDetails?.reasonForApplication || "";
     const additionalComments =
-      application.applicationDetails.additionalComments || "";
+      application?.applicationDetails?.additionalComments || "";
     const data = {
       Data: [
         {
@@ -203,7 +204,7 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
           judgeName: "John Doe", // FIXME: employee.user.name
           courtDesignation: "HIGHT COURRT", //FIXME: mdmsDesignation.name,
           addressOfTheCourt: "Kerala", //FIXME: mdmsCourtRoom.address,
-          date: currentDate,
+          date: formattedToday,
           partyName: partyName,
           complainantName: partyName, //FIXME: REMOVE it from both pdf configs and here,
           additionalComments,

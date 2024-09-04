@@ -221,9 +221,9 @@ async function applicationRescheduleRequest(req, res, qrCode) {
       formatDate(application?.applicationDetails?.newHearingScheduledDate) ||
       "";
     const reasonForReschedule =
-      application.applicationDetails.reasonForApplication || "";
+      application?.applicationDetails?.reasonForApplication || "";
     const additionalComments =
-      application.applicationDetails.additionalComments || "";
+      application?.applicationDetails?.additionalComments || "";
     const data = {
       Data: [
         {

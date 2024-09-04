@@ -9,6 +9,7 @@ const {
   create_pdf,
 } = require("../api");
 const { renderError } = require("../utils/renderError");
+const { formatDate } = require("./formatDate");
 
 async function orderGeneric(req, res, qrCode) {
   const cnrNumber = req.query.cnrNumber;
@@ -133,6 +134,8 @@ async function orderGeneric(req, res, qrCode) {
       base64Url = imgTag.attr("src");
     }
 
+    const currentDate = new Date();
+    const formattedToday = formatDate(currentDate, "DD-MM-YYYY");
     // Prepare data for PDF generation
     const data = {
       Data: [
@@ -141,7 +144,7 @@ async function orderGeneric(req, res, qrCode) {
           caseName: courtCase.caseTitle,
           caseNumber: courtCase.cnrNumber,
           orderName: order.orderNumber,
-          date: order.createdDate,
+          date: formattedToday,
           orderContent: order.comments,
           judgeSignature: "Judge Signature",
           judgeName: "Suresh Soren",

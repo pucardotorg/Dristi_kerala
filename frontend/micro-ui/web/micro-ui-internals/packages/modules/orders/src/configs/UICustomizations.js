@@ -101,6 +101,14 @@ export const UICustomizations = {
           throw new Error("Not implemented");
         },
       },
+      customTextArea: {
+        formToSchema: (obj) => {
+          return obj?.text || "";
+        },
+        schemaToForm: (text) => {
+          return { text: text || "" };
+        },
+      },
     },
     formToSchema: (formData, formConfig) => {
       const transformedFormData = {};

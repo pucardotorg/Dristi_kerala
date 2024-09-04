@@ -10,6 +10,7 @@ const {
 } = require("../api");
 const { renderError } = require("../utils/renderError");
 const { getAdvocates } = require("./getAdvocates");
+const { formatDate } = require("./formatDate");
 
 function getOrdinalSuffix(day) {
   if (day > 3 && day < 21) return "th"; // 11th, 12th, 13th, etc.
@@ -122,6 +123,13 @@ async function applicationGeneric(req, res, qrCode) {
     if (!application) {
       return renderError(res, "Application not found", 404);
     }
+    const onBehalfOfuuid = application?.onBehalfOf?.[0];
+    const advocate = allAdvocates?.[onBehalfOfuuid]?.[0]?.additionalDetails
+      ?.advocateName
+      ? allAdvocates[onBehalfOfuuid]?.[0]
+      : {};
+    const advocateName = advocate?.additionalDetails?.advocateName || "";
+    const partyName = application?.additionalDetails?.onBehalOfName || "";
     const onBehalfOfLitigent = courtCase?.litigants?.find(
       (item) => item.additionalDetails.uuid === onBehalfOfuuid
     );
@@ -132,13 +140,6 @@ async function applicationGeneric(req, res, qrCode) {
       : !isCitizen
       ? "COURT"
       : "ACCUSED";
-    const onBehalfOfuuid = application?.onBehalfOf?.[0];
-    const advocate = allAdvocates[onBehalfOfuuid]?.[0]?.additionalDetails
-      ?.advocateName
-      ? allAdvocates[onBehalfOfuuid]?.[0]
-      : {};
-    const advocateName = advocate?.additionalDetails?.advocateName || "";
-    const partyName = application?.additionalDetails?.onBehalOfName || "";
     // Handle QR code if enabled
     let base64Url = "";
     if (qrCode === "true") {
@@ -192,16 +193,20 @@ async function applicationGeneric(req, res, qrCode) {
     ];
 
     const currentDate = new Date();
-
+    const formattedToday = formatDate(currentDate, "DD-MM-YYYY");
     const day = currentDate.getDate();
     const month = months[currentDate.getMonth()];
     const year = currentDate.getFullYear();
 
     const ordinalSuffix = getOrdinalSuffix(day);
     const reasonForApplication =
-      application.applicationDetails.reasonForApplication || "";
+      application?.applicationDetails?.reasonForApplication || "";
     const additionalComments =
-      application.applicationDetails.additionalComments || "";
+      application?.applicationDetails?.additionalComments || "";
+    const applicationName =
+      application?.applicationDetails?.applicationTitle ||
+      application?.applicationType ||
+      "";
     const data = {
       Data: [
         {
@@ -213,8 +218,8 @@ async function applicationGeneric(req, res, qrCode) {
           judgeName: "John Doe", // FIXME: employee.user.name
           courtDesignation: "HIGHT COURRT", //FIXME: mdmsDesignation.name,
           addressOfTheCourt: "Kerala", //FIXME: mdmsCourtRoom.address,
-          date: currentDate,
-          applicationName: "Generic Application",
+          date: formattedToday,
+          applicationName,
           partyName: partyName,
           purposeOfApplication: "asdfasdf",
           complainantName: partyName, //FIXME: REMOVE it from both pdf configs and here,
