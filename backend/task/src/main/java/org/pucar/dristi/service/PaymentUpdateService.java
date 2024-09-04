@@ -76,31 +76,36 @@ public class PaymentUpdateService {
     private void updateWorkflowForCasePayment(RequestInfo requestInfo, String tenantId, PaymentDetail paymentDetail) {
 
         try {
+
             Bill bill = paymentDetail.getBill();
+            if (!bill.getStatus().equals(Bill.StatusEnum.PAID)) {
+                return;
+            }
 
-            if(bill.getStatus().equals(Bill.StatusEnum.PAID)) {
-                String taskNumber = bill.getConsumerCode();
-                if (taskNumber.endsWith(config.getSummonsEpostFeesSufix())) {
-                    String taskNumberWithoutSuffix = removeSuffix(taskNumber, config.getSummonsEpostFeesSufix());
-                    taskNumber = taskNumberWithoutSuffix + config.getSummonsCourtFeesSufix();
-                    BillResponse billResponse = getBill(requestInfo, bill.getTenantId(), taskNumber);
-                    Bill bill1 = billResponse.getBill().get(0);
-                    if (bill1.getStatus().equals(Bill.StatusEnum.PAID)) {
-                        updatePaymentSuccessWorkflow(requestInfo, tenantId, taskNumberWithoutSuffix);
-                    }
-                    return;
-                }
-                else if (taskNumber.endsWith(config.getSummonsCourtFeesSufix())) {
-                    String taskNumberWithoutSuffix = removeSuffix(taskNumber, config.getSummonsCourtFeesSufix());
-                    taskNumber = taskNumberWithoutSuffix + config.getSummonsEpostFeesSufix();
-                    BillResponse billResponse = getBill(requestInfo, bill.getTenantId(), taskNumber);
-                    Bill bill1 = billResponse.getBill().get(0);
-                    if (bill1.getStatus().equals(Bill.StatusEnum.PAID)) {
-                        updatePaymentSuccessWorkflow(requestInfo, tenantId, taskNumberWithoutSuffix);
-                    }
-                    return;
-                }
+            String taskNumber = bill.getConsumerCode();
+            String suffixToCheck = null;
+            String suffixToReplace = null;
 
+
+            if (taskNumber.endsWith(config.getSummonsEpostFeesSufix())) {
+                suffixToCheck = config.getSummonsEpostFeesSufix();
+                suffixToReplace = config.getSummonsCourtFeesSufix();
+            } else if (taskNumber.endsWith(config.getSummonsCourtFeesSufix())) {
+                suffixToCheck = config.getSummonsCourtFeesSufix();
+                suffixToReplace = config.getSummonsEpostFeesSufix();
+            }
+
+            if (suffixToCheck != null) {
+                String taskNumberWithoutSuffix = removeSuffix(taskNumber, suffixToCheck);
+                String newTaskNumber = taskNumberWithoutSuffix + suffixToReplace;
+
+                BillResponse billResponse = getBill(requestInfo, bill.getTenantId(), newTaskNumber);
+                Bill updatedBill = billResponse.getBill().get(0);
+
+                if (updatedBill.getStatus().equals(Bill.StatusEnum.PAID)) {
+                    updatePaymentSuccessWorkflow(requestInfo, tenantId, taskNumberWithoutSuffix);
+                }
+            } else {
                 updatePaymentSuccessWorkflow(requestInfo, tenantId, taskNumber);
             }
         } catch (Exception e) {
