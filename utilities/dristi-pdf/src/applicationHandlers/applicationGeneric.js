@@ -191,6 +191,19 @@ async function applicationGeneric(req, res, qrCode) {
       "November",
       "December",
     ];
+    const applicationNameMap = {
+      BAIL_BOND: "Bail Application - Personal Bail Bond",
+      SURETY: "Bail Application - In Person Surety",
+      CHECKOUT_REQUEST: "Checkout Application",
+      SETTLEMENT: "Case Settlement Application",
+      TRANSFER: "Case Transfer Application",
+      WITHDRAWAL: "Case Withdrawal",
+      PRODUCTION_DOCUMENTS:
+        "Application for production of documents or evidence",
+      EXTENSION_SUBMISSION_DEADLINE: "Application for Extension of Submission",
+      "": "General Application",
+      undefined: "General Application",
+    };
 
     const currentDate = new Date();
     const formattedToday = formatDate(currentDate, "DD-MM-YYYY");
@@ -205,8 +218,8 @@ async function applicationGeneric(req, res, qrCode) {
       application?.applicationDetails?.additionalComments || "";
     const applicationName =
       application?.applicationDetails?.applicationTitle ||
-      application?.applicationType ||
-      "";
+      applicationNameMap[application?.aas] ||
+      "General Application";
     const data = {
       Data: [
         {
