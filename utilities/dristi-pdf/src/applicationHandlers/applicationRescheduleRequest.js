@@ -31,7 +31,7 @@ function formatDate(epochMillis) {
 
   // Ensure that the date is a valid Date object
   if (Number.isNaN(date.getTime())) {
-    throw new Error("Invalid date");
+    return "";
   }
 
   const day = String(date.getDate()).padStart(2, "0");
@@ -209,7 +209,7 @@ async function applicationRescheduleRequest(req, res, qrCode) {
     ];
 
     const currentDate = new Date();
-
+    const formattedToday = formatDate(currentDate, "DD-MM-YYYY");
     const day = currentDate.getDate();
     const month = months[currentDate.getMonth()];
     const year = currentDate.getFullYear();
@@ -235,7 +235,7 @@ async function applicationRescheduleRequest(req, res, qrCode) {
           judgeName: "John Doe", // FIXME: employee.user.name
           courtDesignation: "HIGHT COURRT", //FIXME: mdmsDesignation.name,
           addressOfTheCourt: "Kerala", //FIXME: mdmsCourtRoom.address,
-          date: currentDate,
+          date: formattedToday,
           partyName: partyName,
           partyType,
           initialHearingDate,
@@ -276,13 +276,12 @@ async function applicationRescheduleRequest(req, res, qrCode) {
         return renderError(res, "Failed to send PDF response", 500, err);
       });
   } catch (ex) {
-    logger.error(ex);
-    // return renderError(
-    //   res,
-    //   "Failed to query details of APPLICATION FOR EXTENSION OF SUBMISSION DEADLINE",
-    //   500,
-    //   ex
-    // );
+    return renderError(
+      res,
+      "Failed to query details of APPLICATION FOR EXTENSION OF SUBMISSION DEADLINE",
+      500,
+      ex
+    );
   }
 }
 
