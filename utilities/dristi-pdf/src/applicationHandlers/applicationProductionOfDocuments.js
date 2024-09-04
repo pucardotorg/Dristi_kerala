@@ -188,7 +188,10 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
     const year = currentDate.getFullYear();
 
     const ordinalSuffix = getOrdinalSuffix(day);
-
+    const reasonForApplication =
+      application.applicationDetails.reasonForApplication || "";
+    const additionalComments =
+      application.applicationDetails.additionalComments || "";
     const data = {
       Data: [
         {
@@ -202,15 +205,14 @@ async function applicationProductionOfDocuments(req, res, qrCode) {
           addressOfTheCourt: "Kerala", //FIXME: mdmsCourtRoom.address,
           date: currentDate,
           partyName: partyName,
-          reasonForApplication: "Reason", //FIXME : Currently this field is document inside the application, it should be a textbox
           complainantName: partyName, //FIXME: REMOVE it from both pdf configs and here,
-          additionalComments:
-            application?.additionalDetails?.formdata?.comments | " ",
+          additionalComments,
+          reasonForApplication,
           prayerOptional: "",
           advocateSignature: "Advocate_Signature", //FIXME: It should also come from the application
           advocateName: advocateName,
           nameOfDocument: "Aadhar card", //FIXME: It should come from the application, currently there is not field present inside of it
-          barRegistrationNumber: "sdf",
+          barRegistrationNumber: "Bar Registration Number",
           day: day + ordinalSuffix,
           month: month,
           year: year,

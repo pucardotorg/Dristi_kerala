@@ -122,6 +122,16 @@ async function applicationGeneric(req, res, qrCode) {
     if (!application) {
       return renderError(res, "Application not found", 404);
     }
+    const onBehalfOfLitigent = courtCase?.litigants?.find(
+      (item) => item.additionalDetails.uuid === onBehalfOfuuid
+    );
+    const partyType = onBehalfOfLitigent?.partyType
+      ?.toLowerCase()
+      ?.includes("complainant")
+      ? "COMPLAINANT"
+      : !isCitizen
+      ? "COURT"
+      : "ACCUSED";
     const onBehalfOfuuid = application?.onBehalfOf?.[0];
     const advocate = allAdvocates[onBehalfOfuuid]?.[0]?.additionalDetails
       ?.advocateName
@@ -188,7 +198,10 @@ async function applicationGeneric(req, res, qrCode) {
     const year = currentDate.getFullYear();
 
     const ordinalSuffix = getOrdinalSuffix(day);
-
+    const reasonForApplication =
+      application.applicationDetails.reasonForApplication || "";
+    const additionalComments =
+      application.applicationDetails.additionalComments || "";
     const data = {
       Data: [
         {
@@ -205,11 +218,13 @@ async function applicationGeneric(req, res, qrCode) {
           partyName: partyName,
           purposeOfApplication: "asdfasdf",
           complainantName: partyName, //FIXME: REMOVE it from both pdf configs and here,
-          additionalComments: "Additional Comments",
+          additionalComments,
+          reasonForApplication,
+          partyType,
           prayerOptional: " asdasd ",
           advocateSignature: "Advocate Signature",
           advocateName: advocateName,
-          barRegistrationNumber: "sdf",
+          barRegistrationNumber: "",
           documentSubmissionName: "documents",
           documentId: "documents",
           day: day + ordinalSuffix,

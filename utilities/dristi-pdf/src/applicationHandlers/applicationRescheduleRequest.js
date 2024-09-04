@@ -25,6 +25,21 @@ function getOrdinalSuffix(day) {
   }
 }
 
+function formatDate(epochMillis) {
+  // Convert epoch milliseconds to a Date object
+  const date = new Date(epochMillis);
+
+  // Ensure that the date is a valid Date object
+  if (Number.isNaN(date.getTime())) {
+    throw new Error("Invalid date");
+  }
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+
 async function applicationRescheduleRequest(req, res, qrCode) {
   const cnrNumber = req.query.cnrNumber;
   const applicationNumber = req.query.applicationNumber;
@@ -133,7 +148,7 @@ async function applicationRescheduleRequest(req, res, qrCode) {
     const onBehalfOfLitigent = courtCase?.litigants?.find(
       (item) => item.additionalDetails.uuid === onBehalfOfuuid
     );
-    const sourceType = onBehalfOfLitigent?.partyType
+    const partyType = onBehalfOfLitigent?.partyType
       ?.toLowerCase()
       ?.includes("complainant")
       ? "COMPLAINANT"
@@ -200,7 +215,15 @@ async function applicationRescheduleRequest(req, res, qrCode) {
     const year = currentDate.getFullYear();
 
     const ordinalSuffix = getOrdinalSuffix(day);
-
+    const initialHearingDate =
+      formatDate(application?.applicationDetails?.initialHearingDate) || "";
+    const proposedHearingDate =
+      formatDate(application?.applicationDetails?.newHearingScheduledDate) ||
+      "";
+    const reasonForReschedule =
+      application.applicationDetails.reasonForApplication || "";
+    const additionalComments =
+      application.applicationDetails.additionalComments || "";
     const data = {
       Data: [
         {
@@ -214,12 +237,11 @@ async function applicationRescheduleRequest(req, res, qrCode) {
           addressOfTheCourt: "Kerala", //FIXME: mdmsCourtRoom.address,
           date: currentDate,
           partyName: partyName,
-          partyType: sourceType,
-          initialHearingDate: "11212",
-          reasonForReschedule: "121212",
-          proposedHearingDate: "121212",
-          proposed_Hearing_Date: "121212",
-          additionalComments: "Additional Comments",
+          partyType,
+          initialHearingDate,
+          reasonForReschedule,
+          proposedHearingDate,
+          additionalComments,
           advocateSignature: "Advocate Signature",
           advocateName: advocateName,
           barRegistrationNumber: "bar registration Number",

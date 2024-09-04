@@ -95,18 +95,7 @@ function ReviewSubmissionModal({
 
   const showDocument = useMemo(() => {
     return (
-      <div
-        className=""
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          height: "100%",
-          width: "100%",
-          maxHeight: "100%",
-          maxWidth: "100%",
-        }}
-      >
+      <React.Fragment>
         {applicationPreviewPdf ? (
           <DocViewerWrapper
             docWidth={"calc(100vw* 76/ 100)"}
@@ -120,7 +109,7 @@ function ReviewSubmissionModal({
         ) : (
           <h2>{t("PREVIEW_DOC_NOT_AVAILABLE")}</h2>
         )}
-      </div>
+      </React.Fragment>
     );
   }, [applicationPreviewPdf, isLoading, t]);
 
@@ -188,7 +177,8 @@ function ReviewSubmissionModal({
             )}
           </div>
           <div className="application-view">
-            {/* {documents?.map((docs) => (
+            {showDocument}
+            {documents?.map((docs) => (
               <DocViewerWrapper
                 key={docs.fileStore}
                 fileStoreId={docs.fileStore}
@@ -198,8 +188,7 @@ function ReviewSubmissionModal({
                 showDownloadOption={false}
                 documentName={docs.fileName}
               />
-            ))} */}
-            {showDocument}
+            ))}
           </div>
         </div>
       </div>

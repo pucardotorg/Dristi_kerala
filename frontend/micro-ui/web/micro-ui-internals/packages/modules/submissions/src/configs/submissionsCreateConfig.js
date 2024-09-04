@@ -158,6 +158,7 @@ export const configsRescheduleRequest = [
         isMandatory: true,
         key: "initialHearingDate",
         schemaKeyPath: "applicationDetails.initialHearingDate",
+        transformer: "date",
         type: "date",
         populators: {
           name: "initialHearingDate",
@@ -190,6 +191,7 @@ export const configsRescheduleRequest = [
         isMandatory: true,
         key: "changedHearingDate",
         schemaKeyPath: "applicationDetails.newHearingScheduledDate",
+        transformer: "date",
         type: "date",
         populators: {
           name: "changedHearingDate",
@@ -1647,7 +1649,7 @@ export const configsOthers = [
       {
         type: "component",
         component: "SelectCustomTextArea",
-        schemaKeyPath: "applicationDetails.purposeOfApplication",
+        schemaKeyPath: "applicationDetails.reasonForApplication",
         transformer: "customTextArea",
         key: "applicationDetails",
         isMandatory: true,
