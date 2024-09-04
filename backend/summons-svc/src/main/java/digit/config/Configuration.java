@@ -109,6 +109,12 @@ public class Configuration {
     @Value("${task.taxhead.master.code}")
     private String taskTaxHeadMasterCode;
 
+    @Value("${task.taxhead.master.court.code}")
+    private String taskTaxHeadCourtMasterCode;
+
+    @Value("${task.taxhead.master.epost.code}")
+    private String taskTaxHeadEPostMasterCode;
+
     @Value("${egov.tax.period.to}")
     private Long taxPeriodTo;
 

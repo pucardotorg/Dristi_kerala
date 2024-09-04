@@ -86,17 +86,17 @@ public class DemandService {
                 config.getEgovStateTenantId(), config.getPaymentBusinessServiceName(), createMasterDetails()
         );
         for (Calculation calculation : calculations) {
-            List<DemandDetail> demandDetailList = createDemandDetails(calculation, mdmsData);
+            List<DemandDetail> demandDetailList = createDemandDetails(calculation, task, mdmsData);
             demands.addAll(createDemandList(task, demandDetailList, calculation.getTenantId()));
         }
         callBillServiceAndCreateDemand(requestInfo, demands);
     }
 
-    private List<DemandDetail> createDemandDetails(Calculation calculation, Map<String, Map<String, JSONArray>> mdmsData) {
+    private List<DemandDetail> createDemandDetails(Calculation calculation, Task task, Map<String, Map<String, JSONArray>> mdmsData) {
         List<DemandDetail> demandDetailList = new ArrayList<>();
 
         if (config.isTest()) {
-            demandDetailList.add(createTestDemandDetail(calculation.getTenantId()));
+            demandDetailList.addAll(createTestDemandDetails(calculation.getTenantId(), task));
         } else {
             Map<String, String> masterCodes = getTaxHeadMasterCodes(mdmsData, config.getTaskBusinessService());
             for (BreakDown breakDown : calculation.getBreakDown()) {
@@ -106,12 +106,36 @@ public class DemandService {
         return demandDetailList;
     }
 
-    private DemandDetail createTestDemandDetail(String tenantId) {
-        return DemandDetail.builder()
-                .tenantId(tenantId)
-                .taxAmount(BigDecimal.valueOf(4))
-                .taxHeadMasterCode(config.getTaskTaxHeadMasterCode())
-                .build();
+    private List<DemandDetail> createTestDemandDetails(String tenantId, Task task) {
+        List<DemandDetail> demandDetailList = new ArrayList<>();
+        String channelName = ChannelName.fromString(task.getTaskDetails().getDeliveryChannel().getChannelName()).name();
+
+        if (channelName.equals("POST")) {
+            DemandDetail courtDetail = DemandDetail.builder()
+                    .tenantId(tenantId)
+                    .taxAmount(BigDecimal.valueOf(4))
+                    .taxHeadMasterCode(config.getTaskTaxHeadCourtMasterCode())
+                    .build();
+
+            DemandDetail ePostDetail = DemandDetail.builder()
+                    .tenantId(tenantId)
+                    .taxAmount(BigDecimal.valueOf(4))
+                    .taxHeadMasterCode(config.getTaskTaxHeadEPostMasterCode())
+                    .build();
+
+            demandDetailList.add(courtDetail);
+            demandDetailList.add(ePostDetail);
+        } else {
+            DemandDetail basicDetail = DemandDetail.builder()
+                    .tenantId(tenantId)
+                    .taxAmount(BigDecimal.valueOf(4))
+                    .taxHeadMasterCode(config.getTaskTaxHeadMasterCode())
+                    .build();
+
+            demandDetailList.add(basicDetail);
+        }
+
+        return demandDetailList;
     }
 
     private DemandDetail createDemandDetail(String tenantId, BreakDown breakDown, Map<String, String> masterCodes) {
@@ -136,9 +160,9 @@ public class DemandService {
 
         for (DemandDetail detail : demandDetailList) {
             String taxHeadMasterCode = detail.getTaxHeadMasterCode();
-            if (taxHeadMasterCode.equalsIgnoreCase("TASK_SUMMON_ADVANCE_CARRY_FORWARD_COURT") && channelName.equals("POST")) {
+            if (taxHeadMasterCode.equalsIgnoreCase(config.getTaskTaxHeadCourtMasterCode()) && channelName.equals("POST")) {
                 consumerCode += "COURT";
-            } else if (taxHeadMasterCode.equalsIgnoreCase("TASK_SUMMON_ADVANCE_CARRY_FORWARD_POST") && channelName.equals("POST")) {
+            } else if (taxHeadMasterCode.equalsIgnoreCase(config.getTaskTaxHeadEPostMasterCode()) && channelName.equals("POST")) {
                 consumerCode += "EPOST";
             }
             demandList.add(createDemandObject(Collections.singletonList(detail), tenantId, consumerCode));
