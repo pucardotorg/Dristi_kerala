@@ -161,9 +161,9 @@ public class DemandService {
         for (DemandDetail detail : demandDetailList) {
             String taxHeadMasterCode = detail.getTaxHeadMasterCode();
             if (taxHeadMasterCode.equalsIgnoreCase(config.getTaskTaxHeadCourtMasterCode()) && channelName.equals("POST")) {
-                consumerCode += "COURT";
+                consumerCode += "_COURT";
             } else if (taxHeadMasterCode.equalsIgnoreCase(config.getTaskTaxHeadEPostMasterCode()) && channelName.equals("POST")) {
-                consumerCode += "EPOST";
+                consumerCode += "_EPOST";
             }
             demandList.add(createDemandObject(Collections.singletonList(detail), tenantId, consumerCode));
         }
