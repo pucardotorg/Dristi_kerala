@@ -126,7 +126,13 @@ function OrderReviewModal({ setShowReviewModal, t, order, setShowsignatureModal,
         }}
       >
         {orderPreviewPdf ? (
-          <DocViewerWrapper docWidth={"calc(80vw* 62/ 100)"} docHeight={"60vh"} selectedDocs={[orderPreviewPdf]} displayFilename={fileName} />
+          <DocViewerWrapper
+            docWidth={"calc(80vw* 62/ 100)"}
+            docHeight={"60vh"}
+            selectedDocs={[orderPreviewPdf]}
+            displayFilename={fileName}
+            showDownloadOption={false}
+          />
         ) : isLoading ? (
           <h2>{t("LOADING")}</h2>
         ) : (

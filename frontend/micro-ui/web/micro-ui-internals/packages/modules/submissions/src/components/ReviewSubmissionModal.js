@@ -113,6 +113,7 @@ function ReviewSubmissionModal({
             docHeight={"60vh"}
             selectedDocs={[applicationPreviewPdf]}
             displayFilename={applicationPreviewFileName}
+            showDownloadOption={false}
           />
         ) : isLoading ? (
           <h2>{t("LOADING")}</h2>

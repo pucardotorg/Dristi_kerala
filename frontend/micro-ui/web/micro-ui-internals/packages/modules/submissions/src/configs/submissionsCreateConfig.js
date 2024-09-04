@@ -577,7 +577,7 @@ export const configsExtensionSubmissionDeadline = [
         type: "component",
         component: "SelectCustomTextArea",
         key: "extensionBenefit",
-        schemaKeyPath: "applicationDetails.reasonForExtension",
+        schemaKeyPath: "applicationDetails.reasonForApplication",
         transformer: "customTextArea",
         isMandatory: true,
         populators: {
@@ -1370,7 +1370,7 @@ export const configsSurety = [
         isMandatory: true,
         inline: false,
         component: "SelectCustomTextArea",
-        schemaKeyPath: "applicationDetails.reasonForBail",
+        schemaKeyPath: "applicationDetails.reasonForApplication",
         transformer: "customTextArea",
         populators: {
           inputs: [
@@ -1501,7 +1501,7 @@ export const configsBailBond = [
         isMandatory: true,
         inline: false,
         component: "SelectCustomTextArea",
-        schemaKeyPath: "applicationDetails.reasonForBail",
+        schemaKeyPath: "applicationDetails.reasonForApplication",
         transformer: "customTextArea",
         populators: {
           inputs: [
