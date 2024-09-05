@@ -59,6 +59,7 @@ public class ApplicationRowMapper implements ResultSetExtractor<List<Application
                             .referenceId(toUUID(rs.getString("referenceid")))
                             .createdDate(rs.getLong("createddate"))
                             .createdBy(toUUID(rs.getString("applicationcreatedby")))
+                            .reasonForApplication(rs.getString("reason_for_application"))
                             .tenantId(rs.getString("tenantid"))
                             .id(toUUID(rs.getString("id")))
                             .isActive(rs.getBoolean("isactive"))
@@ -72,9 +73,15 @@ public class ApplicationRowMapper implements ResultSetExtractor<List<Application
                             .auditDetails(auditdetails)
                             .build();
                 }
-                PGobject pgObject = (PGobject) rs.getObject("additionalDetails");
-                if(pgObject!=null) {
-                    application.setAdditionalDetails(objectMapper.readTree(pgObject.getValue()));
+                PGobject pgObject1 = (PGobject) rs.getObject("additionalDetails");
+
+                PGobject pgObject2 = (PGobject) rs.getObject("application_details");
+
+                if(pgObject1!=null) {
+                    application.setAdditionalDetails(objectMapper.readTree(pgObject1.getValue()));
+                }
+                if(pgObject2!=null) {
+                    application.setApplicationDetails(objectMapper.readTree(pgObject2.getValue()));
                 }
                 applicationMap.put(uuid, application);
             }

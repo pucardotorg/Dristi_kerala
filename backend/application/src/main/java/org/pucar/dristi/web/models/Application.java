@@ -74,6 +74,12 @@ public class Application   {
           @Valid
                 private String applicationType = null;
 
+    @JsonProperty("reasonForApplication")
+    private String reasonForApplication = null;
+
+    @JsonProperty("applicationDetails")
+    private Object applicationDetails = null;
+
         @JsonProperty("applicationNumber")
 
         @Size(min=24,max=48)         private String applicationNumber = null;
