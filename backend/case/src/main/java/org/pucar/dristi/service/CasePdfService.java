@@ -20,6 +20,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
+import java.util.UUID;
 
 import static org.pucar.dristi.config.ServiceConstants.CASE_PDF_SERVICE_EXCEPTION;
 
@@ -72,6 +73,10 @@ public class CasePdfService {
             StringBuilder uri = new StringBuilder(config.getDristiCasePdfHost()).append(config.getDristiCasePdfPath());
             ByteArrayResource byteArrayResource = casePdfUtil.generateCasePdf(caseRequest, uri);
             Document document = fileStoreUtil.saveDocumentToFileStore(byteArrayResource.getByteArray(), courtCase.getTenantId());
+            if(document.getId() == null) {
+                document.setId(String.valueOf(UUID.randomUUID()));
+                document.setDocumentUid(document.getId());
+            }
             if (CollectionUtils.isEmpty(courtCase.getDocuments())) {
                 courtCase.setDocuments(Collections.singletonList(document));
             } else {
