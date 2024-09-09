@@ -63,6 +63,16 @@ public class TaskRegistrationEnrichment {
             task.getAuditDetails().setLastModifiedTime(System.currentTimeMillis());
             task.getAuditDetails().setLastModifiedBy(taskRequest.getRequestInfo().getUserInfo().getUuid());
 
+            if (task.getDocuments() != null) {
+                task.getDocuments().removeIf(document -> document.getId() != null);
+                task.getDocuments().forEach(document -> {
+                    if (document.getId() == null) {
+                        document.setId(UUID.randomUUID().toString());
+                        document.setDocumentUid(document.getId());
+                    }
+                });
+            }
+
         } catch (Exception e) {
             log.error("Error enriching task application upon update :: {}", e.toString());
             throw new CustomException(ENRICHMENT_EXCEPTION, "Exception in task enrichment service during task update process: " + e.getMessage());
