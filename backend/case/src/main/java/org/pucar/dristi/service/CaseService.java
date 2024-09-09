@@ -116,8 +116,12 @@ public class CaseService {
 
             if (CASE_ADMIT_STATUS.equals(caseRequest.getCases().getStatus())) {
                 enrichmentUtil.enrichAccessCode(caseRequest);
-                enrichmentUtil.enrichCaseNumberAndCNRNumber(caseRequest);
+                enrichmentUtil.enrichCaseNumberAndCourtCaseNumber(caseRequest);
                 enrichmentUtil.enrichRegistrationDate(caseRequest);
+            }
+
+            if (PENDING_ADMISSION_HEARING_STATUS.equals(caseRequest.getCases().getStatus())) {
+                enrichmentUtil.enrichCNRNumber(caseRequest);
             }
 
             if(config.getIsSMSEnabled()) {
