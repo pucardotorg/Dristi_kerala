@@ -38,7 +38,7 @@ public class CaseService {
         this.objectMapper = objectMapper;
     }
 
-    private CourtCase fetchCase(String fieldValue) throws IOException {
+    public CourtCase fetchCase(String fieldValue) throws IOException {
         LinkedHashMap<String, Object> sourceMap = elasticSearchService.getDocumentByField(ServiceConstants.CASE_INDEX, ServiceConstants.FILING_NUMBER, fieldValue);
         if (null == sourceMap || null == sourceMap.get("Data")) {
             log.error("No case data found for {}", fieldValue);
@@ -65,10 +65,12 @@ public class CaseService {
 
             CaseRequest caseRequest = new CaseRequest();
             caseRequest.setCases(courtCase);
-            producer.push(properties.getUpdateCaseTopic(), caseRequest);
+            producer.push(properties.getUpdateCaseOrderTopic(), caseRequest);
         } catch (Exception e) {
             log.error("error executing case search query", e);
             throw new CustomException("ERROR_CASE_SEARCH", ServiceConstants.ERROR_CASE_SEARCH);
         }
     }
+
+
 }

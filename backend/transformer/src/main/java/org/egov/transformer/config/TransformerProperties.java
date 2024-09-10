@@ -20,8 +20,14 @@ public class TransformerProperties {
     @Value("${egov.case.path}")
     private String caseSearchUrlEndPoint;
 
-    @Value("${transformer.producer.update.order.case.topic}")
+    @Value("${transformer.producer.save.case.topic}")
+    private String saveCaseTopic;
+
+    @Value("${transformer.producer.update.case.topic}")
     private String updateCaseTopic;
+
+    @Value("${transformer.producer.update.order.case.topic}")
+    private String updateCaseOrderTopic;
 
     @Value("${transformer.producer.create.task.topic}")
     private String saveTaskTopic;
@@ -37,4 +43,12 @@ public class TransformerProperties {
 
     @Value("${transformer.producer.update.order.topic}")
     private String updateOrderTopic;
+
+    @Value("${transformer.consumer.create.hearing.topic}")
+    private String saveHearingTopic;
+
+    @Value("${transformer.consumer.update.hearing.topic}")
+    private String updateHearingTopic;
+
+
 }
