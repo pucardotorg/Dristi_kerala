@@ -12,8 +12,8 @@ import org.egov.common.contract.models.Workflow;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -205,23 +205,25 @@ public class CourtCase {
         this.setAuditdetails(auditDetails);
     }
 
-    public LocalDate parseDate(Long date) {
+    public String parseDate(Long date) {
         return Instant.ofEpochMilli(date)
                 .atZone(ZoneId.systemDefault())
-                .toLocalDate();
+                .toLocalDate()
+                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
     }
 
     public void setDates() {
-        Dates dates = new Dates();
+        Dates transformedDates = new Dates();
         if (this.getFilingDate() != null) {
-            dates.setFilingDate(parseDate(this.getFilingDate()));
+            transformedDates.setFilingDate(parseDate(this.getFilingDate()));
         }
         if (this.getRegistrationDate() != null) {
-            dates.setRegistrationDate(parseDate(this.getRegistrationDate()));
+            transformedDates.setRegistrationDate(parseDate(this.getRegistrationDate()));
         }
         if (this.getJudgementDate() != null) {
-            dates.setJudgementDate(parseDate(this.getJudgementDate()));
+            transformedDates.setJudgementDate(parseDate(this.getJudgementDate()));
         }
-        this.setDates(dates);
+        this.setDates(transformedDates);
     }
 }

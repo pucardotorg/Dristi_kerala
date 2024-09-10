@@ -53,10 +53,11 @@ public class CaseConsumer {
         try {
             CourtCase courtCase = (objectMapper.readValue((String) payload.value(), new TypeReference<CaseRequest>() {
             })).getCases();
-            logger.info(objectMapper.writeValueAsString(courtCase));
+            logger.info("Received Object: {} ", objectMapper.writeValueAsString(courtCase));
             courtCase.setDates();
             CaseRequest caseRequest = new CaseRequest();
             caseRequest.setCases(courtCase);
+            logger.info("Transformed Object: {} ", objectMapper.writeValueAsString(courtCase));
             producer.push(topic, caseRequest);
         } catch (Exception exception) {
             log.error("error in saving case", exception);
