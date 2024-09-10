@@ -65,7 +65,7 @@ public class CaseService {
 
             CaseRequest caseRequest = new CaseRequest();
             caseRequest.setCases(courtCase);
-            producer.push(properties.getUpdateCaseTopic(), caseRequest);
+            producer.push(properties.getUpdateCaseOrderTopic(), caseRequest);
         } catch (Exception e) {
             log.error("error executing case search query", e);
             throw new CustomException("ERROR_CASE_SEARCH", ServiceConstants.ERROR_CASE_SEARCH);
