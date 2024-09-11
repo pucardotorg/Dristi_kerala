@@ -59,7 +59,7 @@ public class MdmsV2Util {
 
 	public JsonNode fetchMdmsV2Schema(RequestInfo requestInfo, String tenantId, Set<String> ids, Set<String> uniqueIdentifiers, String schemaCode, Boolean isActive) {
 		StringBuilder uri = new StringBuilder();
-		uri.append(configs.getMdmsHost()).append(configs.getMdmsEndPoint());
+		uri.append(configs.getMdmsHost()).append(configs.getMdmsSchemaEndPoint());
 		SchemaDefCriteria schemaDefinitionSearch= SchemaDefCriteria.builder().
 				tenantId(tenantId)
 				.codes(uniqueIdentifiers)
