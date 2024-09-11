@@ -206,11 +206,16 @@ public class CourtCase {
     }
 
     public String parseDate(Long date) {
-        return Instant.ofEpochMilli(date)
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate()
-                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-
+        String formattedDate = "";
+        if (null != date) {
+            if (date > 0) {
+                formattedDate = Instant.ofEpochMilli(date)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                        .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            }
+        }
+        return formattedDate;
     }
 
     public void setDates() {
