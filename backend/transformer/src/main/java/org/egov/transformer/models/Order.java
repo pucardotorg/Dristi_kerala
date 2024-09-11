@@ -13,6 +13,9 @@ import org.egov.common.contract.models.Document;
 import org.egov.common.contract.models.Workflow;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -57,8 +60,7 @@ public class Order {
     @JsonProperty("linkedOrderNumber")
     @Size(min = 24, max = 256)
     private String linkedOrderNumber = null;
-
-    @JsonProperty("createdDate")
+    
     @NotNull
     @Valid
     private Long createdDate = null;
@@ -122,6 +124,14 @@ public class Order {
         }
         this.documents.add(documentsItem);
         return this;
+    }
+
+    @JsonProperty("createdDate")
+    public String getCreatedDate() {
+        return Instant.ofEpochMilli(this.createdDate)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 
 }
