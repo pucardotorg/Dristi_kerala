@@ -157,10 +157,16 @@ public class Hearing {
     }
 
     public String getFormattedDateTime(Long dateTime, String pattern) {
-        return Instant.ofEpochMilli(dateTime)
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate()
-                .format(DateTimeFormatter.ofPattern(pattern));
+        String formattedDateTime = "";
+        if (null != dateTime) {
+            if (dateTime > 0) {
+                formattedDateTime = Instant.ofEpochMilli(dateTime)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                        .format(DateTimeFormatter.ofPattern(pattern));
+            }
+        }
+        return formattedDateTime;
     }
 
     @JsonProperty("startTime")

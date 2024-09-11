@@ -152,10 +152,16 @@ public class Application {
 
     @JsonProperty("createdDate")
     public String getCreatedDate() {
-        return Instant.ofEpochMilli(this.createdDate)
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate()
-                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        String formattedDate = "";
+        if (null != this.createdDate) {
+            if (this.createdDate > 0) {
+                formattedDate = Instant.ofEpochMilli(this.createdDate)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                        .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            }
+        }
+        return formattedDate;
     }
 
 }
