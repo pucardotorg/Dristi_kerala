@@ -45,7 +45,7 @@ public class ServiceUrlMapperVCService {
         uniqueIdentifiers.add(vcCredentialRequest.getModuleName());
         JsonNode data = mdmsV2Util.fetchMdmsV2Schema(vcCredentialRequest.getRequestInfo(), vcCredentialRequest.getTenantId(), null, uniqueIdentifiers, null, null);
 
-        if (!data.isEmpty()) {
+        if (data != null && !data.isEmpty()) {
             JsonNode firstElement = data.get(0);
             if (firstElement.has("code") && Objects.equals(firstElement.get("code").asText(), configuration.getVcCode())) {
                 String signedHashValue = fileDownloadService.downloadAndExtractSignature(vcCredentialRequest);
