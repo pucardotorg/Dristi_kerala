@@ -12,6 +12,9 @@ import org.egov.common.contract.models.Document;
 import org.egov.common.contract.models.Workflow;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -49,17 +52,12 @@ public class Task {
     @JsonProperty("cnrNumber")
     private String cnrNumber = null;
 
-    @JsonProperty("createdDate")
+
     @NotNull
-    @Valid
     private Long createdDate = null;
 
-    @JsonProperty("dateCloseBy")
-    @Valid
     private Long dateCloseBy = null;
 
-    @JsonProperty("dateClosed")
-    @Valid
     private Long dateClosed = null;
 
     @JsonProperty("taskDescription")
@@ -105,6 +103,28 @@ public class Task {
     public Task addDocumentsItem(Document documentsItem) {
         this.documents.add(documentsItem);
         return this;
+    }
+
+    public String getFormattedDateTime(Long dateTime, String pattern) {
+        return Instant.ofEpochMilli(dateTime)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+                .format(DateTimeFormatter.ofPattern(pattern));
+    }
+
+    @JsonProperty("createdDate")
+    public String getCreatedDate() {
+        return getFormattedDateTime(this.createdDate, "dd/MM/yyyy");
+    }
+
+    @JsonProperty("dateCloseBy")
+    public String getDateCloseBy() {
+        return getFormattedDateTime(this.dateCloseBy, "dd/MM/yyyy");
+    }
+
+    @JsonProperty("dateClosed")
+    public String getDateClosed() {
+        return getFormattedDateTime(this.dateClosed, "dd/MM/yyyy");
     }
 
 }

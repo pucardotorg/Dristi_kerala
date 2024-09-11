@@ -156,31 +156,31 @@ public class Hearing {
         return this;
     }
 
-    public String getFormattedDateTime(Long dateTime, String pattern){
+    public String getFormattedDateTime(Long dateTime, String pattern) {
         return Instant.ofEpochMilli(dateTime)
                 .atZone(ZoneId.systemDefault())
                 .toLocalDate()
-                .format(DateTimeFormatter.ofPattern(pattern);
+                .format(DateTimeFormatter.ofPattern(pattern));
     }
 
     @JsonProperty("startTime")
     public String getStartTime() {
-        return getFormattedDateTime(this.startTime,"dd/MM/yyyy HH:mm");
+        return getFormattedDateTime(this.startTime, "dd/MM/yyyy HH:mm");
     }
 
     @JsonProperty("endTime")
     public String getEndTime() {
-        return getFormattedDateTime(this.endTime,"dd/MM/yyyy HH:mm");
+        return getFormattedDateTime(this.endTime, "dd/MM/yyyy HH:mm");
     }
 
     @JsonProperty("filingDate")
     public String getFilingDate() {
-        return getFormattedDateTime(this.filingDate,"dd/MM/yyyy");
+        return getFormattedDateTime(this.filingDate, "dd/MM/yyyy");
     }
 
     @JsonProperty("registrationDate")
     public String getRegistrationDate() {
-        return getFormattedDateTime(this.registrationDate,"dd/MM/yyyy");
+        return getFormattedDateTime(this.registrationDate, "dd/MM/yyyy");
     }
 
 }
