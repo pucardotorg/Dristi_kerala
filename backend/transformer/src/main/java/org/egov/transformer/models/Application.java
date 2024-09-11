@@ -13,6 +13,9 @@ import org.egov.common.contract.models.Document;
 import org.egov.common.contract.models.Workflow;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +58,6 @@ public class Application {
     @Valid
     private UUID referenceId = null;
 
-    @JsonProperty("createdDate")
     @NotNull
     private Long createdDate = null;
 
@@ -147,4 +149,13 @@ public class Application {
         }
         return false;
     }
+
+    @JsonProperty("createdDate")
+    public String getCreatedDate() {
+        return Instant.ofEpochMilli(this.createdDate)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
+
 }

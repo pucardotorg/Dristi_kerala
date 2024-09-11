@@ -13,6 +13,9 @@ import org.egov.common.contract.models.Document;
 import org.egov.common.contract.models.Workflow;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -64,14 +67,8 @@ public class Hearing {
 // Hearing workflow state,
     private String status = null;
 
-    @JsonProperty("startTime")
-
-    @Valid
     private Long startTime = null;
 
-    @JsonProperty("endTime")
-
-    @Valid
     private Long endTime = null;
 
     @JsonProperty("presidedBy")
@@ -116,11 +113,8 @@ public class Hearing {
 
     private String notes = null;
 
-    @JsonProperty("filingDate")
-    @Valid
     private Long filingDate = null;
 
-    @JsonProperty("registrationDate")
     private Long registrationDate = null;
 
     @JsonProperty("stage")
@@ -160,6 +154,33 @@ public class Hearing {
     public Hearing addDocumentsItem(Document documentsItem) {
         this.documents.add(documentsItem);
         return this;
+    }
+
+    public String getFormattedDateTime(Long dateTime, String pattern) {
+        return Instant.ofEpochMilli(dateTime)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+                .format(DateTimeFormatter.ofPattern(pattern));
+    }
+
+    @JsonProperty("startTime")
+    public String getStartTime() {
+        return getFormattedDateTime(this.startTime, "dd/MM/yyyy HH:mm");
+    }
+
+    @JsonProperty("endTime")
+    public String getEndTime() {
+        return getFormattedDateTime(this.endTime, "dd/MM/yyyy HH:mm");
+    }
+
+    @JsonProperty("filingDate")
+    public String getFilingDate() {
+        return getFormattedDateTime(this.filingDate, "dd/MM/yyyy");
+    }
+
+    @JsonProperty("registrationDate")
+    public String getRegistrationDate() {
+        return getFormattedDateTime(this.registrationDate, "dd/MM/yyyy");
     }
 
 }
