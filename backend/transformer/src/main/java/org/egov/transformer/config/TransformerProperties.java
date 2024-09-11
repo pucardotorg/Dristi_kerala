@@ -44,10 +44,10 @@ public class TransformerProperties {
     @Value("${transformer.producer.update.order.topic}")
     private String updateOrderTopic;
 
-    @Value("${transformer.consumer.create.hearing.topic}")
+    @Value("${transformer.producer.save.hearing.topic}")
     private String saveHearingTopic;
 
-    @Value("${transformer.consumer.update.hearing.topic}")
+    @Value("${transformer.producer.update.hearing.topic}")
     private String updateHearingTopic;
 
 
