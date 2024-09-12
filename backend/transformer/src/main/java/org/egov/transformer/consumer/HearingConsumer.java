@@ -2,6 +2,7 @@ package org.egov.transformer.consumer;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.egov.transformer.config.TransformerProperties;
 import org.egov.transformer.models.Hearing;
@@ -13,7 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
 public class HearingConsumer {
     private static final Logger logger = LoggerFactory.getLogger(HearingConsumer.class);
     private final ObjectMapper objectMapper;
