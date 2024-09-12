@@ -235,28 +235,34 @@ public class CourtCase {
 
     @JsonProperty("filingDate")
     public void setFilingDate(String date) throws ParseException {
-        try {
-            this.filingDate = Long.parseLong(date);
-        } catch (NumberFormatException e) {
-            this.filingDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
+        if (null != date) {
+            try {
+                this.filingDate = Long.parseLong(date);
+            } catch (NumberFormatException e) {
+                this.filingDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
+            }
         }
     }
 
     @JsonProperty("registrationDate")
     public void setRegistrationDate(String date) throws ParseException {
-        try {
-            this.registrationDate = Long.parseLong(date);
-        } catch (NumberFormatException e) {
-            this.registrationDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
+        if (null != date) {
+            try {
+                this.registrationDate = Long.parseLong(date);
+            } catch (NumberFormatException e) {
+                this.registrationDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
+            }
         }
     }
 
     @JsonProperty("judgementDate")
     public void setJudgementDate(String date) throws ParseException {
-        try {
-            this.judgementDate = Long.parseLong(date);
-        } catch (NumberFormatException e) {
-            this.judgementDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
+        if (null != date) {
+            try {
+                this.judgementDate = Long.parseLong(date);
+            } catch (NumberFormatException e) {
+                this.judgementDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
+            }
         }
     }
 }
