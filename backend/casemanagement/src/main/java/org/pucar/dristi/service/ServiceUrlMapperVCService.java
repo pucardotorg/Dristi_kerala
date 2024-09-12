@@ -1,6 +1,7 @@
 package org.pucar.dristi.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 import org.egov.tracer.model.CustomException;
 import org.pucar.dristi.config.Configuration;
 import org.pucar.dristi.kafka.Producer;
@@ -18,6 +19,7 @@ import java.util.Set;
 
 
 @Service
+@Slf4j
 public class ServiceUrlMapperVCService {
 
     private final ServiceUrlEntityRequestService serviceUrlEntityRequestService;
@@ -50,6 +52,7 @@ public class ServiceUrlMapperVCService {
             if (firstElement.has("code") && Objects.equals(firstElement.get("code").asText(), configuration.getVcCode())) {
                 String signedHashValue = fileDownloadService.downloadAndExtractSignature(vcCredentialRequest);
                 CredentialRequest credentialRequest = serviceUrlEntityRequestService.getEntityDetails(signedHashValue, vcCredentialRequest);
+                log.info("credential request {}", credentialRequest);
                 producer.push(configuration.getCreateVc(), credentialRequest);
             } else {
                 throw new CustomException("UNEXCEPTED_MODULE_NAME", "The module name " + vcCredentialRequest.getModuleName() + " is not excepted.");
