@@ -207,7 +207,7 @@ public class CourtCase {
     }
 
     public String parseDate(Long date) {
-        String formattedDate = "";
+        String formattedDate = null;
         if (null != date) {
             if (date > 0) {
                 formattedDate = Instant.ofEpochMilli(date)
