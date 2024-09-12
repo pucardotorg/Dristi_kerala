@@ -144,7 +144,11 @@ public class Order {
 
     @JsonProperty("createdDate")
     public void setCreatedDate(String date) throws ParseException {
-        this.createdDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
+        try {
+            this.createdDate = Long.parseLong(date);
+        } catch (NumberFormatException e) {
+            this.createdDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
+        }
     }
 
 }
