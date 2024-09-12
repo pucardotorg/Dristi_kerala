@@ -201,7 +201,7 @@ public class Hearing {
             this.startTime = Long.parseLong(dateTime);
         } catch (NumberFormatException e) {
             this.startTime = convertDateToLong(dateTime, "dd/MM/yyyy HH:mm");
-        } 
+        }
     }
 
     @JsonProperty("endTime")
@@ -210,18 +210,26 @@ public class Hearing {
             this.endTime = Long.parseLong(dateTime);
         } catch (NumberFormatException e) {
             this.endTime = convertDateToLong(dateTime, "dd/MM/yyyy HH:mm");
-        } 
+        }
     }
 
 
     @JsonProperty("filingDate")
     public void setFilingDate(String date) throws ParseException {
-        this.filingDate = convertDateToLong(date, "dd/MM/yyyy");
+        try {
+            this.filingDate = Long.parseLong(date);
+        } catch (NumberFormatException e) {
+            this.filingDate = convertDateToLong(date, "dd/MM/yyyy");
+        }
     }
 
     @JsonProperty("registrationDate")
     public void setRegistrationDate(String date) throws ParseException {
-        this.registrationDate = convertDateToLong(date, "dd/MM/yyyy");
+        try {
+            this.registrationDate = Long.parseLong(date);
+        } catch (NumberFormatException e) {
+            this.registrationDate = convertDateToLong(date, "dd/MM/yyyy");
+        }
     }
 
     @JsonProperty("filingDate")
