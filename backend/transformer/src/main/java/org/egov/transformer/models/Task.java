@@ -140,16 +140,28 @@ public class Task {
 
     @JsonProperty("createdDate")
     public void setCreatedDate(String date) throws ParseException {
-        this.createdDate = convertDateToLong(date, "dd/MM/yyyy");
+        try {
+            this.createdDate = Long.parseLong(date);
+        } catch (NumberFormatException e) {
+            this.createdDate = convertDateToLong(date, "dd/MM/yyyy");
+        }
     }
 
     @JsonProperty("dateCloseBy")
     public void setDateCloseBy(String date) throws ParseException {
-        this.dateCloseBy = convertDateToLong(date, "dd/MM/yyyy");
+        try {
+            this.dateCloseBy = Long.parseLong(date);
+        } catch (NumberFormatException e) {
+            this.dateCloseBy = convertDateToLong(date, "dd/MM/yyyy");
+        }
     }
 
     @JsonProperty("dateClosed")
     public void setDateClosed(String date) throws ParseException {
-        this.dateClosed = convertDateToLong(date, "dd/MM/yyyy");
+        try {
+            this.dateClosed = Long.parseLong(date);
+        } catch (NumberFormatException e) {
+            this.dateClosed = convertDateToLong(date, "dd/MM/yyyy");
+        }
     }
 }

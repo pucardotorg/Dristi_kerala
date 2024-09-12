@@ -244,11 +244,19 @@ public class CourtCase {
 
     @JsonProperty("registrationDate")
     public void setRegistrationDate(String date) throws ParseException {
-        this.registrationDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
+        try {
+            this.registrationDate = Long.parseLong(date);
+        } catch (NumberFormatException e) {
+            this.registrationDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
+        }
     }
 
     @JsonProperty("judgementDate")
     public void setJudgementDate(String date) throws ParseException {
-        this.judgementDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
+        try {
+            this.judgementDate = Long.parseLong(date);
+        } catch (NumberFormatException e) {
+            this.judgementDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
+        }
     }
 }
