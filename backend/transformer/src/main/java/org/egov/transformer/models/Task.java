@@ -12,6 +12,7 @@ import org.egov.common.contract.models.Document;
 import org.egov.common.contract.models.Workflow;
 import org.springframework.validation.annotation.Validated;
 
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -133,4 +134,22 @@ public class Task {
         return getFormattedDateTime(this.dateClosed, "dd/MM/yyyy");
     }
 
+    public Long convertDateToLong(String dateTime, String pattern) throws ParseException {
+        return new java.text.SimpleDateFormat(pattern).parse(dateTime).getTime();
+    }
+
+    @JsonProperty("createdDate")
+    public void setCreatedDate(String date) throws ParseException {
+        this.createdDate = convertDateToLong(date, "dd/MM/yyyy");
+    }
+
+    @JsonProperty("dateCloseBy")
+    public void setDateCloseBy(String date) throws ParseException {
+        this.dateCloseBy = convertDateToLong(date, "dd/MM/yyyy");
+    }
+
+    @JsonProperty("dateClosed")
+    public void setDateClosed(String date) throws ParseException {
+        this.dateClosed = convertDateToLong(date, "dd/MM/yyyy");
+    }
 }

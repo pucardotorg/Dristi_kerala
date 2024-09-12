@@ -13,6 +13,7 @@ import org.egov.common.contract.models.Document;
 import org.egov.common.contract.models.Workflow;
 import org.springframework.validation.annotation.Validated;
 
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -189,4 +190,38 @@ public class Hearing {
         return getFormattedDateTime(this.registrationDate, "dd/MM/yyyy");
     }
 
+
+    public Long convertDateToLong(String dateTime, String pattern) throws ParseException {
+        return new java.text.SimpleDateFormat(pattern).parse(dateTime).getTime();
+    }
+
+    @JsonProperty("startTime")
+    public void setStartTime(String dateTime) throws ParseException {
+        this.filingDate = convertDateToLong(dateTime, "dd/MM/yyyy HH:mm");
+    }
+
+    @JsonProperty("endTime")
+    public void setEndTime(String dateTime) throws ParseException {
+        this.registrationDate = convertDateToLong(dateTime, "dd/MM/yyyy HH:mm");
+    }
+
+    @JsonProperty("filingDate")
+    public void setFilingDate(String date) throws ParseException {
+        this.filingDate = convertDateToLong(date, "dd/MM/yyyy");
+    }
+
+    @JsonProperty("registrationDate")
+    public void setRegistrationDate(String date) throws ParseException {
+        this.registrationDate = convertDateToLong(date, "dd/MM/yyyy");
+    }
+
+    @JsonProperty("filingDate")
+    public void setFilingDate(Long date) {
+        this.filingDate = date;
+    }
+
+    @JsonProperty("registrationDate")
+    public void setRegistrationDate(Long date) {
+        this.registrationDate = date;
+    }
 }

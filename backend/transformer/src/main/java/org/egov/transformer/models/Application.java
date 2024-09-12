@@ -13,6 +13,7 @@ import org.egov.common.contract.models.Document;
 import org.egov.common.contract.models.Workflow;
 import org.springframework.validation.annotation.Validated;
 
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -162,6 +163,11 @@ public class Application {
             }
         }
         return formattedDate;
+    }
+
+    @JsonProperty("createdDate")
+    public void setCreatedDate(String date) throws ParseException {
+        this.createdDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
     }
 
 }
