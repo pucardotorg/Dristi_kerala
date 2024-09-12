@@ -196,24 +196,23 @@ public class Hearing {
     }
 
     @JsonProperty("startTime")
-    public void setStartTime(Long dateTime) {
-        this.startTime = dateTime;
-    }
-
-    @JsonProperty("startTime")
     public void setStartTime(String dateTime) throws ParseException {
-        this.startTime = convertDateToLong(dateTime, "dd/MM/yyyy HH:mm");
-    }
-
-    @JsonProperty("endTime")
-    public void setEndTime(Long dateTime) {
-        this.endTime = dateTime;
+        try {
+            this.startTime = Long.parseLong(dateTime);
+        } catch (NumberFormatException e) {
+            this.startTime = convertDateToLong(dateTime, "dd/MM/yyyy HH:mm");
+        } 
     }
 
     @JsonProperty("endTime")
     public void setEndTime(String dateTime) throws ParseException {
-        this.endTime = convertDateToLong(dateTime, "dd/MM/yyyy HH:mm");
+        try {
+            this.endTime = Long.parseLong(dateTime);
+        } catch (NumberFormatException e) {
+            this.endTime = convertDateToLong(dateTime, "dd/MM/yyyy HH:mm");
+        } 
     }
+
 
     @JsonProperty("filingDate")
     public void setFilingDate(String date) throws ParseException {
