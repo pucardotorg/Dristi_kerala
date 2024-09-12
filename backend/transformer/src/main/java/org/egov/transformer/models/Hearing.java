@@ -162,7 +162,7 @@ public class Hearing {
             if (dateTime > 0) {
                 formattedDateTime = Instant.ofEpochMilli(dateTime)
                         .atZone(ZoneId.systemDefault())
-                        .toLocalDate()
+                        .toLocalDateTime()
                         .format(DateTimeFormatter.ofPattern(pattern));
             }
         }
