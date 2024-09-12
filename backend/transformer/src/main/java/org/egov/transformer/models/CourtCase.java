@@ -11,6 +11,7 @@ import org.egov.common.contract.models.Document;
 import org.egov.common.contract.models.Workflow;
 import org.springframework.validation.annotation.Validated;
 
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -230,5 +231,20 @@ public class CourtCase {
             transformedDates.setJudgementDate(parseDate(this.getJudgementDate()));
         }
         this.setDates(transformedDates);
+    }
+
+    @JsonProperty("filingDate")
+    public void setFilingDate(String date) throws ParseException {
+        this.filingDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
+    }
+
+    @JsonProperty("registrationDate")
+    public void setRegistrationDate(String date) throws ParseException {
+        this.registrationDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
+    }
+
+    @JsonProperty("judgementDate")
+    public void setJudgementDate(String date) throws ParseException {
+        this.judgementDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
     }
 }
