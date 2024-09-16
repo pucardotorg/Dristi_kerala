@@ -36,7 +36,7 @@ public class TransformerProperties {
     private String updateTaskTopic;
 
     @Value("${transformer.producer.update.order.application.topic}")
-    private String applicationUpdateTopic;
+    private String updateApplicationOrderTopic;
 
     @Value("${transformer.producer.save.order.topic}")
     private String saveOrderTopic;
@@ -49,6 +49,12 @@ public class TransformerProperties {
 
     @Value("${transformer.producer.update.hearing.topic}")
     private String updateHearingTopic;
+
+    @Value("${transformer.producer.save.application.topic}")
+    private String saveApplicationTopic;
+
+    @Value("${transformer.producer.update.application.topic}")
+    private String updateApplicationTopic;
 
 
 }
