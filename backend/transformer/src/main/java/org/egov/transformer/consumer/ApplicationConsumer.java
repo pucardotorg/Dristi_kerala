@@ -55,7 +55,7 @@ public class ApplicationConsumer {
             applicationRequest.setApplication(application);
             producer.push(topic, applicationRequest);
         } catch (Exception exception) {
-            logger.error("error in saving hearing", exception);
+            logger.error("error in saving application", exception);
         }
     }
 }
