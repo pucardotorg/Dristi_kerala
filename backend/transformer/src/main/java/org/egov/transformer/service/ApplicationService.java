@@ -64,7 +64,7 @@ public class ApplicationService {
             ApplicationRequest applicationRequest = new ApplicationRequest();
             applicationRequest.setApplication(application);
 
-            producer.push(properties.getApplicationUpdateTopic(), applicationRequest);
+            producer.push(properties.getUpdateApplicationOrderTopic(), applicationRequest);
 
         } catch (Exception e) {
             log.error("error executing application search query", e);

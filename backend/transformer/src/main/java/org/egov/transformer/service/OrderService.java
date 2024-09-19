@@ -91,6 +91,7 @@ public class OrderService {
         addOrderDetailsToApplication(order);
         OrderRequest orderRequest = new OrderRequest();
         orderRequest.setOrder(order);
+        logger.info("Order : {}", order);
         producer.push(topic, orderRequest);
     }
 }

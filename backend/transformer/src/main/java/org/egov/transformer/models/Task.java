@@ -12,6 +12,10 @@ import org.egov.common.contract.models.Document;
 import org.egov.common.contract.models.Workflow;
 import org.springframework.validation.annotation.Validated;
 
+import java.text.ParseException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -49,17 +53,12 @@ public class Task {
     @JsonProperty("cnrNumber")
     private String cnrNumber = null;
 
-    @JsonProperty("createdDate")
+
     @NotNull
-    @Valid
     private Long createdDate = null;
 
-    @JsonProperty("dateCloseBy")
-    @Valid
     private Long dateCloseBy = null;
 
-    @JsonProperty("dateClosed")
-    @Valid
     private Long dateClosed = null;
 
     @JsonProperty("taskDescription")
@@ -107,4 +106,62 @@ public class Task {
         return this;
     }
 
+    public String getFormattedDateTime(Long dateTime, String pattern) {
+        String formattedDateTime = "";
+        if (null != dateTime) {
+            if (dateTime > 0) {
+                formattedDateTime = Instant.ofEpochMilli(dateTime)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                        .format(DateTimeFormatter.ofPattern(pattern));
+            }
+        }
+        return formattedDateTime;
+    }
+
+    @JsonProperty("createdDate")
+    public String getCreatedDate() {
+        return getFormattedDateTime(this.createdDate, "dd/MM/yyyy");
+    }
+
+    @JsonProperty("dateCloseBy")
+    public String getDateCloseBy() {
+        return getFormattedDateTime(this.dateCloseBy, "dd/MM/yyyy");
+    }
+
+    @JsonProperty("dateClosed")
+    public String getDateClosed() {
+        return getFormattedDateTime(this.dateClosed, "dd/MM/yyyy");
+    }
+
+    public Long convertDateToLong(String dateTime, String pattern) throws ParseException {
+        return new java.text.SimpleDateFormat(pattern).parse(dateTime).getTime();
+    }
+
+    @JsonProperty("createdDate")
+    public void setCreatedDate(String date) throws ParseException {
+        try {
+            this.createdDate = Long.parseLong(date);
+        } catch (NumberFormatException e) {
+            this.createdDate = convertDateToLong(date, "dd/MM/yyyy");
+        }
+    }
+
+    @JsonProperty("dateCloseBy")
+    public void setDateCloseBy(String date) throws ParseException {
+        try {
+            this.dateCloseBy = Long.parseLong(date);
+        } catch (NumberFormatException e) {
+            this.dateCloseBy = convertDateToLong(date, "dd/MM/yyyy");
+        }
+    }
+
+    @JsonProperty("dateClosed")
+    public void setDateClosed(String date) throws ParseException {
+        try {
+            this.dateClosed = Long.parseLong(date);
+        } catch (NumberFormatException e) {
+            this.dateClosed = convertDateToLong(date, "dd/MM/yyyy");
+        }
+    }
 }

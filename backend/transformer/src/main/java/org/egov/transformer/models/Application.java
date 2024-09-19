@@ -13,6 +13,10 @@ import org.egov.common.contract.models.Document;
 import org.egov.common.contract.models.Workflow;
 import org.springframework.validation.annotation.Validated;
 
+import java.text.ParseException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +59,6 @@ public class Application {
     @Valid
     private UUID referenceId = null;
 
-    @JsonProperty("createdDate")
     @NotNull
     private Long createdDate = null;
 
@@ -88,7 +91,7 @@ public class Application {
     private String status = null;
 
     @JsonProperty("comment")
-    private String comment = null;
+    private List<Comment> comment = new ArrayList<>();
 
     @JsonProperty("isActive")
     @NotNull
@@ -147,4 +150,28 @@ public class Application {
         }
         return false;
     }
+
+    @JsonProperty("createdDate")
+    public String getCreatedDate() {
+        String formattedDate = "";
+        if (null != this.createdDate) {
+            if (this.createdDate > 0) {
+                formattedDate = Instant.ofEpochMilli(this.createdDate)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                        .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            }
+        }
+        return formattedDate;
+    }
+
+    @JsonProperty("createdDate")
+    public void setCreatedDate(String date) throws ParseException {
+        try {
+            this.createdDate = Long.parseLong(date);
+        } catch (NumberFormatException e) {
+            this.createdDate = new java.text.SimpleDateFormat("dd/MM/yyyy").parse(date).getTime();
+        }
+    }
+
 }
