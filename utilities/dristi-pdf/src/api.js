@@ -147,6 +147,32 @@ async function search_individual(tenantId, individualId, requestinfo) {
   }
 }
 
+async function search_advocate(tenantId, individualId, requestinfo) {
+  var params = {
+    tenantId: tenantId,
+    limit: 10,
+    offset: 0,
+  };
+  try {
+    return await axios({
+      method: "post",
+      url: url.resolve(config.host.advocate, config.paths.advocate_search),
+      data: {
+        RequestInfo: requestinfo,
+        criteria: [
+          {
+            individualId: individualId,
+          },
+        ],
+      },
+      params,
+    });
+  } catch (error) {
+    logger.error(`Error in ${config.paths.individual_search}: ${error.message}`);
+    throw error;
+  }
+}
+
 async function search_individual_uuid(tenantId, individualId, requestinfo) {
   var params = {
     tenantId: tenantId,
@@ -238,5 +264,6 @@ module.exports = {
   search_hearing,
   search_sunbirdrc_credential_service,
   search_individual_uuid,
-  search_application
+  search_application,
+  search_advocate
 };
