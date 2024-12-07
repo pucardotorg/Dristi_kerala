@@ -15,5 +15,8 @@ export const Urls = {
   case: {
     caseSearch: "/case/v1/_search",
   },
+  scheduler: {
+    bulkReschedule: "/scheduler/hearing/v1/bulk/_reschedule",
+  },
   FileFetchById: "/filestore/v1/files/id",
 };

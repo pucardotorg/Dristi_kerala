@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { CustomDropdown, Card, Modal } from "@egovernments/digit-ui-react-components";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
+import { hearingService } from "../../hooks/services";
 
 /**
  *
@@ -110,52 +111,67 @@ export const ReschedulingPurpose = ({ courtData, caseDetails, closeFunc, resched
     return `${year}-${month}-${day}`;
   };
 
-  const onGenerateOrder = () => {
-    const date = new Date(caseDetails.hearing.startTime);
-    const requestBody = {
-      order: {
-        createdDate: new Date().getTime(),
-        tenantId: Digit.ULBService.getCurrentTenantId(),
-        filingNumber: caseDetails.filingNumber,
-        cnrNumber: caseDetails.cnrNumber,
-        statuteSection: {
-          tenantId: Digit.ULBService.getCurrentTenantId(),
-        },
-        orderType: rescheduleAll ? "RESCHEDULING_OF_MULTIPLE_HEARING" : "INITIATING_RESCHEDULING_OF_HEARING_DATE",
-        status: "",
-        isActive: true,
-        workflow: {
-          action: OrderWorkflowAction.SAVE_DRAFT,
-          comments: "Creating order",
-          assignes: null,
-          rating: null,
-          documents: [{}],
-        },
-        documents: [],
-        additionalDetails: {
-          formdata: {
-            orderType: {
-              type: rescheduleAll ? "RESCHEDULING_OF_MULTIPLE_HEARING" : "INITIATING_RESCHEDULING_OF_HEARING_DATE",
-              isactive: true,
-              code: rescheduleAll ? "RESCHEDULING_OF_MULTIPLE_HEARING" : "INITIATING_RESCHEDULING_OF_HEARING_DATE",
-              name: rescheduleAll ? "ORDER_TYPE_RESCHEDULING_OF_MULTIPLE_HEARING" : "ORDER_TYPE_INITIATING_RESCHEDULING_OF_HEARING_DATE",
-            },
-            originalHearingDate: formatDate(date),
-            reasonForRescheduling: rescheduleReason,
+  const onGenerateOrder = async () => {
+    if (rescheduleAll) {
+      await hearingService.bulkReschedule(
+        {
+          BulkRescheduling: {
+            judgeId: "",
+            startTime: caseDetails.fromDate,
+            endTime: caseDetails.toDate,
+            scheduleAfter: new Date().getTime(),
+            tenantId: "kl",
           },
         },
-      },
-    };
-    ordersService
-      .createOrder(requestBody, { tenantId: Digit.ULBService.getCurrentTenantId() })
-      .then((res) => {
-        history.push(
-          `/${window.contextPath}/${userType}/orders/generate-orders?filingNumber=${caseDetails.filingNumber}&orderNumber=${res.order.orderNumber}`
-        );
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+        {}
+      );
+    } else {
+      const date = new Date(caseDetails.hearing.startTime);
+      const requestBody = {
+        order: {
+          createdDate: new Date().getTime(),
+          tenantId: Digit.ULBService.getCurrentTenantId(),
+          filingNumber: caseDetails.filingNumber,
+          cnrNumber: caseDetails.cnrNumber,
+          statuteSection: {
+            tenantId: Digit.ULBService.getCurrentTenantId(),
+          },
+          orderType: rescheduleAll ? "RESCHEDULING_OF_MULTIPLE_HEARING" : "INITIATING_RESCHEDULING_OF_HEARING_DATE",
+          status: "",
+          isActive: true,
+          workflow: {
+            action: OrderWorkflowAction.SAVE_DRAFT,
+            comments: "Creating order",
+            assignes: null,
+            rating: null,
+            documents: [{}],
+          },
+          documents: [],
+          additionalDetails: {
+            formdata: {
+              orderType: {
+                type: rescheduleAll ? "RESCHEDULING_OF_MULTIPLE_HEARING" : "INITIATING_RESCHEDULING_OF_HEARING_DATE",
+                isactive: true,
+                code: rescheduleAll ? "RESCHEDULING_OF_MULTIPLE_HEARING" : "INITIATING_RESCHEDULING_OF_HEARING_DATE",
+                name: rescheduleAll ? "ORDER_TYPE_RESCHEDULING_OF_MULTIPLE_HEARING" : "ORDER_TYPE_INITIATING_RESCHEDULING_OF_HEARING_DATE",
+              },
+              originalHearingDate: formatDate(date),
+              reasonForRescheduling: rescheduleReason,
+            },
+          },
+        },
+      };
+      ordersService
+        .createOrder(requestBody, { tenantId: Digit.ULBService.getCurrentTenantId() })
+        .then((res) => {
+          history.push(
+            `/${window.contextPath}/${userType}/orders/generate-orders?filingNumber=${caseDetails.filingNumber}&orderNumber=${res.order.orderNumber}`
+          );
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    }
   };
 
   return (
