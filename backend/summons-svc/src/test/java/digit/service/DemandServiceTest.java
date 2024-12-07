@@ -76,46 +76,43 @@ class DemandServiceTest {
     @Test
     public void fetchPaymentDetailsAndGenerateDemandAndBillTest() {
         // Arrange
-//        List<Calculation> calculations = Collections.singletonList(mock(Calculation.class));
-//        BillResponse billResponse = mock(BillResponse.class);
-//
-//        Map<String, Map<String, JSONArray>> mdmsRes = new HashMap<>();
-//        mdmsRes.put("payment", new HashMap<>());
-//
-//        List<String> masterList = new ArrayList<>();
-//        masterList.add("PaymentMasterCode");
-//
-//
-//        lenient().when(mdmsUtil.fetchMdmsData(requestInfo, "kl", "payment", masterList)).thenReturn(mdmsRes);
-//        when(taskRequest.getTask()).thenReturn(task);
-//        when(task.getTaskDetails()).thenReturn(taskDetails);
-//        when(taskDetails.getDeliveryChannel()).thenReturn(deliveryChannel);
-//        when(taskDetails.getRespondentDetails()).thenReturn(respondentDetails);
-//        when(respondentDetails.getAddress()).thenReturn(address);
-//        when(deliveryChannel.getChannelName()).thenReturn(ChannelName.SMS.toString());
-//        when(task.getTenantId()).thenReturn("tenant1");
-//        when(task.getTaskNumber()).thenReturn("TN001");
-//        when(repository.fetchResult(any(), any())).thenReturn(new Object());
-//        when(mapper.convertValue(any(), eq(CalculationResponse.class))).thenReturn(calculationResponse);
-//        when(calculationResponse.getCalculation()).thenReturn(calculations);
-//        when(repository.fetchResult(any(), any())).thenReturn(new Object());
-//        when(mapper.convertValue(any(), eq(DemandResponse.class))).thenReturn(demandResponse);
-//        when(demandResponse.getDemands()).thenReturn(demands);
-//        when(task.getTenantId()).thenReturn("tenant1");
-//        when(task.getTaskNumber()).thenReturn("TN001");
-//        when(config.getTaskBusinessService()).thenReturn("TBS001");
-//        when(config.getBillingServiceHost()).thenReturn("http://billing");
-//        when(config.getFetchBillEndpoint()).thenReturn("/fetch");
-//        when(task.getStatus()).thenReturn("PAYMENT");
-//        when(taskUtil.callUpdateTask(taskRequest)).thenReturn(null);
-//
-//        when(repository.fetchResult(any(), any())).thenReturn(new Object());
-//        when(mapper.convertValue(any(), eq(BillResponse.class))).thenReturn(billResponse);
-//        BillResponse result = demandService.fetchPaymentDetailsAndGenerateDemandAndBill(taskRequest);
+        List<Calculation> calculations = Collections.singletonList(mock(Calculation.class));
+        BillResponse billResponse = mock(BillResponse.class);
 
-        // Assert
-//        assertNotNull(result);
-//        assertEquals(billResponse, result);
+        Map<String, Map<String, JSONArray>> mdmsRes = new HashMap<>();
+        mdmsRes.put("payment", new HashMap<>());
+
+        List<String> masterList = new ArrayList<>();
+        masterList.add("PaymentMasterCode");
+
+
+        lenient().when(mdmsUtil.fetchMdmsData(requestInfo, "kl", "payment", masterList)).thenReturn(mdmsRes);
+        when(taskRequest.getTask()).thenReturn(task);
+        when(task.getTaskDetails()).thenReturn(taskDetails);
+        when(taskDetails.getDeliveryChannel()).thenReturn(deliveryChannel);
+        when(taskDetails.getRespondentDetails()).thenReturn(respondentDetails);
+        when(respondentDetails.getAddress()).thenReturn(address);
+        when(deliveryChannel.getChannelName()).thenReturn(ChannelName.POST.toString());
+        when(task.getTenantId()).thenReturn("tenant1");
+        when(task.getTaskNumber()).thenReturn("TN001");
+        when(repository.fetchResult(any(), any())).thenReturn(new Object());
+        when(mapper.convertValue(any(), eq(CalculationResponse.class))).thenReturn(calculationResponse);
+        when(calculationResponse.getCalculation()).thenReturn(calculations);
+        when(repository.fetchResult(any(), any())).thenReturn(new Object());
+        when(mapper.convertValue(any(), eq(DemandResponse.class))).thenReturn(demandResponse);
+        when(demandResponse.getDemands()).thenReturn(demands);
+        when(task.getTenantId()).thenReturn("tenant1");
+        when(task.getTaskNumber()).thenReturn("TN001");
+        when(config.getTaskBusinessService()).thenReturn("TBS001");
+        when(config.getBillingServiceHost()).thenReturn("http://billing");
+        when(config.getFetchBillEndpoint()).thenReturn("/fetch");
+
+        when(repository.fetchResult(any(), any())).thenReturn(new Object());
+        when(mapper.convertValue(any(), eq(BillResponse.class))).thenReturn(billResponse);
+        BillResponse result = demandService.fetchPaymentDetailsAndGenerateDemandAndBill(taskRequest);
+
+        assertNotNull(result);
+        assertEquals(billResponse, result);
     }
 
     @Test
@@ -204,5 +201,30 @@ class DemandServiceTest {
         assertEquals(billResponse, result);
         verify(repository).fetchResult(any(), any());
         verify(mapper).convertValue(any(), eq(BillResponse.class));
+    }
+
+    @Test
+    public void fetchPaymentDetailsAndGenerateDemandAndBillTestElseCase() {
+        // Arrange
+        List<Calculation> calculations = Collections.singletonList(mock(Calculation.class));
+        BillResponse billResponse = mock(BillResponse.class);
+
+        Map<String, Map<String, JSONArray>> mdmsRes = new HashMap<>();
+        mdmsRes.put("payment", new HashMap<>());
+
+        List<String> masterList = new ArrayList<>();
+        masterList.add("PaymentMasterCode");
+
+
+        lenient().when(mdmsUtil.fetchMdmsData(requestInfo, "kl", "payment", masterList)).thenReturn(mdmsRes);
+        when(taskRequest.getTask()).thenReturn(task);
+        when(task.getStatus()).thenReturn("PAYMENT_PENDING");
+        when(task.getTaskDetails()).thenReturn(taskDetails);
+        when(taskDetails.getDeliveryChannel()).thenReturn(deliveryChannel);
+        when(deliveryChannel.getChannelName()).thenReturn(ChannelName.SMS.toString());
+
+        BillResponse result = demandService.fetchPaymentDetailsAndGenerateDemandAndBill(taskRequest);
+
+        assertNull(result);
     }
 }
