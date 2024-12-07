@@ -1,10 +1,15 @@
 package org.pucar.dristi.repository;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.egov.common.contract.models.Document;
 import org.egov.tracer.model.CustomException;
+import org.pucar.dristi.repository.querybuilder.TaskCaseQueryBuilder;
 import org.pucar.dristi.repository.querybuilder.TaskQueryBuilder;
-import org.pucar.dristi.repository.rowmapper.*;
+import org.pucar.dristi.repository.rowmapper.AmountRowMapper;
+import org.pucar.dristi.repository.rowmapper.DocumentRowMapper;
+import org.pucar.dristi.repository.rowmapper.TaskCaseRowMapper;
+import org.pucar.dristi.repository.rowmapper.TaskRowMapper;
 import org.pucar.dristi.web.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -26,18 +31,22 @@ public class TaskRepository {
     private final TaskRowMapper rowMapper;
     private final AmountRowMapper amountRowMapper;
     private final DocumentRowMapper documentRowMapper;
+    private final TaskCaseQueryBuilder taskCaseQueryBuilder;
+    private final TaskCaseRowMapper taskCaseRowMapper;
 
     @Autowired
     public TaskRepository(TaskQueryBuilder queryBuilder,
                           JdbcTemplate jdbcTemplate,
                           TaskRowMapper rowMapper,
                           AmountRowMapper amountRowMapper,
-                          DocumentRowMapper documentRowMapper) {
+                          DocumentRowMapper documentRowMapper, TaskCaseQueryBuilder taskCaseQueryBuilder, TaskCaseRowMapper taskCaseRowMapper) {
         this.queryBuilder = queryBuilder;
         this.jdbcTemplate = jdbcTemplate;
         this.rowMapper = rowMapper;
         this.amountRowMapper = amountRowMapper;
         this.documentRowMapper = documentRowMapper;
+        this.taskCaseQueryBuilder = taskCaseQueryBuilder;
+        this.taskCaseRowMapper = taskCaseRowMapper;
     }
     
 
@@ -140,5 +149,58 @@ public class TaskRepository {
         String countQuery = queryBuilder.getTotalCountQuery(baseQuery);
         log.info("Final count query :: {}", countQuery);
         return jdbcTemplate.queryForObject(countQuery, Integer.class, preparedStmtList.toArray());
+    }
+
+    public List<TaskCase> getTaskWithCaseDetails(TaskCaseSearchRequest request) {
+
+        List<Object> preparedStmtList = new ArrayList<>();
+        List<Integer> preparedStmtArgDc = new ArrayList<>();
+
+        String taskQuery = taskCaseQueryBuilder.getTaskTableSearchQuery(request.getCriteria(), preparedStmtList);
+        taskQuery = taskCaseQueryBuilder.addOrderByQuery(taskQuery, request.getPagination());
+        log.debug("Final query: " + taskQuery);
+
+        if (request.getPagination() != null) {
+            Integer totalRecords = getTotalCountApplication(taskQuery, preparedStmtList);
+            log.info("Total count without pagination :: {}", totalRecords);
+            request.getPagination().setTotalCount(Double.valueOf(totalRecords));
+            taskQuery = taskCaseQueryBuilder.addPaginationQuery(taskQuery, request.getPagination(), preparedStmtList);
+        }
+
+        List<TaskCase> list = jdbcTemplate.query(taskQuery, preparedStmtList.toArray(), taskCaseRowMapper);
+        String applicationStatus = request.getCriteria().getApplicationStatus();
+
+        if (!ObjectUtils.isEmpty(applicationStatus) && list != null) {
+            list = list.stream().filter((element) -> applicationStatus.equals(element.getDocumentStatus())).toList();
+        }
+
+        List<Object> preparedStmtDc = new ArrayList<>();
+
+        List<String> ids = new ArrayList<>();
+        if (list == null) {
+            return new ArrayList<>();
+        }
+        for (TaskCase task : list)
+            ids.add(task.getId().toString());
+
+        String documentQuery = "";
+        documentQuery = queryBuilder.getDocumentSearchQuery(ids, preparedStmtDc,preparedStmtArgDc);
+        log.info("Final document query in summon table :: {}", documentQuery);
+        Map<UUID, List<Document>> documentMap = jdbcTemplate.query(documentQuery, preparedStmtDc.toArray(), documentRowMapper);
+        log.info("DB document map in summon table :: {}", documentMap);
+        if (documentMap != null) {
+            list.forEach(order -> {
+                order.setDocuments(documentMap.get(order.getId()));
+            });
+        }
+
+        return list;
+
+    }
+
+    public Integer getTotalCountApplication(String baseQuery, List<Object> preparedStmtList) {
+        String countQuery = taskCaseQueryBuilder.getTotalCountQuery(baseQuery);
+        log.info("Final count query :: {}", countQuery);
+        return jdbcTemplate.queryForObject(countQuery, preparedStmtList.toArray(), Integer.class);
     }
 }
